@@ -161,6 +161,8 @@
     .lead{display:none}
     .phone{width:100%;max-width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}
   }
+  .lock input[type=date]{text-align:center;min-height:50px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .lock input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 </style>
 </head>
 <body>
@@ -173,8 +175,8 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
     <div class="lockcard">
       <img src="assets/discinsanity-logo.png" alt="Discinsanity">
       <h1>Tags League</h1>
-      <p id="lockHint">Members only.<br>Enter today's date to see tonight's scores.</p>
-      <input id="lockInput" inputmode="numeric" placeholder="MM/DD/YYYY" onkeydown="if(event.key==='Enter')submitAccess()">
+      <p id="lockHint">Members only.<br>Pick today&#39;s date to see tonight&#39;s scores.</p>
+      <input id="lockInput" type="date" onkeydown="if(event.key==='Enter')submitAccess()">
       <button class="btn" onclick="submitAccess()">Enter</button>
       <div class="err" id="lockErr"></div>
     </div>
