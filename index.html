@@ -159,6 +159,23 @@
   .confetti{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;z-index:30;pointer-events:none;animation:fall 1.5s cubic-bezier(.3,.5,.6,1) forwards}
   .cel{display:inline-block;margin-left:5px;animation:rockon .6s ease both;font-size:15px}
   tr.uprow td{animation:upflash 1.2s ease both}
+  .celebrate{position:absolute;inset:0;z-index:45;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:radial-gradient(circle at 50% 32%,rgba(244,206,26,.20),rgba(8,30,58,.92));cursor:pointer;animation:viewIn .35s ease}
+  .celebrate.hide{display:none}
+  .celebrate-inner{display:flex;flex-direction:column;align-items:center;gap:13px;max-height:78%;overflow:auto;width:100%}
+  .big1{display:flex;flex-direction:column;align-items:center;animation:lockIn .5s cubic-bezier(.2,.8,.2,1) both}
+  .big1 .crown{font-size:42px;animation:crownb 1.3s ease-in-out infinite}
+  .big1 .bt{width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#ffe98a,#F4CE1A 60%,#d9b400);color:#5a4500;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:800;margin-top:-6px;border:3px solid #fff3c4;animation:pop1 .55s cubic-bezier(.2,1.6,.5,1) both,shimmer 1.7s ease-out infinite .5s}
+  .big1 .bn{color:#fff;font-size:24px;font-weight:800;margin-top:10px}
+  .big1 .bs{color:#ffe98a;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .ach{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:9px 14px;font-size:14px;font-weight:700;animation:rowIn .4s ease both}
+  .ach b{color:#ffe98a}
+  .celebrate-hint{position:absolute;bottom:24px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;animation:glow2 1.6s ease-in-out infinite}
+  .crownbadge{font-size:14px;margin-left:5px}
+  .streak{font-size:10px;font-weight:800;color:#a3850a;background:#fdf3cf;border:1px solid #ecdfa6;border-radius:10px;padding:1px 6px;margin-left:6px}
+  @keyframes pop1{0%{transform:scale(0) rotate(-18deg);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
+  @keyframes crownb{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-9px) rotate(7deg)}}
+  @keyframes shimmer{0%{box-shadow:0 0 0 0 rgba(244,206,26,.55)}100%{box-shadow:0 0 0 30px rgba(244,206,26,0)}}
+  @keyframes glow2{0%,100%{opacity:.55}50%{opacity:1}}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
   /* full-bleed on real phones */
@@ -303,6 +320,7 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
     <button data-tab="players" onclick="show('players')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>Standings</button>
   </nav>
   <div class="toast" id="toast"></div>
+  <div class="celebrate hide" id="celebrate" onclick="dismissCelebrate()"><div class="celebrate-inner" id="celebrateInner"></div><div class="celebrate-hint">tap to continue</div></div>
 </div>
 
 <script>
@@ -434,10 +452,10 @@ function renderResult(res){
   if(anyUp)setTimeout(confetti,260);
 }
 function saveRound(){
-  if(!lastResult)return;const c=COURSES[+document.getElementById('courseSel').value];
+  if(!lastResult)return;const c=COURSES[+document.getElementById('courseSel').value];const ach=roundAchievements(lastResult);
   lastResult.forEach(r=>{const p=players.find(x=>x.name===r.name);if(p){p.tag=r.newTag;p.isNew=false;p.firstNight=false;}});
   rounds.push({id:'r'+Date.now(),date:today(),course:c.course,layout:c.layout,par:c.par,results:lastResult});
-  persist();const id=rounds[rounds.length-1].id;lastResult=null;resetTonight();renderAll();openRound(id,'tonight');toast('Round saved');
+  persist();const id=rounds[rounds.length-1].id;lastResult=null;resetTonight();renderAll();if(ach.no1.length||ach.pbs.length){showCelebration(ach,id);}else{confetti();toast('Round saved 🥏');openRound(id,'tonight');}
 }
 
 /* ===== CSV IMPORT ===== */
@@ -526,7 +544,7 @@ function renderPlayers(){const el=document.getElementById('playerList');el.inner
   DIVS.forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
     const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot ${d.id}"></span>${d.label}`;el.appendChild(h);
     grp.forEach(p=>{const s=statsFor(p.name);const row=document.createElement('div');row.className='row tap';stagger(row,i++);row.onclick=()=>openProfile(p.name);
-      row.innerHTML=`<div class="tag sm ${p.isNew?'new':d.id} ${p.tag===1?'topseed':''}">${p.tag}</div><div class="name">${p.name}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
+      row.innerHTML=`<div class="tag sm ${p.isNew?'new':d.id} ${p.tag===1?'topseed':''}">${p.tag}</div><div class="name">${p.name}${p.tag===1?'<span class="crownbadge">👑</span>':''}${no1Streak(p.name)>=2?'<span class="streak">🔥 '+no1Streak(p.name)+'× #1</span>':''}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
   document.getElementById('npRule').value=config.newPlayerRule;}
 function openProfile(name){const {p,tl,roundsN,wins,bestTag,bestScore}=statsFor(name);
   document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${p.division==='PRO'?'#e8f1fa':'#e6e9f0'};color:${p.division==='PRO'?'#0066B3':'#1f2d4d'}">${divLabel(p.division)}</span>`;
@@ -536,7 +554,7 @@ function openProfile(name){const {p,tl,roundsN,wins,bestTag,bestScore}=statsFor(
     <div class="stat"><div class="v">${roundsN}</div><div class="l">Rounds</div></div>
     <div class="stat"><div class="v">${wins}</div><div class="l">Wins</div></div>
     <div class="stat"><div class="v">${bestScore}</div><div class="l">Best score</div></div>
-    <div class="stat"><div class="v">${p.tag<=2?'🔥':'—'}</div><div class="l">Hot</div></div>`;
+    <div class="stat"><div class="v">${no1Streak(name)>=2?no1Streak(name)+'×':(p.tag===1?'👑':'—')}</div><div class="l">#1 streak</div></div>`;
   let seq=[];if(tl.length){seq.push({t:tl[0].oldTag,k:'start'});tl.forEach(e=>seq.push({t:e.newTag,k:e.kind}));}else seq=[{t:p.tag,k:'start'}];
   document.getElementById('pf-chips').innerHTML=seq.map((s,i)=>`${i?'<span class="arrowc">→</span>':''}<span class="chip ${s.k==='trade'?'trade':''}">${s.t}</span>`).join('');
   document.getElementById('pf-chart').innerHTML=chartSVG(tl);
@@ -618,6 +636,12 @@ function renderAll(){
   document.getElementById('ctx').textContent=`${rounds.length} wks`;
   document.getElementById('backBadge').innerHTML=remoteOn()?'<span class="backbadge" style="background:#d8eede;color:#1f9d57">☁ cloud</span>':'<span class="backbadge" style="background:#eef3f8;color:#67737f">● local</span>';
   renderCourseSel();renderRoster();renderHistory();renderPlayers();}
+function roundAchievements(res){const no1=[],pbs=[];res.forEach(r=>{const tl=timeline(r.name);const priorBest=tl.length?Math.min(r.oldTag,...tl.map(e=>e.newTag)):r.oldTag;if(r.newTag===1&&r.oldTag!==1)no1.push({name:r.name,division:r.division});if(r.newTag<priorBest)pbs.push({name:r.name,division:r.division,tag:r.newTag});});return {no1,pbs};}
+let pendingRoundId=null,celTimer=null;
+function showCelebration(ach,roundId){pendingRoundId=roundId;const inner=document.getElementById('celebrateInner');let html='';ach.no1.forEach(a=>{html+='<div class="big1"><div class="crown">👑</div><div class="bt">1</div><div class="bn">'+a.name+'</div><div class="bs">takes the top tag · '+divLabel(a.division)+'</div></div>';});const n1=new Set(ach.no1.map(a=>a.name));const pbs=ach.pbs.filter(a=>!n1.has(a.name));if(!ach.no1.length&&pbs.length)html+='<div class="bn" style="font-size:22px">⭐ Personal Best!</div>';pbs.forEach(a=>{html+='<div class="ach">⭐ <b>'+a.name+'</b> — new best tag <b>'+a.tag+'</b> · '+divLabel(a.division)+'</div>';});inner.innerHTML=html;document.getElementById('celebrate').classList.remove('hide');bigConfetti();setTimeout(bigConfetti,500);clearTimeout(celTimer);celTimer=setTimeout(dismissCelebrate,5200);}
+function dismissCelebrate(){clearTimeout(celTimer);document.getElementById('celebrate').classList.add('hide');if(pendingRoundId){openRound(pendingRoundId,'tonight');pendingRoundId=null;}}
+function bigConfetti(){const host=document.querySelector('.phone');if(!host)return;const colors=['#0066B3','#F4CE1A','#1f9d57','#1f2d4d','#fff3c4'];for(let k=0;k<46;k++){const c=document.createElement('div');c.className='confetti';c.style.left=(2+Math.random()*96)+'%';c.style.background=colors[k%colors.length];c.style.animationDelay=(Math.random()*0.5)+'s';c.style.animationDuration=(1.6+Math.random()*1.2)+'s';c.style.width=(7+Math.random()*6)+'px';c.style.zIndex='48';host.appendChild(c);setTimeout(()=>c.remove(),3200);}}
+function no1Streak(name){const tl=timeline(name).filter(e=>e.kind==='round');let st=0;for(let i=tl.length-1;i>=0;i--){if(tl[i].newTag===1)st++;else break;}return st;}
 function confetti(){const host=document.querySelector('.phone');if(!host)return;const colors=['#0066B3','#F4CE1A','#1f9d57','#1f2d4d'];for(let k=0;k<20;k++){const c=document.createElement('div');c.className='confetti';c.style.left=(8+Math.random()*84)+'%';c.style.background=colors[k%colors.length];c.style.animationDelay=(Math.random()*0.25)+'s';c.style.width=(7+Math.random()*5)+'px';host.appendChild(c);setTimeout(()=>c.remove(),1800);}}
 let toastT=null;function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1800);}
 
