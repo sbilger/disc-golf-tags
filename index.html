@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TagShuffle — prototype</title>
+<style>
+  :root{--green:#1f5c3d;--green-2:#2e7d52;--cream:#f6f1e7;--ink:#13201a;--orange:#e8742c;--line:#dfd6c4;--good:#2e7d52;--bad:#c0492f;--grey:#9b9385;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#cdbfa6;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px}
+  .lead{max-width:380px;text-align:center;color:#3a3122;margin:0 0 18px;font-size:14px;line-height:1.4}
+  .phone{width:360px;max-width:100%;height:780px;background:var(--cream);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column;border:10px solid #11160f;position:relative}
+  header{background:var(--green);color:var(--cream);padding:16px 18px 13px;display:flex;align-items:center;gap:10px;flex:0 0 auto}
+  .basket{width:24px;height:24px;flex:0 0 auto}
+  .brand{font-weight:800;letter-spacing:.3px;font-size:17px}
+  .ctx{margin-left:auto;font-size:12px;opacity:.85}
+  .views{flex:1;position:relative;overflow:hidden}
+  .view{position:absolute;inset:0;overflow-y:auto;padding:16px 16px 24px;display:none}
+  .view.on{display:block}
+  h2{margin:2px 2px 12px;font-size:21px;color:var(--ink)}
+  .sub{margin:-6px 2px 14px;color:#6f6757;font-size:13px}
+  .tabbar{flex:0 0 auto;display:flex;background:#fff;border-top:1px solid var(--line)}
+  .tabbar button{flex:1;border:0;background:none;padding:10px 0 8px;cursor:pointer;color:#9b9385;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .tabbar button.on{color:var(--green)}
+  .tabbar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;transition:.15s}
+  .row.tap{cursor:pointer}.row.off{opacity:.45}
+  .tag{width:42px;height:42px;flex:0 0 auto;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;border:2px solid #16462e}
+  .tag.sm{width:34px;height:34px;font-size:14px}.tag.new{background:var(--orange);border-color:#b9591c}
+  .name{flex:1;font-weight:700;color:var(--ink);font-size:16px}
+  .meta{font-size:12px;color:#6f6757;font-weight:600}
+  .toggle{width:54px;height:30px;border-radius:30px;background:#cfc6b4;position:relative;cursor:pointer;flex:0 0 auto}
+  .toggle.on{background:var(--green-2)}
+  .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .toggle.on .knob{left:27px}
+  .score{width:66px;height:40px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:700;color:var(--ink)}
+  .chev{color:#c3bba9;font-size:20px;font-weight:800}
+  .btn{width:100%;border:0;border-radius:16px;background:var(--green);color:#fff;font-weight:800;font-size:17px;padding:15px;cursor:pointer;margin-top:6px}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;color:var(--green);border:2px solid var(--green)}
+  .btn.sm{font-size:14px;padding:11px;margin-top:0}
+  .btn.orange{background:var(--orange)}
+  .import{background:#eef6f0;border:1px dashed #9cc4ad;border-radius:16px;padding:12px;margin-bottom:16px}
+  .importbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer;margin:0}
+  .impmsg{font-size:13px;margin-top:10px;color:#33603f;font-weight:600;line-height:1.35}
+  .impmsg.err{color:var(--bad)}
+  .fmt{font-size:11px;color:#7d8a82;margin-top:8px;line-height:1.3}
+  .map{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
+  .map h4{margin:0 0 8px;font-size:13px;color:var(--bad)}
+  .maprow{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:13px}
+  .maprow b{flex:0 0 86px}
+  .maprow select{flex:1;padding:7px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  .applybtn{margin-top:6px;width:100%;border:0;border-radius:10px;background:var(--orange);color:#fff;font-weight:800;padding:11px;cursor:pointer}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:12px;color:#6f6757;text-transform:uppercase;letter-spacing:.5px;padding:6px 4px;border-bottom:2px solid var(--line)}
+  td{padding:10px 4px;border-bottom:1px solid var(--line);font-size:15px;color:var(--ink)}
+  .chg{font-weight:800;display:inline-flex;align-items:center;gap:6px}
+  .up{color:var(--good)}.down{color:var(--bad)}.same{color:var(--grey)}
+  .pill{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-left:6px}
+  .pill.up{background:#e3f1e8;color:var(--good)}.pill.down{background:#f7e4de;color:var(--bad)}.pill.new{background:#fbe6d4;color:var(--orange)}.pill.trade{background:#e6ecfb;color:#3a55c0}
+  .note{margin:14px 2px 0;color:#6f6757;font-size:13px;background:#efe8d8;padding:10px 12px;border-radius:12px}
+  .hcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:11px;cursor:pointer;display:flex;align-items:center;gap:12px}
+  .hcard.trade{background:#f3f5fc;border-color:#cdd6f3}
+  .hdate{flex:0 0 auto;text-align:center;background:var(--green);color:#fff;border-radius:12px;padding:8px 10px;min-width:52px}
+  .hcard.trade .hdate{background:#3a55c0}
+  .hdate .d{font-size:18px;font-weight:800;line-height:1}.hdate .m{font-size:11px;text-transform:uppercase;opacity:.85}
+  .hbody{flex:1}.hbody .c{font-weight:800;color:var(--ink);font-size:15px}.hbody .s{font-size:12px;color:#6f6757;margin-top:2px}
+  .dhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .back{border:0;background:#eadfca;color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:14px}
+  .dtitle{font-size:19px;font-weight:800;color:var(--ink)}
+  .dsub{font-size:12px;color:#6f6757;margin:-10px 0 14px 2px}
+  .pf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .stat .v{font-size:20px;font-weight:800;color:var(--green)}
+  .stat .l{font-size:10px;color:#6f6757;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+  .chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 16px}
+  .chip{background:#eef6f0;border:1px solid #bcd9c7;color:var(--green);font-weight:800;border-radius:20px;padding:4px 11px;font-size:14px}
+  .chip.trade{background:#e6ecfb;border-color:#bcc8f0;color:#3a55c0}
+  .arrowc{color:#bcb6a6;font-weight:800}
+  .chart{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 6px 4px;margin-bottom:16px}
+  .chart .cap{font-size:11px;color:#6f6757;text-align:center;margin:2px 0 0}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+  .card h3{margin:0 0 10px;font-size:15px;color:var(--ink)}
+  .field{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .field label{flex:0 0 70px;font-size:13px;color:#6f6757;font-weight:700}
+  .field select,.field input{flex:1;padding:9px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:600}
+  .preview{font-size:13px;color:var(--green);font-weight:700;margin:4px 0 10px}
+  .seg{display:flex;gap:8px;margin-bottom:10px}
+  .seg button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px;font-weight:700;font-size:13px;cursor:pointer;color:#6f6757}
+  .seg button.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .reset{margin-top:18px;text-align:center}
+  .reset button{background:none;border:0;color:#a98;font-size:12px;text-decoration:underline;cursor:pointer}
+  .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%);background:#13201a;color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  .backbadge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:8px}
+  .backbadge.local{background:#efe2c8;color:#8a7a4d}.backbadge.cloud{background:#d8eede;color:#1f5c3d}
+</style>
+</head>
+<body>
+<p class="lead"><b>TagShuffle</b> — full prototype: reshuffle · history · profiles+graphs · <b>trading</b> · <b>new-player rule</b> · <b>standings export</b> · <b>backend-ready</b>.</p>
+
+<div class="phone">
+  <header>
+    <svg class="basket" viewBox="0 0 24 24" stroke="#f6f1e7" fill="none" stroke-width="2" stroke-linecap="round"><path d="M5 8h14M6 8l1 11M18 8l-1 11M7 19h10M12 8V3M9 5h6"/></svg>
+    <span class="brand">TagShuffle</span>
+    <span class="ctx" id="ctx"></span>
+  </header>
+
+  <div class="views">
+    <!-- TONIGHT -->
+    <section class="view on" id="v-tonight">
+      <h2>Tonight's Tags</h2>
+      <div class="import">
+        <label class="btn ghost importbtn">⬆ Import UDisc CSV<input type="file" accept=".csv,text/csv" hidden onchange="onFile(event)"></label>
+        <div class="impmsg" id="impmsg"></div><div id="mapPanel"></div>
+        <div class="fmt">Auto-detects name + total columns, skips "Par", picks latest round. (Sample CSVs in the /samples folder.)</div>
+      </div>
+      <p class="sub">Pick a course, toggle who's here, type scores — or import above.</p>
+      <div class="row"><div class="meta" style="flex:1">Course / layout</div>
+        <select id="courseSel" class="score" style="width:auto;font-size:14px;font-weight:700;padding:0 8px"></select></div>
+      <div id="roster"></div>
+      <button class="btn" id="mainBtn" onclick="reshuffle()">Reshuffle Tags</button>
+    </section>
+
+    <!-- RESULT -->
+    <section class="view" id="v-result">
+      <div class="dhead"><button class="back" onclick="show('tonight')">‹ Back</button><div class="dtitle">New Tags</div></div>
+      <p class="dsub" id="res-sub"></p>
+      <table><thead><tr><th>Player</th><th>Score</th><th>Old → New</th></tr></thead><tbody id="resultBody"></tbody></table>
+      <div class="note" id="absentNote"></div>
+      <button class="btn" onclick="saveRound()">Save Round to History</button>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="view" id="v-history">
+      <h2>League History</h2>
+      <p class="sub">Tags nights + trades. Tap a week to see the full scorecard.</p>
+      <div id="historyList"></div>
+    </section>
+
+    <!-- ROUND DETAIL -->
+    <section class="view" id="v-round">
+      <div class="dhead"><button class="back" onclick="show('history')">‹ History</button><div class="dtitle" id="rd-title">Round</div></div>
+      <p class="dsub" id="rd-sub"></p>
+      <table><thead><tr><th>#</th><th>Player</th><th>Score</th><th>Tag</th></tr></thead><tbody id="rdBody"></tbody></table>
+    </section>
+
+    <!-- PLAYERS / STANDINGS -->
+    <section class="view" id="v-players">
+      <h2>Standings <span id="backBadge"></span></h2>
+      <p class="sub">By current tag. Tap a player for their graph + history.</p>
+      <div class="seg"><button class="btn sm orange" style="margin:0" onclick="show('trade')">⇄ Trade tags</button>
+        <button class="btn sm ghost" style="margin:0" onclick="show('export')">⤓ Export / Share</button></div>
+      <div id="playerList"></div>
+      <div class="card" style="margin-top:14px"><h3>Settings</h3>
+        <div class="field"><label>New player</label>
+          <select id="npRule" onchange="setRule(this.value)">
+            <option value="pool">Joins the swap immediately (worst tag, can climb night 1)</option>
+            <option value="holdout">Holds out first night (gets worst tag, no swap)</option>
+          </select></div>
+      </div>
+      <div class="reset"><button onclick="resetDemo()">↺ reset demo data</button></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="view" id="v-profile">
+      <div class="dhead"><button class="back" onclick="show('players')">‹ Standings</button><div class="dtitle" id="pf-name">Player</div></div>
+      <div class="pf-stats" id="pf-stats"></div>
+      <div class="meta" style="margin:0 2px 6px">Tags held, oldest → now</div>
+      <div class="chips" id="pf-chips"></div>
+      <div class="chart" id="pf-chart"></div>
+      <div class="meta" style="margin:0 2px 8px">Round-by-round + trades</div>
+      <table><thead><tr><th>Date</th><th>Event</th><th>Score</th><th>Tag</th></tr></thead><tbody id="pf-rows"></tbody></table>
+    </section>
+
+    <!-- TRADE -->
+    <section class="view" id="v-trade">
+      <div class="dhead"><button class="back" onclick="show('players')">‹ Standings</button><div class="dtitle">Trade Tags</div></div>
+      <div class="seg"><button id="seg-swap" class="on" onclick="tradeMode('swap')">Swap two players</button>
+        <button id="seg-re" onclick="tradeMode('re')">Reassign one</button></div>
+      <div class="card" id="swapCard">
+        <h3>Swap tags between two players</h3>
+        <div class="field"><label>Player A</label><select id="swapA" onchange="swapPreview()"></select></div>
+        <div class="field"><label>Player B</label><select id="swapB" onchange="swapPreview()"></select></div>
+        <div class="preview" id="swapPrev"></div>
+        <button class="btn orange" onclick="doSwap()">Swap their tags</button>
+      </div>
+      <div class="card" id="reCard" style="display:none">
+        <h3>Reassign a player to a tag</h3>
+        <div class="field"><label>Player</label><select id="reP" onchange="rePreview()"></select></div>
+        <div class="field"><label>New tag</label><input id="reTag" type="number" inputmode="numeric" oninput="rePreview()" placeholder="e.g. 4"></div>
+        <div class="preview" id="rePrev"></div>
+        <button class="btn orange" onclick="doReassign()">Apply reassignment</button>
+      </div>
+      <div class="note">Trades are logged to History and show on each player's profile. Tags always stay unique — reassigning to a taken number swaps with whoever holds it.</div>
+    </section>
+
+    <!-- EXPORT -->
+    <section class="view" id="v-export">
+      <div class="dhead"><button class="back" onclick="show('players')">‹ Standings</button><div class="dtitle">Export / Share</div></div>
+      <div class="card"><h3>Current standings</h3><div id="exportPreview"></div></div>
+      <button class="btn" onclick="copyStandings()">📋 Copy standings text (for group chat)</button>
+      <button class="btn ghost" onclick="downloadCSV()">⤓ Download CSV</button>
+      <button class="btn ghost" onclick="downloadHTML()">⤓ Download shareable standings page</button>
+      <div class="note">The shareable page is a self-contained read-only HTML — host it anywhere (or hand it off) and players see live-tag standings. A true auto-updating link comes with the cloud backend (see BACKEND.md).</div>
+    </section>
+  </div>
+
+  <nav class="tabbar">
+    <button data-tab="tonight" class="on" onclick="show('tonight')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 6v6l4 2"/></svg>Tonight</button>
+    <button data-tab="history" onclick="show('history')"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>History</button>
+    <button data-tab="players" onclick="show('players')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>Standings</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ===== BACKEND CONFIG — paste Supabase URL + anon key to go multi-device (see BACKEND.md) ===== */
+const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='default';
+const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
+async function remoteLoad(){
+  const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});
+  if(!r.ok) throw new Error('load '+r.status); const rows=await r.json(); return rows[0]?rows[0].state:null;
+}
+async function remoteSave(state){
+  await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state,updated_at:new Date().toISOString()})});
+}
+
+/* ===== STATE ===== */
+const KEY='tagshuffle_v3';
+const COURSES=[{course:'Maple Hill',layout:'Blue 9',par:27},{course:'Pinecrest',layout:'Red 9',par:30},{course:'Lakeview',layout:'White 9',par:28}];
+let players=[],rounds=[],trades=[],config={newPlayerRule:'pool'};
+const today=()=>new Date().toISOString().slice(0,10);
+
+/* ===== CORE: present-only swap + new-player rule ===== */
+function computeReshuffle(present, rule){
+  rule=rule||'pool';
+  const ranked=[...present].sort((a,b)=>a.score-b.score||a.tag-b.tag);
+  const place={}; ranked.forEach((p,i)=>place[p.name]=i+1);
+  if(rule==='holdout' && present.some(p=>p.firstNight)){
+    const vets=present.filter(p=>!p.firstNight), rookies=present.filter(p=>p.firstNight);
+    const pool=vets.map(p=>p.tag).sort((a,b)=>a-b);
+    const vr=[...vets].sort((a,b)=>a.score-b.score||a.tag-b.tag);
+    const out=vr.map((p,i)=>({name:p.name,score:p.score,place:place[p.name],oldTag:p.tag,newTag:pool[i],isNew:false}));
+    rookies.forEach(p=>out.push({name:p.name,score:p.score,place:place[p.name],oldTag:p.tag,newTag:p.tag,isNew:true,rookie:true}));
+    return out;
+  }
+  const pool=present.map(p=>p.tag).sort((a,b)=>a-b);
+  return ranked.map((p,i)=>({name:p.name,score:p.score,place:i+1,oldTag:p.tag,newTag:pool[i],isNew:!!p.isNew}));
+}
+
+/* ===== SEED ===== */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function isoWeeksAgo(w){const d=new Date(2026,5,24);d.setDate(d.getDate()-w*7);return d.toISOString().slice(0,10);}
+function buildSeed(){
+  const rng=mulberry32(73);
+  const roster=[{name:'Sarah',skill:50},{name:'Mike',skill:52},{name:'Luis',skill:54},{name:'Dave',skill:55},{name:'Kim',skill:57},{name:'Tony',skill:58},{name:'Ray',skill:60},{name:'Jo',skill:62}];
+  const initial={Mike:1,Sarah:2,Dave:3,Tony:4,Luis:5,Kim:6,Ray:7,Jo:8};
+  let cur={};roster.forEach(p=>cur[p.name]=initial[p.name]); const skill={};roster.forEach(p=>skill[p.name]=p.skill);
+  const rs=[]; const WEEKS=8;
+  for(let w=0;w<WEEKS;w++){const c=COURSES[w%COURSES.length];
+    let present=roster.filter(()=>rng()<0.85).map(p=>p.name); if(present.length<5)present=roster.map(p=>p.name);
+    const arr=present.map(n=>({name:n,tag:cur[n],score:Math.round(skill[n]+(c.par-27)+(rng()*8-3))}));
+    const res=computeReshuffle(arr,'pool'); res.forEach(r=>{cur[r.name]=r.newTag;});
+    rs.push({id:'r'+w,date:isoWeeksAgo(WEEKS-1-w),course:c.course,layout:c.layout,par:c.par,results:res});}
+  return {players:roster.map(p=>({name:p.name,tag:cur[p.name]})),rounds:rs,trades:[],config:{newPlayerRule:'pool'}};
+}
+
+/* ===== STORE (local + optional cloud) ===== */
+async function loadState(){
+  let s=null;
+  if(remoteOn()){ try{s=await remoteLoad();}catch(e){console.warn('remote load failed',e);} }
+  if(!s){ const raw=localStorage.getItem(KEY); if(raw){try{s=JSON.parse(raw);}catch(e){}} }
+  if(!s) s=buildSeed();
+  players=s.players; rounds=s.rounds; trades=s.trades||[]; config=s.config||{newPlayerRule:'pool'};
+  persist();
+}
+function persist(){
+  const state={players,rounds,trades,config};
+  localStorage.setItem(KEY,JSON.stringify(state));
+  if(remoteOn()) remoteSave(state).catch(e=>console.warn('remote save failed',e));
+}
+function resetDemo(){ localStorage.removeItem(KEY); const s=buildSeed(); players=s.players;rounds=s.rounds;trades=s.trades;config=s.config; persist(); resetTonight(); renderAll(); show('players'); toast('Demo data reset'); }
+
+/* ===== TONIGHT ===== */
+let tonight={},lastResult=null;
+function resetTonight(){tonight={};players.forEach(p=>tonight[p.name]={present:false,score:null});pendingImport=null;const mp=document.getElementById('mapPanel');if(mp)mp.innerHTML='';msg('');}
+function renderCourseSel(){document.getElementById('courseSel').innerHTML=COURSES.map((c,i)=>`<option value="${i}">${c.course} — ${c.layout}</option>`).join('');}
+function renderRoster(){
+  const el=document.getElementById('roster');el.innerHTML='';
+  players.forEach((p,i)=>{const t=tonight[p.name]||{present:false,score:null};const row=document.createElement('div');row.className='row'+(t.present?'':' off');
+    row.innerHTML=`<div class="tag ${p.isNew?'new':''}">${p.tag}</div><div class="name">${p.name}</div>
+      ${t.present?`<input class="score" type="number" inputmode="numeric" value="${t.score??''}" placeholder="score" oninput="setScore(${i},this.value)">`:''}
+      <div class="toggle ${t.present?'on':''}" onclick="toggle(${i})"><div class="knob"></div></div>`;el.appendChild(row);});
+}
+function toggle(i){const n=players[i].name;tonight[n].present=!tonight[n].present;if(!tonight[n].present)tonight[n].score=null;renderRoster();}
+function setScore(i,v){tonight[players[i].name].score=v===''?null:Number(v);}
+function reshuffle(){
+  const present=players.filter(p=>tonight[p.name].present).map(p=>({name:p.name,tag:p.tag,score:tonight[p.name].score,isNew:!!p.isNew,firstNight:!!p.firstNight}));
+  if(!present.length){alert('Nobody checked in.');return;}
+  if(present.some(p=>p.score===null||isNaN(p.score))){alert('Every present player needs a score.');return;}
+  lastResult=computeReshuffle(present,config.newPlayerRule); renderResult(lastResult); show('result');
+}
+function renderResult(res){
+  const c=COURSES[+document.getElementById('courseSel').value];
+  document.getElementById('res-sub').textContent=`${c.course} — ${c.layout} · ${config.newPlayerRule==='holdout'?'rookies hold out':'present-only swap'}`;
+  const body=document.getElementById('resultBody');body.innerHTML='';
+  const counts={};res.forEach(r=>counts[r.score]=(counts[r.score]||0)+1);
+  [...res].sort((a,b)=>a.place-b.place).forEach(r=>{const dir=r.newTag<r.oldTag?'up':r.newTag>r.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
+    const pill=r.rookie?'<span class="pill new">rookie</span>':r.isNew?'<span class="pill new">new</span>':dir==='up'?'<span class="pill up">up</span>':dir==='down'?'<span class="pill down">down</span>':'';
+    const tie=counts[r.score]>1?'<span class="tie">tie</span>':'';const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${r.name}</b>${tie}</td><td>${r.score}</td><td><span class="chg ${dir}">${r.oldTag} ${arrow} ${r.newTag}</span>${pill}</td>`;body.appendChild(tr);});
+  const absent=players.filter(p=>!tonight[p.name].present).map(p=>p.tag).sort((a,b)=>a-b);
+  document.getElementById('absentNote').textContent=absent.length?`Absent players keep tags ${absent.join(', ')}.`:'Everyone showed up — full reshuffle.';
+}
+function saveRound(){
+  if(!lastResult)return;const c=COURSES[+document.getElementById('courseSel').value];
+  lastResult.forEach(r=>{const p=players.find(x=>x.name===r.name);if(p){p.tag=r.newTag;p.isNew=false;p.firstNight=false;}});
+  rounds.push({id:'r'+Date.now(),date:today(),course:c.course,layout:c.layout,par:c.par,results:lastResult});
+  persist();const id=rounds[rounds.length-1].id;lastResult=null;resetTonight();renderAll();openRound(id,'tonight');toast('Round saved');
+}
+
+/* ===== CSV IMPORT ===== */
+function parseCSV(text){const rows=[];let field='',row=[],inQ=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(inQ){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else inQ=false;}else field+=c;}
+    else{if(c==='"')inQ=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c!=='\r')field+=c;}}
+  if(field.length||row.length){row.push(field);rows.push(row);}return rows.filter(r=>r.some(x=>(x||'').trim()!==''));}
+function findCol(h,res){for(const re of res){const i=h.findIndex(x=>re.test((x||'').trim()));if(i>=0)return i;}return -1;}
+let pendingImport=null;
+function onFile(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{ingest(parseCSV(r.result));}catch(e){msg('Could not read that file: '+e.message,true);}};r.onerror=()=>msg('File read failed.',true);r.readAsText(f);ev.target.value='';}
+function ingest(rows){
+  if(rows.length<2){msg('CSV looks empty.',true);return;}
+  let hIdx=rows.findIndex(r=>r.some(c=>/player|name/i.test(c))&&r.some(c=>/total|score|place|pos|rank/i.test(c)));if(hIdx<0)hIdx=0;
+  const header=rows[hIdx].map(c=>(c||'').trim());
+  const cName=findCol(header,[/^player\s*name$/i,/^name$/i,/^player$/i,/name/i]);
+  const cTotal=findCol(header,[/^total$/i,/^score$/i,/total/i,/^\+\/-$/,/^to\s*par$/i]);
+  const cDate=findCol(header,[/^start\s*date$/i,/^date$/i,/start/i]);
+  const cPlace=findCol(header,[/^place$/i,/^pos(ition)?$/i,/^rank$/i]);
+  if(cName<0||(cTotal<0&&cPlace<0)){msg('Could not find name + score columns. (Header: '+header.join(', ')+')',true);return;}
+  let entries=[];
+  for(let i=hIdx+1;i<rows.length;i++){const r=rows[i];const name=(r[cName]||'').trim();if(!name||/^par$/i.test(name))continue;
+    const raw=cTotal>=0?r[cTotal]:r[cPlace];const score=parseInt(String(raw).replace(/[^\d\-]/g,''),10);if(isNaN(score))continue;
+    const date=cDate>=0?(r[cDate]||'').trim():'';entries.push({name,score,date});}
+  if(!entries.length){msg('No player rows found.',true);return;}
+  const dates=[...new Set(entries.map(e=>e.date).filter(Boolean))];if(dates.length>1){const latest=dates.sort().slice(-1)[0];entries=entries.filter(e=>e.date===latest);}
+  const byName={};players.forEach((p,i)=>byName[p.name.toLowerCase()]=i);const matched=[],unmatched=[];
+  entries.forEach(e=>{const idx=byName[e.name.toLowerCase()];if(idx!==undefined)matched.push({playerIdx:idx,name:e.name,score:e.score});else unmatched.push({name:e.name,score:e.score});});
+  pendingImport={matched,unmatched};
+  msg(`Parsed ${entries.length} players`+(cTotal<0?' (by place)':'')+`. ${matched.length} matched`+(unmatched.length?`, ${unmatched.length} need mapping ↓`:`. Ready — review then Reshuffle.`));
+  renderMap();if(!unmatched.length)applyImport();
+}
+function renderMap(){const el=document.getElementById('mapPanel');el.innerHTML='';if(!pendingImport||!pendingImport.unmatched.length)return;
+  const opts=players.map((p,i)=>`<option value="${i}">${p.name} (tag ${p.tag})</option>`).join('')+`<option value="new">➕ Add as NEW player</option>`;
+  let html=`<div class="map"><h4>Unrecognized names — map them:</h4>`;
+  pendingImport.unmatched.forEach((u,j)=>{html+=`<div class="maprow"><b>${u.name}</b><span>${u.score}</span><select id="map${j}">${opts}<option value="skip">Skip</option></select></div>`;});
+  html+=`<button class="applybtn" onclick="applyImport()">Apply import</button></div>`;el.innerHTML=html;}
+function nextTag(){return Math.max(0,...players.map(p=>p.tag))+1;}
+function applyImport(){
+  if(!pendingImport)return;players.forEach(p=>{tonight[p.name]={present:false,score:null};});
+  pendingImport.matched.forEach(m=>{tonight[players[m.playerIdx].name]={present:true,score:m.score};});
+  pendingImport.unmatched.forEach((u,j)=>{const sel=document.getElementById('map'+j);const v=sel?sel.value:'skip';if(v==='skip')return;
+    if(v==='new'){players.push({name:u.name,tag:nextTag(),isNew:true,firstNight:config.newPlayerRule==='holdout'});tonight[u.name]={present:true,score:u.score};}
+    else{tonight[players[+v].name]={present:true,score:u.score};}});
+  pendingImport=null;document.getElementById('mapPanel').innerHTML='';msg('Import applied. Review the roster below, then Reshuffle.');renderRoster();
+}
+function msg(t,err){const m=document.getElementById('impmsg');m.textContent=t;m.className='impmsg'+(err?' err':'');}
+
+/* ===== TIMELINE (rounds + trades) ===== */
+function timeline(name){
+  const ev=[];
+  rounds.forEach(r=>{const x=r.results.find(y=>y.name===name);if(x)ev.push({date:r.date,kind:'round',label:r.course,course:r.course,score:x.score,place:x.place,players:r.results.length,oldTag:x.oldTag,newTag:x.newTag});});
+  trades.forEach(t=>{const ch=t.changes.find(c=>c.name===name);if(ch)ev.push({date:t.date,kind:'trade',label:t.note,oldTag:ch.oldTag,newTag:ch.newTag});});
+  ev.sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+  return ev;
+}
+
+/* ===== HISTORY ===== */
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(iso){const [y,m,d]=iso.split('-').map(Number);return {d,m:MON[m-1],short:`${m}/${d}`};}
+function renderHistory(){
+  const el=document.getElementById('historyList');el.innerHTML='';
+  const items=[...rounds.map(r=>({type:'round',date:r.date,r})),...trades.map(t=>({type:'trade',date:t.date,t}))].sort((a,b)=> a.date<b.date?1:a.date>b.date?-1:0);
+  if(!items.length){el.innerHTML='<p class="sub">No rounds yet.</p>';return;}
+  items.forEach(it=>{const f=fmtDate(it.date);const card=document.createElement('div');
+    if(it.type==='round'){const r=it.r;const w=[...r.results].sort((a,b)=>a.place-b.place)[0];card.className='hcard';card.onclick=()=>openRound(r.id,'history');
+      card.innerHTML=`<div class="hdate"><div class="d">${f.d}</div><div class="m">${f.m}</div></div><div class="hbody"><div class="c">${r.course} — ${r.layout}</div><div class="s">${r.results.length} players · 🏆 ${w.name} (${w.score}) · tag ${w.newTag}</div></div><div class="chev">›</div>`;}
+    else{const t=it.t;card.className='hcard trade';card.innerHTML=`<div class="hdate"><div class="d">${f.d}</div><div class="m">${f.m}</div></div><div class="hbody"><div class="c">⇄ Tag trade</div><div class="s">${t.note}</div></div>`;}
+    el.appendChild(card);});
+}
+let roundBackTab='history';
+function openRound(id,from){const r=rounds.find(x=>x.id===id);if(!r)return;roundBackTab=from||'history';const f=fmtDate(r.date);
+  document.getElementById('rd-title').textContent=r.course;document.getElementById('rd-sub').textContent=`${f.m} ${f.d} · ${r.layout} · par ${r.par}`;
+  document.querySelector('#v-round .back').setAttribute('onclick',`show('${roundBackTab}')`);
+  const body=document.getElementById('rdBody');body.innerHTML='';
+  [...r.results].sort((a,b)=>a.place-b.place).forEach(x=>{const dir=x.newTag<x.oldTag?'up':x.newTag>x.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
+    const tr=document.createElement('tr');tr.innerHTML=`<td>${x.place}</td><td><b>${x.name}</b></td><td>${x.score}</td><td><span class="chg ${dir}">${x.oldTag} ${arrow} ${x.newTag}</span></td>`;body.appendChild(tr);});
+  show('round');
+}
+
+/* ===== PLAYERS / PROFILE ===== */
+function statsFor(name){const tl=timeline(name);const p=players.find(x=>x.name===name);const roundsN=tl.filter(e=>e.kind==='round').length;
+  const wins=tl.filter(e=>e.kind==='round'&&e.place===1).length;const bestTag=Math.min(p.tag,...tl.map(e=>e.newTag));
+  const scores=tl.filter(e=>e.kind==='round').map(e=>e.score);const bestScore=scores.length?Math.min(...scores):'—';return {p,tl,roundsN,wins,bestTag,bestScore};}
+function renderPlayers(){const el=document.getElementById('playerList');el.innerHTML='';
+  [...players].sort((a,b)=>a.tag-b.tag).forEach(p=>{const s=statsFor(p.name);const row=document.createElement('div');row.className='row tap';row.onclick=()=>openProfile(p.name);
+    row.innerHTML=`<div class="tag sm ${p.isNew?'new':''}">${p.tag}</div><div class="name">${p.name}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});
+  document.getElementById('npRule').value=config.newPlayerRule;
+}
+function openProfile(name){const {p,tl,roundsN,wins,bestTag,bestScore}=statsFor(name);
+  document.getElementById('pf-name').textContent=name;
+  document.getElementById('pf-stats').innerHTML=`
+    <div class="stat"><div class="v">${p.tag}</div><div class="l">Current tag</div></div>
+    <div class="stat"><div class="v">${bestTag}</div><div class="l">Best tag</div></div>
+    <div class="stat"><div class="v">${roundsN}</div><div class="l">Rounds</div></div>
+    <div class="stat"><div class="v">${wins}</div><div class="l">Wins</div></div>
+    <div class="stat"><div class="v">${bestScore}</div><div class="l">Best score</div></div>
+    <div class="stat"><div class="v">${p.tag<=3?'🔥':'—'}</div><div class="l">Hot</div></div>`;
+  let seq=[];if(tl.length){seq.push({t:tl[0].oldTag,k:'start'});tl.forEach(e=>seq.push({t:e.newTag,k:e.kind}));}else seq=[{t:p.tag,k:'start'}];
+  document.getElementById('pf-chips').innerHTML=seq.map((s,i)=>`${i?'<span class="arrowc">→</span>':''}<span class="chip ${s.k==='trade'?'trade':''}">${s.t}</span>`).join('');
+  document.getElementById('pf-chart').innerHTML=chartSVG(tl);
+  const body=document.getElementById('pf-rows');body.innerHTML='';
+  [...tl].reverse().forEach(e=>{const f=fmtDate(e.date);const dir=e.newTag<e.oldTag?'up':e.newTag>e.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
+    const ev=e.kind==='trade'?`⇄ trade`:`${e.course} <span class="meta">P${e.place}/${e.players}</span>`;const sc=e.kind==='trade'?'—':e.score;
+    const tr=document.createElement('tr');tr.innerHTML=`<td>${f.short}</td><td>${ev}</td><td>${sc}</td><td><span class="chg ${dir}">${arrow} ${e.newTag}</span></td>`;body.appendChild(tr);});
+  show('profile');
+}
+function chartSVG(tl){
+  if(!tl.length)return '<p class="cap">No rounds yet.</p>';
+  const W=312,H=150,padL=26,padR=12,padT=14,padB=24,n=tl.length;
+  const tags=tl.map(e=>e.newTag);const maxTag=Math.max(...tags,4),minTag=1;
+  const X=i=> n<=1?(padL+(W-padL-padR)/2):padL+i*(W-padL-padR)/(n-1);
+  const Y=t=> padT+(t-minTag)/Math.max(1,(maxTag-minTag))*(H-padT-padB);
+  const grid=[minTag,Math.round((minTag+maxTag)/2),maxTag].filter((v,i,a)=>a.indexOf(v)===i);
+  const g=grid.map(t=>`<line x1="${padL}" y1="${Y(t).toFixed(1)}" x2="${W-padR}" y2="${Y(t).toFixed(1)}" stroke="#eee5d3"/><text x="2" y="${(Y(t)+4).toFixed(1)}" font-size="10" fill="#9b9385">${t}</text>`).join('');
+  const pts=tl.map((e,i)=>`${X(i).toFixed(1)},${Y(e.newTag).toFixed(1)}`).join(' ');
+  const dots=tl.map((e,i)=>{const x=X(i),y=Y(e.newTag),f=fmtDate(e.date);const mk=e.kind==='trade'
+      ?`<rect x="${(x-4).toFixed(1)}" y="${(y-4).toFixed(1)}" width="8" height="8" transform="rotate(45 ${x.toFixed(1)} ${y.toFixed(1)})" fill="#3a55c0"/>`
+      :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#1f5c3d"/>`;
+    return `${mk}<text x="${x.toFixed(1)}" y="${(y-8).toFixed(1)}" font-size="10" font-weight="700" fill="${e.kind==='trade'?'#3a55c0':'#1f5c3d'}" text-anchor="middle">${e.newTag}</text><text x="${x.toFixed(1)}" y="${(H-8).toFixed(1)}" font-size="9" fill="#9b9385" text-anchor="middle">${f.short}</text>`;}).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}<polyline points="${pts}" fill="none" stroke="#e8742c" stroke-width="2.5" stroke-linejoin="round"/>${dots}</svg><p class="cap">Lower = better · ● round ◆ trade</p>`;
+}
+
+/* ===== TRADING ===== */
+function tradeMode(m){document.getElementById('seg-swap').classList.toggle('on',m==='swap');document.getElementById('seg-re').classList.toggle('on',m==='re');
+  document.getElementById('swapCard').style.display=m==='swap'?'block':'none';document.getElementById('reCard').style.display=m==='re'?'block':'none';}
+function fillTradeSelects(){
+  const opts=[...players].sort((a,b)=>a.tag-b.tag).map(p=>`<option value="${p.name}">${p.name} — tag ${p.tag}</option>`).join('');
+  ['swapA','swapB','reP'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  if(players[1])document.getElementById('swapB').value=[...players].sort((a,b)=>a.tag-b.tag)[1].name;
+  swapPreview();rePreview();
+}
+function swapPreview(){const a=document.getElementById('swapA').value,b=document.getElementById('swapB').value;const A=players.find(p=>p.name===a),B=players.find(p=>p.name===b);
+  const el=document.getElementById('swapPrev');if(!A||!B||A===B){el.textContent=A===B?'Pick two different players.':'';return;}el.textContent=`${A.name}: ${A.tag} → ${B.tag}   ·   ${B.name}: ${B.tag} → ${A.tag}`;}
+function doSwap(){const a=document.getElementById('swapA').value,b=document.getElementById('swapB').value;const A=players.find(p=>p.name===a),B=players.find(p=>p.name===b);
+  if(!A||!B||A===B){alert('Pick two different players.');return;}const ta=A.tag,tb=B.tag;A.tag=tb;B.tag=ta;
+  trades.push({id:'t'+Date.now(),date:today(),kind:'swap',note:`${A.name} ${ta}↔${tb} ${B.name}`,changes:[{name:A.name,oldTag:ta,newTag:tb},{name:B.name,oldTag:tb,newTag:ta}]});
+  persist();renderAll();fillTradeSelects();toast('Tags swapped');show('players');}
+function rePreview(){const n=document.getElementById('reP').value;const nt=parseInt(document.getElementById('reTag').value,10);const P=players.find(p=>p.name===n);
+  const el=document.getElementById('rePrev');if(!P||isNaN(nt)){el.textContent='';return;}const other=players.find(p=>p.tag===nt&&p!==P);
+  el.textContent=other?`${P.name}: ${P.tag} → ${nt}  (swaps with ${other.name}, who takes ${P.tag})`:`${P.name}: ${P.tag} → ${nt}`;}
+function doReassign(){const n=document.getElementById('reP').value;const nt=parseInt(document.getElementById('reTag').value,10);const P=players.find(p=>p.name===n);
+  if(!P||isNaN(nt)||nt<1){alert('Pick a player and a valid tag number.');return;}if(nt===P.tag){alert('That\'s already their tag.');return;}
+  const other=players.find(p=>p.tag===nt&&p!==P);const old=P.tag;const changes=[{name:P.name,oldTag:old,newTag:nt}];
+  if(other){other.tag=old;changes.push({name:other.name,oldTag:nt,newTag:old});}
+  P.tag=nt;trades.push({id:'t'+Date.now(),date:today(),kind:'reassign',note:other?`${P.name}→${nt} (swap ${other.name})`:`${P.name}→${nt}`,changes});
+  persist();renderAll();fillTradeSelects();document.getElementById('reTag').value='';toast('Reassigned');show('players');}
+
+/* ===== EXPORT / SHARE ===== */
+function standingsRows(){return [...players].sort((a,b)=>a.tag-b.tag).map((p,i)=>{const s=statsFor(p.name);return {rank:i+1,tag:p.tag,name:p.name,rounds:s.roundsN,wins:s.wins,bestTag:s.bestTag};});}
+function renderExportPreview(){const rows=standingsRows();
+  document.getElementById('exportPreview').innerHTML='<table><thead><tr><th>#</th><th>Tag</th><th>Player</th><th>W</th></tr></thead><tbody>'+
+    rows.map(r=>`<tr><td>${r.rank}</td><td><b>${r.tag}</b></td><td>${r.name}</td><td>${r.wins}</td></tr>`).join('')+'</tbody></table>';}
+function copyStandings(){const rows=standingsRows();const txt='🥏 Tag Standings ('+today()+')\n'+rows.map(r=>`${r.tag}. ${r.name}`).join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Standings copied!'),()=>fallbackCopy(txt));}else fallbackCopy(txt);}
+function fallbackCopy(txt){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Standings copied!');}catch(e){toast('Copy failed');}ta.remove();}
+function dl(name,content,type){const b=new Blob([content],{type});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);}
+function downloadCSV(){const rows=standingsRows();const csv=['Rank,Tag,Player,Rounds,Wins,BestTag',...rows.map(r=>`${r.rank},${r.tag},${r.name},${r.rounds},${r.wins},${r.bestTag}`)].join('\n');dl('tagshuffle-standings.csv',csv,'text/csv');toast('CSV downloaded');}
+function downloadHTML(){const rows=standingsRows();
+  const body=rows.map(r=>`<tr><td>${r.rank}</td><td class="t">${r.tag}</td><td>${r.name}</td><td>${r.rounds}</td><td>${r.wins}</td></tr>`).join('');
+  const html=`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tag Standings</title>
+<style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f1e7;color:#13201a;margin:0;padding:24px}h1{color:#1f5c3d}table{border-collapse:collapse;width:100%;max-width:520px;background:#fff;border-radius:12px;overflow:hidden}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eee}th{background:#1f5c3d;color:#fff}.t{font-weight:800;color:#1f5c3d}small{color:#6f6757}</style>
+<h1>🥏 Tag Standings</h1><small>Generated ${today()} · ${rounds.length} weeks · read-only snapshot</small>
+<table><thead><tr><th>#</th><th>Tag</th><th>Player</th><th>Rounds</th><th>Wins</th></tr></thead><tbody>${body}</tbody></table>`;
+  dl('tagshuffle-standings.html',html,'text/html');toast('Standings page downloaded');}
+
+/* ===== SETTINGS ===== */
+function setRule(v){config.newPlayerRule=v;persist();toast('New-player rule: '+(v==='pool'?'join immediately':'hold out first night'));}
+
+/* ===== ROUTER + RENDER ===== */
+function show(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('v-'+name).classList.add('on');
+  document.querySelectorAll('.views .view').forEach(v=>v.scrollTop=0);
+  if(name==='players')renderPlayers();
+  if(name==='trade')fillTradeSelects();
+  if(name==='export')renderExportPreview();
+  const parent=(name==='result'||name==='tonight')?'tonight':(name==='round')?'history':(name==='profile'||name==='trade'||name==='export')?'players':name;
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));
+}
+function renderAll(){
+  document.getElementById('ctx').textContent=`${rounds.length} weeks`;
+  document.getElementById('backBadge').innerHTML=remoteOn()?'<span class="backbadge cloud">☁ cloud</span>':'<span class="backbadge local">● local</span>';
+  renderCourseSel();renderRoster();renderHistory();renderPlayers();
+}
+let toastT=null;
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1800);}
+
+/* ===== BOOT ===== */
+(async()=>{ await loadState(); resetTonight(); renderAll(); show('tonight'); })();
+</script>
+</body>
+</html>
