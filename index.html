@@ -409,9 +409,9 @@ function reshuffleByDivision(present,rule){let out=[];DIVS.forEach(d=>{const grp
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function isoWeeksAgo(w){const d=new Date(2026,5,21);d.setDate(d.getDate()-w*7);return d.toISOString().slice(0,10);}
 function buildSeed(){const rng=mulberry32(73);
-  const roster=[{name:'Sarah',div:'PRO',skill:50},{name:'Mike',div:'PRO',skill:52},{name:'Luis',div:'PRO',skill:54},
-    {name:'Dave',div:'AM',skill:55},{name:'Kim',div:'AM',skill:57},{name:'Tony',div:'AM',skill:58},{name:'Ray',div:'AM',skill:60},{name:'Jo',div:'AM',skill:62}];
-  const initial={Mike:1,Sarah:2,Luis:3,Tony:1,Dave:2,Jo:3,Kim:4,Ray:5};
+  const roster=[{name:'Sarah',div:'PRO',skill:50},{name:'Mike',div:'PRO',skill:52},{name:'Luis',div:'PRO',skill:54},{name:'Diego',div:'PRO',skill:56},{name:'Owen',div:'PRO',skill:57},{name:'Marcus',div:'PRO',skill:59},
+    {name:'Dave',div:'AM',skill:56},{name:'Kim',div:'AM',skill:58},{name:'Tony',div:'AM',skill:59},{name:'Brandon',div:'AM',skill:60},{name:'Hailey',div:'AM',skill:61},{name:'Ray',div:'AM',skill:62},{name:'Jo',div:'AM',skill:63},{name:'Cole',div:'AM',skill:64},{name:'Nate',div:'AM',skill:66},{name:'Wes',div:'AM',skill:68}];
+  const initial={Mike:1,Sarah:2,Luis:3,Owen:4,Diego:5,Marcus:6,Tony:1,Dave:2,Jo:3,Kim:4,Ray:5,Brandon:6,Hailey:7,Cole:8,Nate:9,Wes:10};
   let cur={};roster.forEach(p=>cur[p.name]=initial[p.name]);const skill={},dv={};roster.forEach(p=>{skill[p.name]=p.skill;dv[p.name]=p.div;});
   const rs=[];const WEEKS=8;
   for(let w=0;w<WEEKS;w++){let present=roster.filter(()=>rng()<0.85).map(p=>p.name);
@@ -523,7 +523,7 @@ function ingest(rows){
   entries.forEach(e=>{const idx=byName[e.name.toLowerCase()];if(idx!==undefined)matched.push({playerIdx:idx,name:e.name,score:e.score});else unmatched.push({name:e.name,score:e.score,division:e.division||'AM'});});
   pendingImport={matched,unmatched};
   msg(`Parsed ${entries.length} players`+(cTotal<0?' (by place)':'')+(cDiv>=0?' · divisions detected':'')+`. ${matched.length} matched`+(unmatched.length?`, ${unmatched.length} need mapping ↓`:`. Ready — review then Reshuffle.`));
-  renderMap();if(!unmatched.length)applyImport();
+  applyImport();
 }
 function renderMap(){const el=document.getElementById('mapPanel');el.innerHTML='';if(!pendingImport||!pendingImport.unmatched.length)return;
   const opts=players.map((p,i)=>`<option value="${i}">${p.name} (${divLabel(p.division)} tag ${p.tag})</option>`).join('');
@@ -533,10 +533,9 @@ function renderMap(){const el=document.getElementById('mapPanel');el.innerHTML='
 function applyImport(){
   if(!pendingImport)return;players.forEach(p=>{tonight[p.name]={present:false,score:null};});
   pendingImport.matched.forEach(m=>{tonight[players[m.playerIdx].name]={present:true,score:m.score};});
-  pendingImport.unmatched.forEach((u,j)=>{const sel=document.getElementById('map'+j);const v=sel?sel.value:'skip';if(v==='skip')return;
-    if(v.startsWith('new_')){const dvn=v.split('_')[1];players.push({name:u.name,division:dvn,tag:nextTag(dvn),isNew:true,firstNight:config.newPlayerRule==='holdout'});tonight[u.name]={present:true,score:u.score};}
-    else{tonight[players[+v].name]={present:true,score:u.score};}});
-  pendingImport=null;document.getElementById('mapPanel').innerHTML='';renderRoster();const anyPresent=players.some(p=>tonight[p.name]&&tonight[p.name].present);if(anyPresent){msg('Import applied — generating tags…');reshuffle();}else{msg('Import applied.');}
+  const added=[];
+  pendingImport.unmatched.forEach(u=>{const dvn=u.division||'AM';players.push({name:u.name,division:dvn,tag:nextTag(dvn),isNew:true,firstNight:config.newPlayerRule==='holdout'});tonight[u.name]={present:true,score:u.score};added.push(u.name);});
+  pendingImport=null;document.getElementById('mapPanel').innerHTML='';renderRoster();const anyPresent=players.some(p=>tonight[p.name]&&tonight[p.name].present);if(anyPresent){msg('Import applied — generating tags…');if(added.length)toast('Added '+added.length+' new player'+(added.length>1?'s':'')+': '+added.join(', '));reshuffle();}else{msg('Import applied.');}
 }
 function msg(t,err){const m=document.getElementById('impmsg');m.textContent=t;m.className='impmsg'+(err?' err':'');}
 
