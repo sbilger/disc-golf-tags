@@ -27,77 +27,78 @@ with sync_playwright() as p:
     pg = ctx.new_page()
 
     def cap(t, ms):
-        pg.evaluate(CAP_JS, t); pg.wait_for_timeout(int(ms*1.5))
+        pg.evaluate(CAP_JS, t); pg.wait_for_timeout(int(ms * 1.5))
     def hidecap():
         pg.evaluate(HIDE_JS)
 
     pg.goto(APP); pg.wait_for_timeout(700)
 
     # 1) LOCK
-    cap("Open the link. Members-only — pick today's date to get in.", 3200)
+    cap("Open the link. Members-only — pick today's date to get in.", 3000)
     tok = pg.evaluate("accessToken()")
-    pg.fill("#lockInput", f"{tok[:4]}-{tok[4:6]}-{tok[6:8]}"); pg.wait_for_timeout(1400)
+    pg.fill("#lockInput", f"{tok[:4]}-{tok[4:6]}-{tok[6:8]}"); pg.wait_for_timeout(1300)
     pg.click("#lock .btn"); pg.wait_for_timeout(700)
 
     # 2) STANDINGS
-    cap("Live standings — each division has its own tags. \U0001F451 = current #1.", 5200)
+    cap("Live standings — each division keeps its own tags. \U0001F451 = current #1.", 5000)
 
-    # 3) PROFILE
-    pg.click("#playerList .row"); pg.wait_for_timeout(700)
-    cap("Tap anyone for their tag-progression graph and full history.", 5200)
-    pg.click("#v-profile .back"); pg.wait_for_timeout(500)
+    # 3) SCHEDULE
+    pg.click("button[data-tab='schedule']"); pg.wait_for_timeout(600)
+    cap("The weekly Valley rotation — this week's course, with a tap-through to the UDisc event.", 5200)
 
-    # 4) ORGANIZER
+    # 4) PROFILE + PDGA
+    pg.evaluate("openProfile('Sarah')"); pg.wait_for_timeout(700)
+    cap("Every player's tag graph, full history — and a link straight to their PDGA page.", 5200)
+
+    # 5) ORGANIZER
     pg.on("dialog", lambda d: d.accept("discinsanity"))
-    cap("Organizers unlock editing with a code (the key, top-right).", 3600)
+    cap("Organizers unlock editing with a code (the key, top-right).", 3400)
     pg.click("#hkey"); pg.wait_for_timeout(900)
 
     # build a CSV that makes the worst-tag player in each division win -> claims #1
     rows = pg.evaluate("players.map(p=>({name:p.name,division:p.division,tag:p.tag}))")
     buf = io.StringIO(); w = csv.writer(buf); w.writerow(["PlayerName", "Division", "Total"])
     for dv, label in [("PRO", "Mixed Pro"), ("AM", "Mixed Amateur")]:
-        grp = sorted([r for r in rows if r["division"] == dv], key=lambda r: -r["tag"])  # worst tag first
+        grp = sorted([r for r in rows if r["division"] == dv], key=lambda r: -r["tag"])
         for i, r in enumerate(grp):
-            w.writerow([r["name"], label, 48 + i * 4])  # worst-tag -> best score
+            w.writerow([r["name"], label, 48 + i * 4])
     csv_path = os.path.abspath("build/demo-night.csv")
     pathlib.Path(csv_path).write_text(buf.getvalue(), encoding="utf-8")
 
-    # 5) IMPORT
+    # 6) IMPORT (hands-off)
     pg.click("button[data-tab='tonight']"); pg.wait_for_timeout(500)
-    cap("Import the UDisc scorecard — it auto-fills who played + scores.", 4200)
+    cap("Import the UDisc scores — it auto-fills who played and auto-adds anyone new.", 4400)
     pg.set_input_files("#v-tonight input[type=file]", csv_path); pg.wait_for_timeout(1300)
 
-    # 6) RESULT (import auto-jumps here)
-    cap("Tags reshuffle per division — best score takes the lowest tag.", 5200)
+    # 7) RESULT
+    cap("Tags reshuffle per division — best score takes the lowest tag.", 5000)
 
-    # 7) SAVE -> CELEBRATION
+    # 8) SAVE -> CELEBRATION
     cap("Save the round… and claim the #1 tag \U0001F3C6", 2600)
     hidecap()
-    pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(6800)  # let #1 + confetti play
-    # dismiss celebration if still up
+    pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(6800)
     if "hide" not in (pg.get_attribute("#celebrate", "class") or ""):
         pg.click("#celebrate"); pg.wait_for_timeout(600)
 
-    # 8) ROUND DETAIL
-    cap("Every week's scorecard is saved, grouped by division.", 4600)
+    # 9) ROUND DETAIL
+    cap("Every week's scorecard is saved, grouped by division.", 4400)
 
-    # 9) HISTORY
+    # 10) HISTORY
     pg.click("button[data-tab='history']"); pg.wait_for_timeout(500)
-    cap("Browse the whole league history at a glance.", 4200)
+    cap("Browse the whole league history at a glance.", 4000)
 
-    # 10) EXPORT
+    # 11) EXPORT
     pg.click("button[data-tab='players']"); pg.wait_for_timeout(400)
     pg.click("button:has-text('Export / Share')"); pg.wait_for_timeout(500)
-    cap("Export the standings to share in the group chat.", 4600)
+    cap("Export the standings to share in the group chat.", 4400)
     hidecap()
 
-    # 11) END CARD
-    pg.evaluate(END_JS, "sbilger.github.io/disc-golf-tags"); pg.wait_for_timeout(6000)
+    # 12) END CARD
+    pg.evaluate(END_JS, "sbilger.github.io/disc-golf-tags"); pg.wait_for_timeout(5500)
 
     path = pg.video.path()
     ctx.close(); b.close()
 
 print("raw video:", path)
-# locate webm (path may be finalized after close)
 webms = sorted(glob.glob(VID_DIR + "/*.webm"), key=os.path.getmtime)
 print("webm files:", webms)
