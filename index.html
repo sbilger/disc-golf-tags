@@ -127,6 +127,16 @@
   .seg button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
   .reset{margin-top:18px;text-align:center}
   .reset button{background:none;border:0;color:#9aa6b2;font-size:12px;text-decoration:underline;cursor:pointer;font-family:inherit}
+  .scard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:10px;box-shadow:var(--shadow);animation:rowIn .35s ease both}
+  .scard.this{border:2px solid var(--gold);background:#fffbe9}
+  .scard.this .hdate{background:var(--gold);color:#5a4500}
+  .scard.past{opacity:.5}
+  .srow{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+  .srow input{padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;min-width:0}
+  .srow input[type=date]{flex:0 0 120px}
+  .srow input:nth-child(2){flex:1}
+  .srow input:nth-child(3){flex:0 0 64px}
+  .xbtn{flex:0 0 auto;border:0;background:#f8e3e1;color:var(--bad);border-radius:8px;width:32px;height:32px;font-weight:800;cursor:pointer}
   .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .backbadge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:8px}
@@ -312,12 +322,20 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
       <button class="btn ghost" onclick="downloadHTML()">⤓ Download shareable standings page</button>
       <div class="note">Self-contained read-only HTML. A true auto-updating link comes with the cloud backend (BACKEND.md).</div>
     </section>
+    <!-- SCHEDULE -->
+    <section class="view" id="v-schedule">
+      <h2>Schedule</h2>
+      <p class="sub">Weekly tags rotation. This week is highlighted.</p>
+      <div class="org-only" style="margin-bottom:12px"><button class="btn sm gold" style="margin:0" onclick="toggleSchedEdit()">✎ Edit schedule</button></div>
+      <div id="schedList"></div>
+    </section>
   </div>
 
   <nav class="tabbar">
     <button data-tab="tonight" class="on org-only" onclick="show('tonight')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 6v6l4 2"/></svg>Tonight</button>
     <button data-tab="history" onclick="show('history')"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>History</button>
     <button data-tab="players" onclick="show('players')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>Standings</button>
+    <button data-tab="schedule" onclick="show('schedule')"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>Schedule</button>
   </nav>
   <div class="toast" id="toast"></div>
   <div class="celebrate hide" id="celebrate" onclick="dismissCelebrate()"><div class="celebrate-inner" id="celebrateInner"></div><div class="celebrate-hint">tap to continue</div></div>
@@ -371,7 +389,7 @@ const COURSES=[{course:'South Mountain',layout:'White Tee',par:54}];
 
 /* ===== STATE ===== */
 const KEY='tagshuffle_v4_div';
-let players=[],rounds=[],trades=[],config={newPlayerRule:'pool'};
+let players=[],rounds=[],trades=[],config={newPlayerRule:'pool'},schedule=[],courseList=[],schedEdit=false;
 const today=()=>new Date().toISOString().slice(0,10);
 const playersIn=d=>players.filter(p=>p.division===d).sort((a,b)=>a.tag-b.tag);
 const nextTag=d=>Math.max(0,...players.filter(p=>p.division===d).map(p=>p.tag))+1;
@@ -401,21 +419,38 @@ function buildSeed(){const rng=mulberry32(73);
     const arr=present.map(n=>({name:n,division:dv[n],tag:cur[n],score:Math.round(skill[n]+(rng()*8-3))}));
     const res=reshuffleByDivision(arr,'pool');res.forEach(r=>{cur[r.name]=r.newTag;});
     rs.push({id:'r'+w,date:isoWeeksAgo(WEEKS-1-w),course:COURSES[0].course,layout:COURSES[0].layout,par:COURSES[0].par,results:res});}
-  return {players:roster.map(p=>({name:p.name,division:p.div,tag:cur[p.name]})),rounds:rs,trades:[],config:{newPlayerRule:'pool'}};}
+  return {players:roster.map(p=>({name:p.name,division:p.div,tag:cur[p.name]})),rounds:rs,trades:[],config:{newPlayerRule:'pool'},schedule:seedSchedule()};}
 
 /* ===== STORE ===== */
 async function loadState(){let s=null;
   if(remoteOn()){try{s=await remoteLoad();}catch(e){console.warn('remote load failed',e);}}
   if(!s){const raw=localStorage.getItem(KEY);if(raw){try{s=JSON.parse(raw);}catch(e){}}}
   if(!s)s=buildSeed();
-  players=s.players;rounds=s.rounds;trades=s.trades||[];config=s.config||{newPlayerRule:'pool'};persist();}
-function persist(){const state={players,rounds,trades,config};localStorage.setItem(KEY,JSON.stringify(state));if(remoteOn())remoteSave(state).catch(e=>console.warn('remote save failed',e));}
-function resetDemo(){localStorage.removeItem(KEY);const s=buildSeed();players=s.players;rounds=s.rounds;trades=s.trades;config=s.config;persist();resetTonight();renderAll();show('players');toast('Demo data reset');}
+  players=s.players;rounds=s.rounds;trades=s.trades||[];config=s.config||{newPlayerRule:'pool'};schedule=(s.schedule&&s.schedule.length)?s.schedule:seedSchedule();persist();}
+function persist(){const state={players,rounds,trades,config,schedule};localStorage.setItem(KEY,JSON.stringify(state));if(remoteOn())remoteSave(state).catch(e=>console.warn('remote save failed',e));}
+function resetDemo(){localStorage.removeItem(KEY);const s=buildSeed();players=s.players;rounds=s.rounds;trades=s.trades;config=s.config;schedule=s.schedule;persist();resetTonight();renderAll();show('players');toast('Demo data reset');}
 
 /* ===== TONIGHT ===== */
 let tonight={},lastResult=null;
 function resetTonight(){tonight={};players.forEach(p=>tonight[p.name]={present:false,score:null});pendingImport=null;const mp=document.getElementById('mapPanel');if(mp)mp.innerHTML='';msg('');}
-function renderCourseSel(){document.getElementById('courseSel').innerHTML=COURSES.map((c,i)=>`<option value="${i}">${c.course} — ${c.layout}</option>`).join('');}
+function nextSundays(n,from){const out=[];let d=from?new Date(from+'T12:00:00'):new Date();d.setHours(12,0,0,0);while(d.getDay()!==0)d.setDate(d.getDate()+1);for(let i=0;i<n;i++){out.push(new Date(d).toISOString().slice(0,10));d.setDate(d.getDate()+7);}return out;}
+function seedSchedule(){return nextSundays(8).map((dt,i)=>({date:dt,course:i===0?'South Mountain':'TBD',layout:i===0?'White Tee':''}));}
+function courseOptions(){const seen=new Set(),list=[];schedule.forEach(s=>{if(s.course&&s.course!=='TBD'){const k=s.course+'|'+(s.layout||'');if(!seen.has(k)){seen.add(k);list.push({course:s.course,layout:s.layout||'',par:54});}}});return list.length?list:COURSES;}
+function todayCourseIdx(list){const t=today();const a=[...schedule].sort((x,y)=>x.date<y.date?-1:1);const e=a.find(x=>x.date===t)||a.find(x=>x.date>=t)||a[a.length-1];if(e){const i=list.findIndex(c=>c.course===e.course&&(c.layout||'')===(e.layout||''));if(i>=0)return i;}return 0;}
+function renderCourseSel(){courseList=courseOptions();const sel=document.getElementById('courseSel');if(!sel)return;sel.innerHTML=courseList.map((c,i)=>`<option value="${i}">${c.course}${c.layout?' — '+c.layout:''}</option>`).join('');sel.value=todayCourseIdx(courseList);}
+function renderSchedule(){const el=document.getElementById('schedList');if(!el)return;schedule.sort((a,b)=>a.date<b.date?-1:1);el.innerHTML='';const t=today();let thisIdx=schedule.findIndex(s=>s.date>=t);if(thisIdx<0)thisIdx=schedule.length-1;const org=document.body.classList.contains('org');
+  if(schedEdit&&org){schedule.forEach((s,i)=>{const r=document.createElement('div');r.className='srow';r.innerHTML=`<input type="date" value="${s.date}" onchange="schedSet(${i},'date',this.value)"><input placeholder="Course" value="${s.course==='TBD'?'':(s.course||'')}" oninput="schedSet(${i},'course',this.value)"><input placeholder="Tee" value="${s.layout||''}" oninput="schedSet(${i},'layout',this.value)"><button class="xbtn" onclick="schedDel(${i})">✕</button>`;el.appendChild(r);});
+    const add=document.createElement('button');add.className='btn ghost sm';add.style.marginTop='6px';add.textContent='+ Add week';add.onclick=schedAdd;el.appendChild(add);
+    const done=document.createElement('button');done.className='btn sm';done.style.marginTop='8px';done.textContent='Done editing';done.onclick=function(){schedEdit=false;persist();renderAll();renderSchedule();};el.appendChild(done);
+  }else{
+    if(!schedule.length){el.innerHTML='<p class="sub">No schedule yet. Organizer: tap Edit schedule.</p>';return;}
+    schedule.forEach((s,i)=>{const cls=i<thisIdx?'past':(i===thisIdx?'this':'up');const f=fmtDate(s.date);const setc=s.course&&s.course!=='TBD';const c=setc?(s.course+(s.layout?' — '+s.layout:'')):'TBD';const lab=cls==='this'?'This week':cls==='past'?'Played':'Upcoming';
+      const card=document.createElement('div');card.className='scard '+cls;card.innerHTML=`<div class="hdate"><div class="d">${f.d}</div><div class="m">${f.m}</div></div><div class="hbody"><div class="c">${c}</div><div class="s">${lab}</div></div>`;el.appendChild(card);});
+  }}
+function toggleSchedEdit(){schedEdit=!schedEdit;renderSchedule();}
+function schedSet(i,k,v){if(!schedule[i])return;schedule[i][k]=v;persist();if(k==='date')renderSchedule();renderCourseSel();}
+function schedDel(i){schedule.splice(i,1);persist();renderSchedule();renderCourseSel();}
+function schedAdd(){const last=schedule.length?schedule[schedule.length-1].date:null;const d=last?nextSundays(2,last)[1]:nextSundays(1)[0];schedule.push({date:d,course:'',layout:''});persist();renderSchedule();}
 function stagger(el,i){el.style.animationDelay=(i*0.035)+'s';}
 function renderRoster(){
   const el=document.getElementById('roster');el.innerHTML='';let i=0;
@@ -435,7 +470,7 @@ function reshuffle(){
   lastResult=reshuffleByDivision(present,config.newPlayerRule);renderResult(lastResult);show('result');
 }
 function renderResult(res){
-  const c=COURSES[+document.getElementById('courseSel').value];
+  const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);
   document.getElementById('res-sub').textContent=`${c.course} — ${c.layout} · per-division swap`;
   const body=document.getElementById('resultBody');body.innerHTML='';let i=0;
   const counts={};res.forEach(r=>counts[r.division+'|'+r.score]=(counts[r.division+'|'+r.score]||0)+1);
@@ -452,7 +487,7 @@ function renderResult(res){
   if(anyUp)setTimeout(confetti,260);
 }
 function saveRound(){
-  if(!lastResult)return;const c=COURSES[+document.getElementById('courseSel').value];const ach=roundAchievements(lastResult);
+  if(!lastResult)return;const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);const ach=roundAchievements(lastResult);
   lastResult.forEach(r=>{const p=players.find(x=>x.name===r.name);if(p){p.tag=r.newTag;p.isNew=false;p.firstNight=false;}});
   rounds.push({id:'r'+Date.now(),date:today(),course:c.course,layout:c.layout,par:c.par,results:lastResult});
   persist();const id=rounds[rounds.length-1].id;lastResult=null;resetTonight();renderAll();if(ach.no1.length||ach.pbs.length){showCelebration(ach,id);}else{confetti();toast('Round saved 🥏');openRound(id,'tonight');}
@@ -629,13 +664,13 @@ function show(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.getElementById('v-'+name).classList.add('on');
   document.querySelectorAll('.views .view').forEach(v=>v.scrollTop=0);
-  if(name==='players')renderPlayers();if(name==='trade')fillTradeSelects();if(name==='export')renderExportPreview();
+  if(name==='players')renderPlayers();if(name==='trade')fillTradeSelects();if(name==='export')renderExportPreview();if(name==='schedule')renderSchedule();
   const parent=(name==='result'||name==='tonight')?'tonight':(name==='round')?'history':(name==='profile'||name==='trade'||name==='export')?'players':name;
   document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));}
 function renderAll(){
   document.getElementById('ctx').textContent=`${rounds.length} wks`;
   document.getElementById('backBadge').innerHTML=remoteOn()?'<span class="backbadge" style="background:#d8eede;color:#1f9d57">☁ cloud</span>':'<span class="backbadge" style="background:#eef3f8;color:#67737f">● local</span>';
-  renderCourseSel();renderRoster();renderHistory();renderPlayers();}
+  renderCourseSel();renderRoster();renderHistory();renderPlayers();renderSchedule();}
 function roundAchievements(res){const no1=[],pbs=[];res.forEach(r=>{const tl=timeline(r.name);const priorBest=tl.length?Math.min(r.oldTag,...tl.map(e=>e.newTag)):r.oldTag;if(r.newTag===1&&r.oldTag!==1)no1.push({name:r.name,division:r.division});if(r.newTag<priorBest)pbs.push({name:r.name,division:r.division,tag:r.newTag});});return {no1,pbs};}
 let pendingRoundId=null,celTimer=null;
 function showCelebration(ach,roundId){pendingRoundId=roundId;const inner=document.getElementById('celebrateInner');let html='';ach.no1.forEach(a=>{html+='<div class="big1"><div class="crown">👑</div><div class="bt">1</div><div class="bn">'+a.name+'</div><div class="bs">takes the top tag · '+divLabel(a.division)+'</div></div>';});const n1=new Set(ach.no1.map(a=>a.name));const pbs=ach.pbs.filter(a=>!n1.has(a.name));if(!ach.no1.length&&pbs.length)html+='<div class="bn" style="font-size:22px">⭐ Personal Best!</div>';pbs.forEach(a=>{html+='<div class="ach">⭐ <b>'+a.name+'</b> — new best tag <b>'+a.tag+'</b> · '+divLabel(a.division)+'</div>';});inner.innerHTML=html;document.getElementById('celebrate').classList.remove('hide');bigConfetti();setTimeout(bigConfetti,500);clearTimeout(celTimer);celTimer=setTimeout(dismissCelebrate,5200);}
