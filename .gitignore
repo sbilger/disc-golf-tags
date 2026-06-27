@@ -1,5 +1,6 @@
 # scratch / verification artifacts
 _check.js
+_shot_*.png
 *.tmp
 
 # OS / editor
