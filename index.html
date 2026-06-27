@@ -153,6 +153,12 @@
   @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(244,206,26,.5)}50%{box-shadow:0 0 0 6px rgba(244,206,26,.12)}}
   @keyframes lockIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
   @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
+  @keyframes fall{to{top:106%;transform:translateX(24px) rotate(540deg);opacity:.15}}
+  @keyframes rockon{0%{transform:scale(0) rotate(-28deg);opacity:0}55%{transform:scale(1.45) rotate(14deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+  @keyframes upflash{0%{background:rgba(244,206,26,0)}22%{background:rgba(244,206,26,.30)}100%{background:rgba(244,206,26,0)}}
+  .confetti{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;z-index:30;pointer-events:none;animation:fall 1.5s cubic-bezier(.3,.5,.6,1) forwards}
+  .cel{display:inline-block;margin-left:5px;animation:rockon .6s ease both;font-size:15px}
+  tr.uprow td{animation:upflash 1.2s ease both}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
   /* full-bleed on real phones */
@@ -415,16 +421,17 @@ function renderResult(res){
   document.getElementById('res-sub').textContent=`${c.course} — ${c.layout} · per-division swap`;
   const body=document.getElementById('resultBody');body.innerHTML='';let i=0;
   const counts={};res.forEach(r=>counts[r.division+'|'+r.score]=(counts[r.division+'|'+r.score]||0)+1);
-  let absentNotes=[];
+  let absentNotes=[],anyUp=false;
   DIVS.forEach(d=>{const grp=res.filter(r=>r.division===d.id);if(!grp.length)return;
     const hd=document.createElement('tr');hd.className='divhead';hd.innerHTML=`<td colspan="3">${d.label}</td>`;body.appendChild(hd);
     [...grp].sort((a,b)=>a.place-b.place).forEach(r=>{const dir=r.newTag<r.oldTag?'up':r.newTag>r.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
       const pill=r.rookie?'<span class="pill new">rookie</span>':r.isNew?'<span class="pill new">new</span>':dir==='up'?'<span class="pill up">up</span>':dir==='down'?'<span class="pill down">down</span>':'';
-      const tie=counts[r.division+'|'+r.score]>1?'<span class="pill">tie</span>':'';const tr=document.createElement('tr');stagger(tr,i++);
-      tr.innerHTML=`<td><b>${r.name}</b>${tie}</td><td>${r.score}</td><td><span class="chg ${dir}">${r.oldTag} ${arrow} ${r.newTag}</span>${pill}</td>`;body.appendChild(tr);});
+      if(dir==='up')anyUp=true;const cel=dir==='up'?(r.newTag===1?'<span class="cel">👑</span><span class="cel">🤘</span>':'<span class="cel">🤘</span>'):'';const tie=counts[r.division+'|'+r.score]>1?'<span class="pill">tie</span>':'';const tr=document.createElement('tr');if(dir==='up')tr.className='uprow';stagger(tr,i++);
+      tr.innerHTML=`<td><b>${r.name}</b>${tie}</td><td>${r.score}</td><td><span class="chg ${dir}">${r.oldTag} ${arrow} ${r.newTag}</span>${pill}${cel}</td>`;body.appendChild(tr);});
     const absent=playersIn(d.id).filter(p=>!tonight[p.name].present).map(p=>p.tag);
     if(absent.length)absentNotes.push(`${d.label}: tags ${absent.sort((a,b)=>a-b).join(', ')} held by absent players.`);});
   document.getElementById('absentNote').innerHTML=absentNotes.length?absentNotes.join('<br>'):'Everyone showed up — full reshuffle.';
+  if(anyUp)setTimeout(confetti,260);
 }
 function saveRound(){
   if(!lastResult)return;const c=COURSES[+document.getElementById('courseSel').value];
@@ -476,7 +483,7 @@ function applyImport(){
   pendingImport.unmatched.forEach((u,j)=>{const sel=document.getElementById('map'+j);const v=sel?sel.value:'skip';if(v==='skip')return;
     if(v.startsWith('new_')){const dvn=v.split('_')[1];players.push({name:u.name,division:dvn,tag:nextTag(dvn),isNew:true,firstNight:config.newPlayerRule==='holdout'});tonight[u.name]={present:true,score:u.score};}
     else{tonight[players[+v].name]={present:true,score:u.score};}});
-  pendingImport=null;document.getElementById('mapPanel').innerHTML='';msg('Import applied. Review the roster below, then Reshuffle.');renderRoster();
+  pendingImport=null;document.getElementById('mapPanel').innerHTML='';renderRoster();const anyPresent=players.some(p=>tonight[p.name]&&tonight[p.name].present);if(anyPresent){msg('Import applied — generating tags…');reshuffle();}else{msg('Import applied.');}
 }
 function msg(t,err){const m=document.getElementById('impmsg');m.textContent=t;m.className='impmsg'+(err?' err':'');}
 
@@ -611,6 +618,7 @@ function renderAll(){
   document.getElementById('ctx').textContent=`${rounds.length} wks`;
   document.getElementById('backBadge').innerHTML=remoteOn()?'<span class="backbadge" style="background:#d8eede;color:#1f9d57">☁ cloud</span>':'<span class="backbadge" style="background:#eef3f8;color:#67737f">● local</span>';
   renderCourseSel();renderRoster();renderHistory();renderPlayers();}
+function confetti(){const host=document.querySelector('.phone');if(!host)return;const colors=['#0066B3','#F4CE1A','#1f9d57','#1f2d4d'];for(let k=0;k<20;k++){const c=document.createElement('div');c.className='confetti';c.style.left=(8+Math.random()*84)+'%';c.style.background=colors[k%colors.length];c.style.animationDelay=(Math.random()*0.25)+'s';c.style.width=(7+Math.random()*5)+'px';host.appendChild(c);setTimeout(()=>c.remove(),1800);}}
 let toastT=null;function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1800);}
 
 /* ===== BOOT ===== */
