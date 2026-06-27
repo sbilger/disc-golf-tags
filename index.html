@@ -131,6 +131,13 @@
   .scard.this{border:2px solid var(--gold);background:#fffbe9}
   .scard.this .hdate{background:var(--gold);color:#5a4500}
   .scard.past{opacity:.5}
+  .pf-pdga{display:flex;align-items:center;gap:8px;margin:0 2px 14px;font-size:13px}
+  .pdga{color:var(--blue);font-weight:800;text-decoration:none}
+  .pdga.none{color:var(--muted);font-weight:600}
+  .pdga-edit{border:0;background:#eef3f8;color:var(--blue);border-radius:8px;padding:3px 9px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit}
+  .udchip{color:var(--blue);font-weight:800}
+  .sedit{margin-bottom:12px}
+  .slink{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;margin-top:5px;color:var(--blue)}
   .srow{display:flex;gap:6px;align-items:center;margin-bottom:8px}
   .srow input{padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;min-width:0}
   .srow input[type=date]{flex:0 0 120px}
@@ -269,7 +276,7 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
       <div class="seg">
         <button class="btn sm gold org-only" style="margin:0" onclick="show('trade')">⇄ Trade tags</button>
         <button class="btn sm ghost" style="margin:0" onclick="show('export')">⤓ Export / Share</button></div>
-      <button class="btn link sm" style="margin:0 0 14px" onclick="openUDisc()">↗ View live event on UDisc</button>
+      <button class="btn link sm" style="margin:0 0 14px" onclick="openUDisc()">↗ Open this week’s UDisc event</button>
       <div id="playerList"></div>
       <div class="card org-only" style="margin-top:14px"><h3>Settings</h3>
         <div class="field"><label>New player</label>
@@ -283,6 +290,7 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
     <!-- PROFILE -->
     <section class="view" id="v-profile">
       <div class="dhead"><button class="back" onclick="show('players')">‹ Standings</button><div class="dtitle" id="pf-name">Player</div></div>
+      <div class="pf-pdga" id="pf-pdga"></div>
       <div class="pf-stats" id="pf-stats"></div>
       <div class="meta" style="margin:0 2px 6px">Tags held, oldest → now</div>
       <div class="chips" id="pf-chips"></div>
@@ -383,6 +391,7 @@ async function remoteSave(state){await fetch(`${SUPA_URL}/rest/v1/leagues?on_con
 
 /* ===== LEAGUE CONSTANTS ===== */
 const EVENT_URL='https://udisc.com/events/discinsanity-tags-league-discinsanity-tags-at-south-mountain-3ZPJs6/leaderboard';
+const EVENT_APPLINK='https://app.udisc.com/applink/event/v2/event_listing_olsn95bvjjgmfnrkpuvxyfym';
 const DIVS=[{id:'PRO',label:'Mixed Pro'},{id:'AM',label:'Mixed Amateur'}];
 const divLabel=id=>(DIVS.find(d=>d.id===id)||{label:id}).label;
 const COURSES=[{course:'South Mountain',layout:'White Tee',par:54}];
@@ -419,7 +428,7 @@ function buildSeed(){const rng=mulberry32(73);
     const arr=present.map(n=>({name:n,division:dv[n],tag:cur[n],score:Math.round(skill[n]+(rng()*8-3))}));
     const res=reshuffleByDivision(arr,'pool');res.forEach(r=>{cur[r.name]=r.newTag;});
     rs.push({id:'r'+w,date:isoWeeksAgo(WEEKS-1-w),course:COURSES[0].course,layout:COURSES[0].layout,par:COURSES[0].par,results:res});}
-  return {players:roster.map(p=>({name:p.name,division:p.div,tag:cur[p.name]})),rounds:rs,trades:[],config:{newPlayerRule:'pool'},schedule:seedSchedule()};}
+  return {players:roster.map(p=>({name:p.name,division:p.div,tag:cur[p.name],pdga:({Sarah:'45123',Mike:'68920',Dave:'112045',Luis:'89034'})[p.name]})),rounds:rs,trades:[],config:{newPlayerRule:'pool'},schedule:seedSchedule()};}
 
 /* ===== STORE ===== */
 async function loadState(){let s=null;
@@ -434,18 +443,18 @@ function resetDemo(){localStorage.removeItem(KEY);const s=buildSeed();players=s.
 let tonight={},lastResult=null;
 function resetTonight(){tonight={};players.forEach(p=>tonight[p.name]={present:false,score:null});pendingImport=null;const mp=document.getElementById('mapPanel');if(mp)mp.innerHTML='';msg('');}
 function nextSundays(n,from){const out=[];let d=from?new Date(from+'T12:00:00'):new Date();d.setHours(12,0,0,0);while(d.getDay()!==0)d.setDate(d.getDate()+1);for(let i=0;i<n;i++){out.push(new Date(d).toISOString().slice(0,10));d.setDate(d.getDate()+7);}return out;}
-function seedSchedule(){return nextSundays(8).map((dt,i)=>({date:dt,course:i===0?'South Mountain':'TBD',layout:i===0?'White Tee':''}));}
+function seedSchedule(){return nextSundays(8).map((dt,i)=>({date:dt,course:i===0?'South Mountain':'TBD',layout:i===0?'White Tee':'',eventUrl:i===0?EVENT_APPLINK:''}));}
 function courseOptions(){const seen=new Set(),list=[];schedule.forEach(s=>{if(s.course&&s.course!=='TBD'){const k=s.course+'|'+(s.layout||'');if(!seen.has(k)){seen.add(k);list.push({course:s.course,layout:s.layout||'',par:54});}}});return list.length?list:COURSES;}
 function todayCourseIdx(list){const t=today();const a=[...schedule].sort((x,y)=>x.date<y.date?-1:1);const e=a.find(x=>x.date===t)||a.find(x=>x.date>=t)||a[a.length-1];if(e){const i=list.findIndex(c=>c.course===e.course&&(c.layout||'')===(e.layout||''));if(i>=0)return i;}return 0;}
 function renderCourseSel(){courseList=courseOptions();const sel=document.getElementById('courseSel');if(!sel)return;sel.innerHTML=courseList.map((c,i)=>`<option value="${i}">${c.course}${c.layout?' — '+c.layout:''}</option>`).join('');sel.value=todayCourseIdx(courseList);}
 function renderSchedule(){const el=document.getElementById('schedList');if(!el)return;schedule.sort((a,b)=>a.date<b.date?-1:1);el.innerHTML='';const t=today();let thisIdx=schedule.findIndex(s=>s.date>=t);if(thisIdx<0)thisIdx=schedule.length-1;const org=document.body.classList.contains('org');
-  if(schedEdit&&org){schedule.forEach((s,i)=>{const r=document.createElement('div');r.className='srow';r.innerHTML=`<input type="date" value="${s.date}" onchange="schedSet(${i},'date',this.value)"><input placeholder="Course" value="${s.course==='TBD'?'':(s.course||'')}" oninput="schedSet(${i},'course',this.value)"><input placeholder="Tee" value="${s.layout||''}" oninput="schedSet(${i},'layout',this.value)"><button class="xbtn" onclick="schedDel(${i})">✕</button>`;el.appendChild(r);});
+  if(schedEdit&&org){schedule.forEach((s,i)=>{const r=document.createElement('div');r.className='sedit';r.innerHTML=`<div class="srow"><input type="date" value="${s.date}" onchange="schedSet(${i},'date',this.value)"><input placeholder="Course" value="${s.course==='TBD'?'':(s.course||'')}" oninput="schedSet(${i},'course',this.value)"><input placeholder="Tee" value="${s.layout||''}" oninput="schedSet(${i},'layout',this.value)"><button class="xbtn" onclick="schedDel(${i})">✕</button></div><input class="slink" placeholder="UDisc event link (optional)" value="${s.eventUrl||''}" oninput="schedSet(${i},'eventUrl',this.value)">`;el.appendChild(r);});
     const add=document.createElement('button');add.className='btn ghost sm';add.style.marginTop='6px';add.textContent='+ Add week';add.onclick=schedAdd;el.appendChild(add);
     const done=document.createElement('button');done.className='btn sm';done.style.marginTop='8px';done.textContent='Done editing';done.onclick=function(){schedEdit=false;persist();renderAll();renderSchedule();};el.appendChild(done);
   }else{
     if(!schedule.length){el.innerHTML='<p class="sub">No schedule yet. Organizer: tap Edit schedule.</p>';return;}
     schedule.forEach((s,i)=>{const cls=i<thisIdx?'past':(i===thisIdx?'this':'up');const f=fmtDate(s.date);const setc=s.course&&s.course!=='TBD';const c=setc?(s.course+(s.layout?' — '+s.layout:'')):'TBD';const lab=cls==='this'?'This week':cls==='past'?'Played':'Upcoming';
-      const card=document.createElement('div');card.className='scard '+cls;card.innerHTML=`<div class="hdate"><div class="d">${f.d}</div><div class="m">${f.m}</div></div><div class="hbody"><div class="c">${c}</div><div class="s">${lab}</div></div>`;el.appendChild(card);});
+      const card=document.createElement('div');card.className='scard '+cls;card.innerHTML=`<div class="hdate"><div class="d">${f.d}</div><div class="m">${f.m}</div></div><div class="hbody"><div class="c">${c}</div><div class="s">${lab}${s.eventUrl?' · <span class=\'udchip\'>↗ UDisc</span>':''}</div></div>`;if(s.eventUrl){card.style.cursor='pointer';card.onclick=()=>openUDisc(s.eventUrl);}el.appendChild(card);});
   }}
 function toggleSchedEdit(){schedEdit=!schedEdit;renderSchedule();}
 function schedSet(i,k,v){if(!schedule[i])return;schedule[i][k]=v;persist();if(k==='date')renderSchedule();renderCourseSel();}
@@ -512,15 +521,16 @@ function ingest(rows){
   const cDate=findCol(header,[/^start\s*date$/i,/^date$/i,/start/i]);
   const cPlace=findCol(header,[/^place$/i,/^pos(ition)?$/i,/^rank$/i]);
   const cDiv=findCol(header,[/^division$/i,/division/i,/^div$/i]);
+  const cPdga=findCol(header,[/^pdga(\s*#|\s*number)?$/i,/pdga/i]);
   if(cName<0||(cTotal<0&&cPlace<0)){msg('Could not find name + score columns. (Header: '+header.join(', ')+')',true);return;}
   let entries=[];
   for(let i=hIdx+1;i<rows.length;i++){const r=rows[i];const name=(r[cName]||'').trim();if(!name||/^par$/i.test(name))continue;
     const raw=cTotal>=0?r[cTotal]:r[cPlace];const score=parseInt(String(raw).replace(/[^\d\-]/g,''),10);if(isNaN(score))continue;
-    const date=cDate>=0?(r[cDate]||'').trim():'';const division=cDiv>=0?divFromText(r[cDiv]):null;entries.push({name,score,date,division});}
+    const date=cDate>=0?(r[cDate]||'').trim():'';const division=cDiv>=0?divFromText(r[cDiv]):null;const pdga=cPdga>=0?(r[cPdga]||'').replace(/\D/g,''):'';entries.push({name,score,date,division,pdga});}
   if(!entries.length){msg('No player rows found.',true);return;}
   const dates=[...new Set(entries.map(e=>e.date).filter(Boolean))];if(dates.length>1){const latest=dates.sort().slice(-1)[0];entries=entries.filter(e=>e.date===latest);}
   const byName={};players.forEach((p,i)=>byName[p.name.toLowerCase()]=i);const matched=[],unmatched=[];
-  entries.forEach(e=>{const idx=byName[e.name.toLowerCase()];if(idx!==undefined)matched.push({playerIdx:idx,name:e.name,score:e.score});else unmatched.push({name:e.name,score:e.score,division:e.division||'AM'});});
+  entries.forEach(e=>{const idx=byName[e.name.toLowerCase()];if(idx!==undefined)matched.push({playerIdx:idx,name:e.name,score:e.score,pdga:e.pdga});else unmatched.push({name:e.name,score:e.score,division:e.division||'AM',pdga:e.pdga});});
   pendingImport={matched,unmatched};
   msg(`Parsed ${entries.length} players`+(cTotal<0?' (by place)':'')+(cDiv>=0?' · divisions detected':'')+`. ${matched.length} matched`+(unmatched.length?`, ${unmatched.length} need mapping ↓`:`. Ready — review then Reshuffle.`));
   applyImport();
@@ -532,9 +542,9 @@ function renderMap(){const el=document.getElementById('mapPanel');el.innerHTML='
   html+=`<button class="applybtn" onclick="applyImport()">Apply import</button></div>`;el.innerHTML=html;}
 function applyImport(){
   if(!pendingImport)return;players.forEach(p=>{tonight[p.name]={present:false,score:null};});
-  pendingImport.matched.forEach(m=>{tonight[players[m.playerIdx].name]={present:true,score:m.score};});
+  pendingImport.matched.forEach(m=>{const pp=players[m.playerIdx];if(m.pdga&&!pp.pdga)pp.pdga=m.pdga;tonight[pp.name]={present:true,score:m.score};});
   const added=[];
-  pendingImport.unmatched.forEach(u=>{const dvn=u.division||'AM';players.push({name:u.name,division:dvn,tag:nextTag(dvn),isNew:true,firstNight:config.newPlayerRule==='holdout'});tonight[u.name]={present:true,score:u.score};added.push(u.name);});
+  pendingImport.unmatched.forEach(u=>{const dvn=u.division||'AM';players.push({name:u.name,division:dvn,tag:nextTag(dvn),isNew:true,firstNight:config.newPlayerRule==='holdout',pdga:u.pdga||undefined});tonight[u.name]={present:true,score:u.score};added.push(u.name);});
   pendingImport=null;document.getElementById('mapPanel').innerHTML='';renderRoster();const anyPresent=players.some(p=>tonight[p.name]&&tonight[p.name].present);if(anyPresent){msg('Import applied — generating tags…');if(added.length)toast('Added '+added.length+' new player'+(added.length>1?'s':'')+': '+added.join(', '));reshuffle();}else{msg('Import applied.');}
 }
 function msg(t,err){const m=document.getElementById('impmsg');m.textContent=t;m.className='impmsg'+(err?' err':'');}
@@ -581,7 +591,7 @@ function renderPlayers(){const el=document.getElementById('playerList');el.inner
       row.innerHTML=`<div class="tag sm ${p.isNew?'new':d.id} ${p.tag===1?'topseed':''}">${p.tag}</div><div class="name">${p.name}${p.tag===1?'<span class="crownbadge">👑</span>':''}${no1Streak(p.name)>=2?'<span class="streak">🔥 '+no1Streak(p.name)+'× #1</span>':''}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
   document.getElementById('npRule').value=config.newPlayerRule;}
 function openProfile(name){const {p,tl,roundsN,wins,bestTag,bestScore}=statsFor(name);
-  document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${p.division==='PRO'?'#e8f1fa':'#e6e9f0'};color:${p.division==='PRO'?'#0066B3':'#1f2d4d'}">${divLabel(p.division)}</span>`;
+  document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${p.division==='PRO'?'#e8f1fa':'#e6e9f0'};color:${p.division==='PRO'?'#0066B3':'#1f2d4d'}">${divLabel(p.division)}</span>`;document.getElementById('pf-pdga').innerHTML=pdgaHtml(p);
   document.getElementById('pf-stats').innerHTML=`
     <div class="stat"><div class="v">${p.tag}</div><div class="l">Current tag</div></div>
     <div class="stat"><div class="v">${bestTag}</div><div class="l">Best tag</div></div>
@@ -654,8 +664,11 @@ function downloadHTML(){const groups=standingsByDiv();
   dl('discinsanity-standings.html',html,'text/html');toast('Standings page downloaded');}
 
 /* ===== MISC ===== */
+function pdgaHtml(p){const link=p.pdga?`<a class="pdga" href="https://www.pdga.com/player/${p.pdga}" target="_blank" rel="noopener">PDGA #${p.pdga} ↗</a>`:'<span class="pdga none">No PDGA #</span>';return link+`<button class="pdga-edit org-only" onclick="setPdga('${p.name}')">${p.pdga?'edit':'+ add'}</button>`;}
+function setPdga(name){const p=players.find(x=>x.name===name);if(!p)return;const v=prompt('PDGA number for '+name+' (digits only):',p.pdga||'');if(v===null)return;const num=v.replace(/\D/g,'');p.pdga=num||undefined;persist();openProfile(name);}
 function setRule(v){config.newPlayerRule=v;persist();toast('New-player rule: '+(v==='pool'?'join immediately':'hold out first night'));}
-function openUDisc(){window.open(EVENT_URL,'_blank','noopener');}
+function thisWeekEventUrl(){const t=today();const a=[...schedule].sort((x,y)=>x.date<y.date?-1:1);const e=a.find(x=>x.date===t)||a.find(x=>x.date>=t)||a[a.length-1];return (e&&e.eventUrl)?e.eventUrl:EVENT_APPLINK;}
+function openUDisc(u){window.open(u||thisWeekEventUrl(),'_blank','noopener');}
 
 /* ===== ROUTER + RENDER ===== */
 function show(name){
