@@ -27,7 +27,7 @@ with sync_playwright() as p:
     pg = ctx.new_page()
 
     def cap(t, ms):
-        pg.evaluate(CAP_JS, t); pg.wait_for_timeout(ms)
+        pg.evaluate(CAP_JS, t); pg.wait_for_timeout(int(ms*1.5))
     def hidecap():
         pg.evaluate(HIDE_JS)
 
@@ -73,7 +73,7 @@ with sync_playwright() as p:
     # 7) SAVE -> CELEBRATION
     cap("Save the round… and claim the #1 tag \U0001F3C6", 2600)
     hidecap()
-    pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(5600)  # let #1 + confetti play
+    pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(6800)  # let #1 + confetti play
     # dismiss celebration if still up
     if "hide" not in (pg.get_attribute("#celebrate", "class") or ""):
         pg.click("#celebrate"); pg.wait_for_timeout(600)
@@ -92,7 +92,7 @@ with sync_playwright() as p:
     hidecap()
 
     # 11) END CARD
-    pg.evaluate(END_JS, "sbilger.github.io/disc-golf-tags"); pg.wait_for_timeout(4200)
+    pg.evaluate(END_JS, "sbilger.github.io/disc-golf-tags"); pg.wait_for_timeout(6000)
 
     path = pg.video.path()
     ctx.close(); b.close()
