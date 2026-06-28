@@ -1,6 +1,15 @@
 # scratch / verification artifacts
 _check.js
+_shot_*.png
 *.tmp
+
+# build scratch (keep generator scripts in build/, ignore intermediates)
+build/shots/
+build/frames/
+build/video/
+build/_*.png
+build/doc.html
+build/demo-night.csv
 
 # OS / editor
 .DS_Store
