@@ -24,3 +24,6 @@ npm-debug.log*
 # local secrets — never commit real Supabase keys
 .env
 .env.local
+
+# real league data (private)
+build/tags_week.*

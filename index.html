@@ -284,7 +284,7 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
             <option value="pool">Joins their division's swap immediately</option>
             <option value="holdout">Holds out first night (worst tag in division, no swap)</option>
           </select></div></div>
-      <div class="reset org-only"><button onclick="resetDemo()">↺ reset demo data</button></div>
+      <div class="reset org-only"><button onclick="freshStart()">🆕 start fresh (clear roster)</button> &nbsp; <button onclick="resetDemo()">↺ reset demo data</button></div>
     </section>
 
     <!-- PROFILE -->
@@ -392,8 +392,12 @@ async function remoteSave(state){await fetch(`${SUPA_URL}/rest/v1/leagues?on_con
 /* ===== LEAGUE CONSTANTS ===== */
 const EVENT_URL='https://udisc.com/events/discinsanity-tags-league-discinsanity-tags-at-south-mountain-3ZPJs6/leaderboard';
 const EVENT_APPLINK='https://app.udisc.com/applink/event/v2/event_listing_olsn95bvjjgmfnrkpuvxyfym';
-const DIVS=[{id:'PRO',label:'Mixed Pro'},{id:'AM',label:'Mixed Amateur'}];
-const divLabel=id=>(DIVS.find(d=>d.id===id)||{label:id}).label;
+const DIV_LABELS={MPO:'MPO — Pro',FPO:'FPO — Women Pro',MA1:'MA1 — Advanced',MA2:'MA2 — Intermediate',MA3:'MA3 — Recreational',MA4:'MA4 — Novice',FA1:'FA1 — Women Am',PRO:'Mixed Pro',AM:'Mixed Amateur'};
+const DIV_ORDER=['MPO','FPO','MA1','MA2','MA3','MA4','FA1','FA2','PRO','AM'];
+const DIV_PALETTE=['#0066B3','#7a3fb0','#1f2d4d','#1f9d57','#e8742c','#0f7d8c','#b03f6e','#5a6b2f'];
+function divLabel(id){return DIV_LABELS[id]||id;}
+function divColor(id){const i=DIV_ORDER.indexOf(id);return DIV_PALETTE[(i>=0?i:0)%DIV_PALETTE.length];}
+function divs(){const ids=[...new Set(players.map(p=>p.division))];ids.sort((a,b)=>{const ia=DIV_ORDER.indexOf(a),ib=DIV_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||(a<b?-1:1);});return ids.map(id=>({id,label:divLabel(id)}));}
 const COURSES=[{course:'South Mountain',layout:'White Tee',par:54}];
 
 /* ===== STATE ===== */
@@ -411,20 +415,22 @@ function computeReshuffle(present,rule){rule=rule||'pool';
     const out=vr.map((p,i)=>({name:p.name,score:p.score,place:place[p.name],oldTag:p.tag,newTag:pool[i],isNew:false}));
     rookies.forEach(p=>out.push({name:p.name,score:p.score,place:place[p.name],oldTag:p.tag,newTag:p.tag,isNew:true,rookie:true}));return out;}
   const pool=present.map(p=>p.tag).sort((a,b)=>a-b);return ranked.map((p,i)=>({name:p.name,score:p.score,place:i+1,oldTag:p.tag,newTag:pool[i],isNew:!!p.isNew}));}
-function reshuffleByDivision(present,rule){let out=[];DIVS.forEach(d=>{const grp=present.filter(p=>p.division===d.id);if(!grp.length)return;
-  const res=computeReshuffle(grp,rule);res.forEach(r=>r.division=d.id);out=out.concat(res);});return out;}
+function reshuffleByDivision(present,rule){let out=[];const ds=[...new Set(present.map(p=>p.division))];ds.forEach(did=>{const grp=present.filter(p=>p.division===did);if(!grp.length)return;
+  const res=computeReshuffle(grp,rule);res.forEach(r=>r.division=did);out=out.concat(res);});return out;}
 
 /* ===== SEED ===== */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function isoWeeksAgo(w){const d=new Date(2026,5,21);d.setDate(d.getDate()-w*7);return d.toISOString().slice(0,10);}
 function buildSeed(){const rng=mulberry32(73);
-  const roster=[{name:'Sarah',div:'PRO',skill:50},{name:'Mike',div:'PRO',skill:52},{name:'Luis',div:'PRO',skill:54},{name:'Diego',div:'PRO',skill:56},{name:'Owen',div:'PRO',skill:57},{name:'Marcus',div:'PRO',skill:59},
-    {name:'Dave',div:'AM',skill:56},{name:'Kim',div:'AM',skill:58},{name:'Tony',div:'AM',skill:59},{name:'Brandon',div:'AM',skill:60},{name:'Hailey',div:'AM',skill:61},{name:'Ray',div:'AM',skill:62},{name:'Jo',div:'AM',skill:63},{name:'Cole',div:'AM',skill:64},{name:'Nate',div:'AM',skill:66},{name:'Wes',div:'AM',skill:68}];
-  const initial={Mike:1,Sarah:2,Luis:3,Owen:4,Diego:5,Marcus:6,Tony:1,Dave:2,Jo:3,Kim:4,Ray:5,Brandon:6,Hailey:7,Cole:8,Nate:9,Wes:10};
+  const roster=[{name:'Sarah',div:'MPO',skill:50},{name:'Mike',div:'MPO',skill:52},{name:'Luis',div:'MPO',skill:54},
+    {name:'Dave',div:'MA1',skill:55},{name:'Kim',div:'MA1',skill:57},{name:'Tony',div:'MA1',skill:58},{name:'Brandon',div:'MA1',skill:60},{name:'Hailey',div:'MA1',skill:61},
+    {name:'Ray',div:'MA2',skill:56},{name:'Jo',div:'MA2',skill:59},{name:'Cole',div:'MA2',skill:62},{name:'Nate',div:'MA2',skill:64},
+    {name:'Wes',div:'MA3',skill:58},{name:'Diego',div:'MA3',skill:61},{name:'Owen',div:'MA3',skill:63},{name:'Marcus',div:'MA3',skill:66}];
+  const initial={Mike:1,Sarah:2,Luis:3,Tony:1,Dave:2,Kim:3,Brandon:4,Hailey:5,Ray:1,Jo:2,Cole:3,Nate:4,Wes:1,Diego:2,Owen:3,Marcus:4};
   let cur={};roster.forEach(p=>cur[p.name]=initial[p.name]);const skill={},dv={};roster.forEach(p=>{skill[p.name]=p.skill;dv[p.name]=p.div;});
   const rs=[];const WEEKS=8;
   for(let w=0;w<WEEKS;w++){let present=roster.filter(()=>rng()<0.85).map(p=>p.name);
-    DIVS.forEach(d=>{if(present.filter(n=>dv[n]===d.id).length<2){roster.filter(p=>p.div===d.id).forEach(p=>{if(!present.includes(p.name))present.push(p.name);});}});
+    [...new Set(roster.map(p=>p.div))].forEach(did=>{if(present.filter(n=>dv[n]===did).length<2){roster.filter(p=>p.div===did).forEach(p=>{if(!present.includes(p.name))present.push(p.name);});}});
     const arr=present.map(n=>({name:n,division:dv[n],tag:cur[n],score:Math.round(skill[n]+(rng()*8-3))}));
     const res=reshuffleByDivision(arr,'pool');res.forEach(r=>{cur[r.name]=r.newTag;});
     rs.push({id:'r'+w,date:isoWeeksAgo(WEEKS-1-w),course:COURSES[0].course,layout:COURSES[0].layout,par:COURSES[0].par,results:res});}
@@ -437,6 +443,7 @@ async function loadState(){let s=null;
   if(!s)s=buildSeed();
   players=s.players;rounds=s.rounds;trades=s.trades||[];config=s.config||{newPlayerRule:'pool'};schedule=(s.schedule&&s.schedule.length)?s.schedule:seedSchedule();persist();}
 function persist(){const state={players,rounds,trades,config,schedule};localStorage.setItem(KEY,JSON.stringify(state));if(remoteOn())remoteSave(state).catch(e=>console.warn('remote save failed',e));}
+function freshStart(){if(!confirm('Clear ALL players, rounds and trades and start an empty season? (Schedule is kept.)'))return;players=[];rounds=[];trades=[];persist();resetTonight();renderAll();show('players');toast('Fresh season — import a scorecard to build the roster');}
 function resetDemo(){localStorage.removeItem(KEY);const s=buildSeed();players=s.players;rounds=s.rounds;trades=s.trades;config=s.config;schedule=s.schedule;persist();resetTonight();renderAll();show('players');toast('Demo data reset');}
 
 /* ===== TONIGHT ===== */
@@ -463,10 +470,10 @@ function schedAdd(){const last=schedule.length?schedule[schedule.length-1].date:
 function stagger(el,i){el.style.animationDelay=(i*0.035)+'s';}
 function renderRoster(){
   const el=document.getElementById('roster');el.innerHTML='';let i=0;
-  DIVS.forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
-    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot ${d.id}"></span>${d.label}`;el.appendChild(h);
+  divs().forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
+    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot" style="background:${divColor(d.id)}"></span>${d.label}`;el.appendChild(h);
     grp.forEach(p=>{const t=tonight[p.name]||{present:false,score:null};const row=document.createElement('div');row.className='row'+(t.present?'':' off');stagger(row,i++);
-      row.innerHTML=`<div class="tag sm ${p.isNew?'new':d.id}">${p.tag}</div><div class="name">${p.name}</div>
+      row.innerHTML=`<div class="tag sm ${p.isNew?'new':''}" style="background:${divColor(d.id)}">${p.tag}</div><div class="name">${p.name}</div>
         ${t.present?`<input class="score" type="number" inputmode="numeric" value="${t.score??''}" placeholder="score" oninput="setScore('${p.name}',this.value)">`:''}
         <div class="toggle ${t.present?'on':''}" onclick="toggle('${p.name}')"><div class="knob"></div></div>`;el.appendChild(row);});});
 }
@@ -484,7 +491,7 @@ function renderResult(res){
   const body=document.getElementById('resultBody');body.innerHTML='';let i=0;
   const counts={};res.forEach(r=>counts[r.division+'|'+r.score]=(counts[r.division+'|'+r.score]||0)+1);
   let absentNotes=[],anyUp=false;
-  DIVS.forEach(d=>{const grp=res.filter(r=>r.division===d.id);if(!grp.length)return;
+  divs().forEach(d=>{const grp=res.filter(r=>r.division===d.id);if(!grp.length)return;
     const hd=document.createElement('tr');hd.className='divhead';hd.innerHTML=`<td colspan="3">${d.label}</td>`;body.appendChild(hd);
     [...grp].sort((a,b)=>a.place-b.place).forEach(r=>{const dir=r.newTag<r.oldTag?'up':r.newTag>r.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
       const pill=r.rookie?'<span class="pill new">rookie</span>':r.isNew?'<span class="pill new">new</span>':dir==='up'?'<span class="pill up">up</span>':dir==='down'?'<span class="pill down">down</span>':'';
@@ -509,7 +516,7 @@ function parseCSV(text){const rows=[];let field='',row=[],inQ=false;
     else{if(c==='"')inQ=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c!=='\r')field+=c;}}
   if(field.length||row.length){row.push(field);rows.push(row);}return rows.filter(r=>r.some(x=>(x||'').trim()!==''));}
 function findCol(h,res){for(const re of res){const i=h.findIndex(x=>re.test((x||'').trim()));if(i>=0)return i;}return -1;}
-function divFromText(t){return /pro/i.test(t||'')?'PRO':'AM';}
+function divFromText(t){t=(t||'').trim();if(!t)return 'AM';const u=t.toUpperCase();const m={'MIXED PRO':'MPO','MIXED AMATEUR':'MA1','PRO':'MPO','AM':'MA1'};return m[u]||u;}
 let pendingImport=null;
 function onFile(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{ingest(parseCSV(r.result));}catch(e){msg('Could not read that file: '+e.message,true);}};r.onerror=()=>msg('File read failed.',true);r.readAsText(f);ev.target.value='';}
 function ingest(rows){
@@ -573,7 +580,7 @@ function openRound(id,from){const r=rounds.find(x=>x.id===id);if(!r)return;round
   document.getElementById('rd-title').textContent=r.course;document.getElementById('rd-sub').textContent=`${f.m} ${f.d} · ${r.layout} · par ${r.par}`;
   document.querySelector('#v-round .back').setAttribute('onclick',`show('${roundBackTab}')`);
   const body=document.getElementById('rdBody');body.innerHTML='';let i=0;
-  DIVS.forEach(d=>{const grp=r.results.filter(x=>x.division===d.id);if(!grp.length)return;
+  divs().forEach(d=>{const grp=r.results.filter(x=>x.division===d.id);if(!grp.length)return;
     const hd=document.createElement('tr');hd.className='divhead';hd.innerHTML=`<td colspan="4">${d.label}</td>`;body.appendChild(hd);
     [...grp].sort((a,b)=>a.place-b.place).forEach(x=>{const dir=x.newTag<x.oldTag?'up':x.newTag>x.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
       const tr=document.createElement('tr');stagger(tr,i++);tr.innerHTML=`<td>${x.place}</td><td><b>${x.name}</b></td><td>${x.score}</td><td><span class="chg ${dir}">${x.oldTag} ${arrow} ${x.newTag}</span></td>`;body.appendChild(tr);});});
@@ -585,13 +592,13 @@ function statsFor(name){const tl=timeline(name);const p=players.find(x=>x.name==
   const wins=tl.filter(e=>e.kind==='round'&&e.place===1).length;const bestTag=Math.min(p.tag,...tl.map(e=>e.newTag));
   const scores=tl.filter(e=>e.kind==='round').map(e=>e.score);const bestScore=scores.length?Math.min(...scores):'—';return {p,tl,roundsN,wins,bestTag,bestScore};}
 function renderPlayers(){const el=document.getElementById('playerList');el.innerHTML='';let i=0;
-  DIVS.forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
-    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot ${d.id}"></span>${d.label}`;el.appendChild(h);
+  divs().forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
+    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot" style="background:${divColor(d.id)}"></span>${d.label}`;el.appendChild(h);
     grp.forEach(p=>{const s=statsFor(p.name);const row=document.createElement('div');row.className='row tap';stagger(row,i++);row.onclick=()=>openProfile(p.name);
-      row.innerHTML=`<div class="tag sm ${p.isNew?'new':d.id} ${p.tag===1?'topseed':''}">${p.tag}</div><div class="name">${p.name}${p.tag===1?'<span class="crownbadge">👑</span>':''}${no1Streak(p.name)>=2?'<span class="streak">🔥 '+no1Streak(p.name)+'× #1</span>':''}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
+      row.innerHTML=`<div class="tag sm ${p.isNew?'new':''} ${p.tag===1?'topseed':''}" style="background:${divColor(d.id)}">${p.tag}</div><div class="name">${p.name}${p.tag===1?'<span class="crownbadge">👑</span>':''}${no1Streak(p.name)>=2?'<span class="streak">🔥 '+no1Streak(p.name)+'× #1</span>':''}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
   document.getElementById('npRule').value=config.newPlayerRule;}
 function openProfile(name){const {p,tl,roundsN,wins,bestTag,bestScore}=statsFor(name);
-  document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${p.division==='PRO'?'#e8f1fa':'#e6e9f0'};color:${p.division==='PRO'?'#0066B3':'#1f2d4d'}">${divLabel(p.division)}</span>`;document.getElementById('pf-pdga').innerHTML=pdgaHtml(p);
+  document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${divColor(p.division)}22;color:${divColor(p.division)}">${divLabel(p.division)}</span>`;document.getElementById('pf-pdga').innerHTML=pdgaHtml(p);
   document.getElementById('pf-stats').innerHTML=`
     <div class="stat"><div class="v">${p.tag}</div><div class="l">Current tag</div></div>
     <div class="stat"><div class="v">${bestTag}</div><div class="l">Best tag</div></div>
@@ -623,9 +630,9 @@ function chartSVG(tl){
 /* ===== TRADING ===== */
 function tradeMode(m){document.getElementById('seg-swap').classList.toggle('on',m==='swap');document.getElementById('seg-re').classList.toggle('on',m==='re');
   document.getElementById('swapCard').style.display=m==='swap'?'block':'none';document.getElementById('reCard').style.display=m==='re'?'block':'none';}
-function optGroups(){return DIVS.map(d=>{const grp=playersIn(d.id);if(!grp.length)return '';return `<optgroup label="${d.label}">`+grp.map(p=>`<option value="${p.name}">${p.name} — tag ${p.tag}</option>`).join('')+`</optgroup>`;}).join('');}
+function optGroups(){return divs().map(d=>{const grp=playersIn(d.id);if(!grp.length)return '';return `<optgroup label="${d.label}">`+grp.map(p=>`<option value="${p.name}">${p.name} — tag ${p.tag}</option>`).join('')+`</optgroup>`;}).join('');}
 function fillTradeSelects(){const og=optGroups();['swapA','swapB','reP'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=og;});
-  const all=DIVS.flatMap(d=>playersIn(d.id));if(all[1])document.getElementById('swapB').value=all[1].name;swapPreview();rePreview();}
+  const all=divs().flatMap(d=>playersIn(d.id));if(all[1])document.getElementById('swapB').value=all[1].name;swapPreview();rePreview();}
 function doSwap(){const a=document.getElementById('swapA').value,b=document.getElementById('swapB').value;const A=players.find(p=>p.name===a),B=players.find(p=>p.name===b);
   if(!A||!B||A===B){alert('Pick two different players.');return;}if(A.division!==B.division){alert('Can only swap within the same division.');return;}
   const ta=A.tag,tb=B.tag;A.tag=tb;B.tag=ta;
@@ -644,7 +651,7 @@ function doReassign(){const n=document.getElementById('reP').value;const nt=pars
   persist();renderAll();fillTradeSelects();document.getElementById('reTag').value='';toast('Reassigned');show('players');}
 
 /* ===== EXPORT ===== */
-function standingsByDiv(){return DIVS.map(d=>({div:d,rows:playersIn(d.id).map((p,i)=>{const s=statsFor(p.name);return {rank:i+1,tag:p.tag,name:p.name,rounds:s.roundsN,wins:s.wins,bestTag:s.bestTag};})})).filter(g=>g.rows.length);}
+function standingsByDiv(){return divs().map(d=>({div:d,rows:playersIn(d.id).map((p,i)=>{const s=statsFor(p.name);return {rank:i+1,tag:p.tag,name:p.name,rounds:s.roundsN,wins:s.wins,bestTag:s.bestTag};})})).filter(g=>g.rows.length);}
 function renderExportPreview(){const groups=standingsByDiv();
   document.getElementById('exportPreview').innerHTML=groups.map(g=>`<div class="meta" style="margin:6px 0 4px">${g.div.label}</div><table><tbody>`+
     g.rows.map(r=>`<tr><td style="width:30px"><b>${r.tag}</b></td><td>${r.name}</td><td style="text-align:right">${r.wins}W</td></tr>`).join('')+'</tbody></table>').join('');}
