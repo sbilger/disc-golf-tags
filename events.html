@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e8742c">
+<title>Discinsanity Events</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--org:#e8742c;--org-d:#b9591c;--org-l:#fdeede;--blue:#0066B3;--gold:#F4CE1A;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Assistant',-apple-system,Segoe UI,Roboto,sans-serif;background:#c4ccd6;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px;color:var(--ink)}
+  .lead{max-width:380px;text-align:center;color:#3c4651;margin:0 0 18px;font-size:14px;line-height:1.45}
+  .phone{width:380px;max-width:100%;height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
+  header{background:#fff;border-bottom:3px solid var(--org);padding:12px 16px;display:flex;align-items:center;gap:10px;flex:0 0 auto;z-index:3}
+  header img{height:32px;background:#fff;border-radius:7px;padding:2px}
+  .htitle b{font-size:14px;font-weight:800;display:block;line-height:1}.htitle small{font-size:10px;color:var(--muted);font-weight:600}
+  .hback{border:0;background:var(--org-l);color:var(--org-d);border-radius:9px;padding:6px 10px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none}
+  .hkey{margin-left:auto;border:0;background:var(--org-l);color:var(--org-d);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:15px}
+  body.org .hkey{background:var(--gold);color:#3a2e00}
+  .views{flex:1;position:relative;overflow:hidden}
+  .view{position:absolute;inset:0;overflow-y:auto;padding:16px 16px 24px;display:none}
+  .view.on{display:block;animation:in .3s ease}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .sech{display:flex;align-items:center;margin:18px 2px 10px}.sech:first-child{margin-top:2px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0}
+  .addbtn{margin-left:auto;border:0;background:var(--org-l);color:var(--org-d);font-weight:800;font-size:12px;border-radius:20px;padding:4px 11px;cursor:pointer;display:none}
+  body.org .addbtn{display:inline-block}
+  .roview{display:none;font-size:11px;color:var(--muted);background:var(--org-l);border:1px solid #f3d9bf;border-radius:10px;padding:8px 10px;margin-bottom:4px;font-weight:600}
+  body:not(.org) .roview{display:block}
+  .ev{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:11px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:flex-start;position:relative;animation:in .35s ease both;cursor:pointer}
+  .cal{flex:0 0 auto;width:50px;text-align:center;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  .cal .mo{background:var(--org);color:#fff;font-size:10px;font-weight:800;text-transform:uppercase;padding:2px 0;letter-spacing:.5px}
+  .cal .dy{font-size:21px;font-weight:800;padding:3px 0;line-height:1}
+  .evb{flex:1;min-width:0}
+  .evb .kind{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--org-d)}
+  .evb h3{margin:2px 0 3px;font-size:16px}
+  .evb .m{font-size:12px;color:var(--muted);font-weight:600;line-height:1.35}
+  .pedit{position:absolute;top:8px;right:8px;display:none;gap:6px}
+  body.org .pedit{display:flex}
+  .pedit button{border:0;border-radius:8px;width:28px;height:28px;font-size:12px;font-weight:800;cursor:pointer}
+  .pedit .e{background:#eef3f8;color:var(--blue)}.pedit .x{background:#f8e3e1;color:var(--bad)}
+  .btn{width:100%;border:0;border-radius:14px;background:var(--org);color:#fff;font-weight:800;font-size:16px;padding:15px;cursor:pointer;margin-top:6px;font-family:inherit}
+  .btn:active{transform:translateY(1px)}.btn.ghost{background:#fff;color:var(--org-d);border:2px solid var(--org)}
+  .tabbar{flex:0 0 auto;display:flex;background:#fff;border-top:1px solid var(--line)}
+  .tabbar button{flex:1;border:0;background:none;padding:11px 0 9px;cursor:pointer;color:#9aa6b2;font-size:12px;font-weight:700}
+  .tabbar button.on{color:var(--org-d)}
+  .dhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .back{border:0;background:#e3e9f0;color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit}
+  .det h1{font-size:22px;margin:0 0 4px}.det .meta{color:var(--muted);font-weight:700;font-size:13px;margin-bottom:14px}
+  .det p{font-size:14px;line-height:1.5}
+  .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .lock{position:absolute;inset:0;background:linear-gradient(160deg,#fff,#fdeede 60%,#f8ddc4);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+  .lock.hide{display:none}.lock img{width:150px;margin-bottom:16px}.lock h1{font-size:20px;margin:0 0 4px}.lock p{font-size:13px;color:var(--muted);margin:0 0 16px}
+  .lock input{width:100%;max-width:280px;padding:14px;border:2px solid var(--line);border-radius:12px;font-size:16px;text-align:center;font-weight:700;font-family:inherit;margin-bottom:10px}
+  .lock .err{color:var(--bad);font-size:13px;font-weight:700;min-height:18px}
+  .modal{position:absolute;inset:0;background:rgba(8,30,58,.55);z-index:40;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.on{display:flex}
+  .sheet{background:#fff;border-radius:18px;width:100%;max-width:330px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.4);animation:pop .35s cubic-bezier(.2,.9,.3,1);max-height:90%;overflow:auto}
+  @keyframes pop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+  .sheet h3{margin:0 0 10px}.sheet label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:9px 0 4px}
+  .sheet input,.sheet select,.sheet textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;font-weight:600}
+  .sheet textarea{resize:vertical;min-height:54px}
+  .srow{display:flex;gap:8px;margin-top:14px}
+  .srow button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  .srow .save{background:var(--org);color:#fff}.srow .cancel{background:#eef0f3;color:var(--ink)}
+  @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<p class="lead"><b>Discinsanity Events</b> — leagues, one-offs &amp; tournaments. Unlock (today's date),
+tap 🔑 + admin code to add/edit events like Jeff would.</p>
+<div class="phone">
+  <div class="lock" id="lock">
+    <img src="assets/discinsanity-logo.png" alt="">
+    <h1>Events</h1><p>Members only — enter today's date.</p>
+    <input id="lockInput" type="date" onkeydown="if(event.key==='Enter')submitAccess()">
+    <button class="btn" onclick="submitAccess()">Enter</button><div class="err" id="lockErr"></div>
+  </div>
+  <header>
+    <a class="hback" href="hub.html">‹ Hub</a>
+    <img src="assets/discinsanity-logo.png" alt="">
+    <div class="htitle"><b>Events</b><small>Calendar</small></div>
+    <button class="hkey" id="hkey" onclick="toggleOrg()">🔑</button>
+  </header>
+  <div class="views">
+    <section class="view on" id="v-upcoming">
+      <div class="roview">👀 Viewer mode — tap 🔑 (admin code) to add or edit events.</div>
+      <div class="sech"><h2>Upcoming</h2><button class="addbtn" onclick="editEvent()">+ Add event</button></div>
+      <div id="upcoming"></div>
+    </section>
+    <section class="view" id="v-past">
+      <div class="sech"><h2>Past</h2></div>
+      <div id="past"></div>
+    </section>
+    <section class="view" id="v-detail">
+      <div class="dhead"><button class="back" onclick="show('upcoming')">‹ Events</button></div>
+      <div class="det" id="detail"></div>
+    </section>
+  </div>
+  <nav class="tabbar">
+    <button data-tab="upcoming" class="on" onclick="show('upcoming')">📅 Upcoming</button>
+    <button data-tab="past" onclick="show('past')">🗓 Past</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+  <div class="modal" id="modal"><div class="sheet">
+    <h3 id="m-title">New event</h3>
+    <label>Type</label><select id="m-kind"><option value="tags">Tags</option><option value="doubles">Doubles</option><option value="tournament">Tournament</option><option value="clinic">Clinic</option><option value="event">Event</option></select>
+    <label>Title</label><input id="m-name" placeholder="e.g. Glow Doubles Throwdown">
+    <label>Date</label><input id="m-date" type="date">
+    <label>Time</label><input id="m-time" placeholder="6:00p">
+    <label>Course</label><input id="m-course" placeholder="South Mountain · White Tee">
+    <label>Details</label><textarea id="m-details" placeholder="What to know…"></textarea>
+    <label>Sign-up / link (optional)</label><input id="m-link" placeholder="https://…">
+    <div class="srow"><button class="cancel" onclick="closeModal()">Cancel</button><button class="save" onclick="saveEvent()">Save</button></div>
+  </div></div>
+</div>
+<script>
+const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='discinsanity-events';
+const ACCESS_MODE='date'; const ORGANIZER_CODE='discinsanity'; const ACCESS_KEY='di_evt_access';
+const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
+async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
+async function remoteSave(s){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state:s,updated_at:new Date().toISOString()})});}
+
+const KEY='discinsanity_events_v1';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const KIND={tags:{ic:'🥏',label:'Tags'},doubles:{ic:'👥',label:'Doubles'},tournament:{ic:'🏆',label:'Tournament'},clinic:{ic:'🎯',label:'Clinic'},event:{ic:'📅',label:'Event'}};
+let state={events:[]};
+const today=()=>new Date().toISOString().slice(0,10);
+
+function onlyDigits(s){return (s||'').replace(/\D/g,'');}
+function accessToken(){const t=new Date();return `${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}`;}
+function checkAccess(v){const d=onlyDigits(v);const t=new Date();return d===`${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}`||d===`${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}${t.getFullYear()}`;}
+function submitAccess(){if(checkAccess(document.getElementById('lockInput').value)){localStorage.setItem(ACCESS_KEY,accessToken());grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
+function grant(){document.getElementById('lock').classList.add('hide');render();}
+function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');render();return;}const v=prompt('Admin code (Jeff):');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');toast('Admin mode ON');render();}else toast('Wrong code');}
+
+function seed(){const d=n=>{const x=new Date();x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};return {events:[
+  {id:'e1',kind:'tags',title:'Sunday Tags',date:d(2),time:'9:00a',course:'South Mountain · White Tee',details:'Weekly bag-tag league. Low tag wins. All divisions.',link:'https://app.udisc.com/applink/event/v2/event_listing_olsn95bvjjgmfnrkpuvxyfym'},
+  {id:'e2',kind:'doubles',title:'Wednesday Doubles',date:d(5),time:'6:00p',course:'South Mountain',details:'Random-draw partners. $5 in, payouts + points.',link:''},
+  {id:'e3',kind:'tournament',title:'Discinsanity Summer Shootout',date:d(24),time:'8:30a',course:'Jordan Creek',details:'A/B/Rec tiers. PDGA C-tier. Registration on Disc Golf Scene.',link:'https://discinsanity.com'},
+  {id:'e4',kind:'clinic',title:'Putting Clinic w/ the Crew',date:d(12),time:'5:30p',course:'South Mountain',details:'Free putting fundamentals session. All skill levels welcome.',link:''}
+]};}
+async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(e){}}if(!s){const r=localStorage.getItem(KEY);if(r){try{s=JSON.parse(r);}catch(e){}}}if(!s)s=seed();state=s;persist(false);}
+function persist(remote=true){localStorage.setItem(KEY,JSON.stringify(state));if(remote&&remoteOn())remoteSave(state).catch(()=>{});}
+
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmt(iso){const [y,m,dd]=iso.split('-').map(Number);return {mo:MON[m-1],dy:dd};}
+function card(e){const k=KIND[e.kind]||KIND.event;const f=fmt(e.date);
+  return `<div class="ev" onclick="openEvent('${e.id}')">
+    <div class="pedit"><button class="e" onclick="event.stopPropagation();editEvent('${e.id}')">✎</button><button class="x" onclick="event.stopPropagation();delEvent('${e.id}')">✕</button></div>
+    <div class="cal"><div class="mo">${f.mo}</div><div class="dy">${f.dy}</div></div>
+    <div class="evb"><div class="kind">${k.ic} ${k.label}</div><h3>${esc(e.title)}</h3><div class="m">${e.time?esc(e.time)+' · ':''}${esc(e.course||'')}</div></div></div>`;}
+function render(){
+  const t=today();const sorted=[...state.events].sort((a,b)=>a.date<b.date?-1:1);
+  const up=sorted.filter(e=>e.date>=t),past=sorted.filter(e=>e.date<t).reverse();
+  document.getElementById('upcoming').innerHTML=up.length?up.map(card).join(''):'<p class="sub" style="color:#9aa6b2">No upcoming events.</p>';
+  document.getElementById('past').innerHTML=past.length?past.map(card).join(''):'<p class="sub" style="color:#9aa6b2">No past events.</p>';
+}
+function openEvent(id){const e=state.events.find(x=>x.id===id);if(!e)return;const k=KIND[e.kind]||KIND.event;const f=fmt(e.date);
+  document.getElementById('detail').innerHTML=`<div class="kind" style="color:var(--org-d);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.5px">${k.ic} ${k.label}</div>
+    <h1>${esc(e.title)}</h1><div class="meta">${f.mo} ${f.dy}${e.time?' · '+esc(e.time):''}${e.course?' · '+esc(e.course):''}</div>
+    <p>${esc(e.details||'')}</p>${e.link?`<a class="btn" href="${e.link}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:12px">Sign up / more info ↗</a>`:''}
+    <a class="btn ghost" href="#" onclick="addToCal('${e.id}');return false" style="display:block;text-align:center;text-decoration:none;margin-top:10px">＋ Add to calendar</a>`;
+  show('detail');}
+function addToCal(id){const e=state.events.find(x=>x.id===id);if(!e)return;const dt=e.date.replace(/-/g,'');
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT',`DTSTART;VALUE=DATE:${dt}`,`SUMMARY:Discinsanity — ${e.title}`,`LOCATION:${e.course||''}`,`DESCRIPTION:${(e.details||'').replace(/\n/g,' ')}`,'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const b=new Blob([ics],{type:'text/calendar'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=e.title.replace(/\W+/g,'-')+'.ics';a.click();toast('Calendar file downloaded');}
+
+let editId=null;
+function editEvent(id){editId=id||null;const e=id?state.events.find(x=>x.id===id):null;
+  document.getElementById('m-title').textContent=e?'Edit event':'New event';
+  document.getElementById('m-kind').value=e?e.kind:'tags';document.getElementById('m-name').value=e?e.title:'';
+  document.getElementById('m-date').value=e?e.date:today();document.getElementById('m-time').value=e?(e.time||''):'';
+  document.getElementById('m-course').value=e?(e.course||''):'';document.getElementById('m-details').value=e?(e.details||''):'';
+  document.getElementById('m-link').value=e?(e.link||''):'';document.getElementById('modal').classList.add('on');}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+function saveEvent(){const kind=document.getElementById('m-kind').value,title=document.getElementById('m-name').value.trim(),date=document.getElementById('m-date').value;
+  if(!title||!date){alert('Title and date required.');return;}
+  const o={kind,title,date,time:document.getElementById('m-time').value.trim(),course:document.getElementById('m-course').value.trim(),details:document.getElementById('m-details').value.trim(),link:document.getElementById('m-link').value.trim()};
+  if(editId)Object.assign(state.events.find(x=>x.id===editId),o);else state.events.push({id:'e'+Date.now(),...o});
+  persist();closeModal();render();toast('Event saved');}
+function delEvent(id){if(!confirm('Delete this event?'))return;state.events=state.events.filter(x=>x.id!==id);persist();render();}
+
+function show(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById('v-'+name).classList.add('on');
+  const parent=name==='detail'?'upcoming':name;document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));}
+let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
+(async()=>{await load();if(localStorage.getItem(ACCESS_KEY)===accessToken())grant();else{render();document.getElementById('lockInput').focus();}})();
+</script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
+</body>
+</html>

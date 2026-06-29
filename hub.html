@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#0066B3">
+<title>Discinsanity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
+<style>
+  :root{--blue:#0066B3;--blue-d:#00518f;--blue-l:#e8f1fa;--gold:#F4CE1A;--purple:#7a3fb0;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--shadow:0 6px 18px rgba(20,40,70,.08)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Assistant',-apple-system,Segoe UI,Roboto,sans-serif;background:#c4ccd6;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px;color:var(--ink)}
+  .lead{max-width:380px;text-align:center;color:#3c4651;margin:0 0 18px;font-size:14px;line-height:1.45}
+  .phone{width:380px;max-width:100%;min-height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
+  header{background:var(--blue);color:#fff;padding:18px 18px 16px;display:flex;align-items:center;gap:12px;flex:0 0 auto}
+  header img{height:40px;width:auto;background:#fff;border-radius:9px;padding:4px}
+  .htitle b{font-size:19px;font-weight:800;letter-spacing:.3px;display:block;line-height:1}
+  .htitle small{font-size:11px;opacity:.85;font-weight:600}
+  .badge{margin-left:auto;background:rgba(255,255,255,.16);border:0;color:#fff;font-weight:800;font-size:12px;border-radius:20px;padding:6px 12px;cursor:pointer}
+  body.admin .badge{background:var(--gold);color:#3a2e00}
+  .body{flex:1;overflow-y:auto;padding:16px 16px 26px}
+  .sech{display:flex;align-items:center;margin:20px 2px 10px}
+  .sech:first-child{margin-top:4px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0}
+  .addbtn{margin-left:auto;border:0;background:var(--blue-l);color:var(--blue);font-weight:800;font-size:12px;border-radius:20px;padding:4px 11px;cursor:pointer;display:none}
+  body.admin .addbtn{display:inline-block}
+
+  .week{display:flex;gap:10px}
+  .wk{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow);position:relative;overflow:hidden;cursor:default}
+  body.admin .wk{cursor:pointer}
+  .wk .k{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+  .wk .d{font-size:17px;font-weight:800;margin:3px 0 1px}
+  .wk .m{font-size:12px;color:var(--muted);font-weight:600}
+  .wk .tagk{position:absolute;top:-10px;right:-10px;font-size:46px;opacity:.08}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .mod{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:5px;position:relative;transition:transform .12s}
+  .mod:active{transform:scale(.98)}
+  .mod .ic{font-size:26px}.mod .t{font-weight:800;font-size:15px}
+  .mod .s{font-size:11px;color:var(--muted);font-weight:600;line-height:1.3}
+  .mod.live{border-color:#bfe0c9}
+  .pill{position:absolute;top:11px;right:11px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:20px}
+  .pill.on{background:#e2f3ea;color:#1f9d57}.pill.soon{background:#eef0f3;color:#9aa6b2}.pill.shop{background:#fdf3cf;color:#a3850a}
+
+  .news{display:flex;flex-direction:column;gap:11px}
+  .post{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);position:relative}
+  .post a.go{text-decoration:none;color:inherit;display:block}
+  .post .top{height:78px;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff}
+  .post .b{padding:12px 14px}
+  .post .tg{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--blue)}
+  .post h3{margin:3px 0 3px;font-size:15px}
+  .post p{margin:0;font-size:12px;color:var(--muted);line-height:1.4}
+  .post .when{font-size:11px;color:#9aa6b2;font-weight:700;margin-top:6px}
+  .pedit{position:absolute;top:8px;right:8px;display:none;gap:6px}
+  body.admin .pedit{display:flex}
+  .pedit button{border:0;border-radius:8px;width:30px;height:30px;font-size:13px;font-weight:800;cursor:pointer}
+  .pedit .e{background:rgba(255,255,255,.92);color:var(--blue)}
+  .pedit .x{background:rgba(255,255,255,.92);color:#d2453a}
+
+  footer{flex:0 0 auto;background:#fff;border-top:1px solid var(--line);padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:center}
+  footer a{color:var(--blue);font-weight:800;font-size:12px;text-decoration:none}
+  .note{margin:16px 2px 0;font-size:11px;color:#8a96a2;text-align:center;line-height:1.4}
+  .cloud{font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:6px}
+
+  /* modal */
+  .modal{position:absolute;inset:0;background:rgba(8,30,58,.55);z-index:40;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.on{display:flex}
+  .sheet{background:#fff;border-radius:18px;width:100%;max-width:330px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.4);animation:pop .35s cubic-bezier(.2,.9,.3,1)}
+  @keyframes pop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+  .sheet h3{margin:0 0 12px;font-size:17px}
+  .sheet label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:9px 0 4px}
+  .sheet input,.sheet select,.sheet textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;font-weight:600}
+  .sheet textarea{resize:vertical;min-height:60px}
+  .srow{display:flex;gap:8px;margin-top:14px}
+  .srow button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  .srow .save{background:var(--blue);color:#fff}.srow .cancel{background:#eef0f3;color:var(--ink)}
+
+  @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;min-height:100vh;border:0;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<p class="lead"><b>Discinsanity Hub</b> — all-inclusive app shell. Tap <b>Sign in</b> → admin code to post news/drops
+like Jeff would. Content saves locally now; flips to the cloud once Supabase keys are added.</p>
+
+<div class="phone">
+  <header>
+    <img src="assets/discinsanity-logo.png" alt="Discinsanity">
+    <div class="htitle"><b>Discinsanity</b><small>Lehigh Valley Disc Golf</small></div>
+    <button class="badge" id="signbtn" onclick="goAccount()">Sign in</button>
+  </header>
+
+  <div class="body">
+    <div class="sech"><h2>This Week</h2></div>
+    <div class="week" id="week"></div>
+
+    <div class="sech"><h2>Open the App</h2></div>
+    <div class="grid">
+      <a class="mod live" href="index.html"><span class="pill on">Live</span><span class="ic">🥏</span><span class="t">Tags League</span><span class="s">Weekly bag-tag standings, history, profiles</span></a>
+      <a class="mod live" href="doubles.html"><span class="pill on">Live</span><span class="ic">👥</span><span class="t">Doubles</span><span class="s">Random-draw partners, results & standings</span></a>
+      <a class="mod live" href="events.html"><span class="pill on">Live</span><span class="ic">📅</span><span class="t">Events</span><span class="s">Leagues, one-offs & tournaments calendar</span></a>
+      <a class="mod" href="#" onclick="soon('Leaderboards');return false"><span class="pill soon">Soon</span><span class="ic">🏆</span><span class="t">Leaderboards</span><span class="s">Season points across tags & doubles</span></a>
+      <a class="mod" href="https://discinsanity.com" target="_blank" rel="noopener"><span class="pill shop">Shop</span><span class="ic">🛒</span><span class="t">Pro Shop</span><span class="s">Discs, apparel & the latest drops</span></a>
+      <a class="mod live" href="account.html"><span class="pill on">Live</span><span class="ic">👤</span><span class="t">My Profile</span><span class="s">Your tags, PDGA & history in one place</span></a>
+    </div>
+
+    <div class="sech"><h2>News &amp; Drops</h2><span class="cloud" id="cloud"></span><button class="addbtn" onclick="editPost()">+ Add post</button></div>
+    <div class="news" id="news"></div>
+
+    <p class="note" id="note"></p>
+  </div>
+
+  <footer>
+    <a href="https://discinsanity.com" target="_blank" rel="noopener">🛒 Shop</a>
+    <a href="https://instagram.com/discinsanitydgproshop" target="_blank" rel="noopener">📷 Instagram</a>
+    <a href="https://facebook.com/Discinsanity" target="_blank" rel="noopener">👍 Facebook</a>
+    <a href="https://app.udisc.com/applink/event/v2/event_listing_olsn95bvjjgmfnrkpuvxyfym" target="_blank" rel="noopener">↗ UDisc</a>
+  </footer>
+
+  <!-- post editor -->
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <h3 id="m-title">New post</h3>
+      <label>Type</label>
+      <select id="m-type"><option>Disc Drop</option><option>Tags Recap</option><option>Doubles</option><option>Announcement</option><option>Event</option></select>
+      <label>Headline</label><input id="m-head" placeholder="e.g. New MVP plastic just landed">
+      <label>Details</label><textarea id="m-body" placeholder="A line or two…"></textarea>
+      <label>Link (optional)</label><input id="m-link" placeholder="https://discinsanity.com/…">
+      <div class="srow"><button class="cancel" onclick="closeModal()">Cancel</button><button class="save" onclick="savePost()">Save</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== BACKEND CONFIG — paste Supabase URL + anon key to go live/multi-device ===== */
+const SUPA_URL=''; const SUPA_KEY=''; const HUB_ID='discinsanity';
+const ADMIN_CODE='discinsanity';          // Jeff's admin code — CHANGE THIS
+const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
+async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/hubs?id=eq.${HUB_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
+async function remoteSave(state){await fetch(`${SUPA_URL}/rest/v1/hubs?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:HUB_ID,state,updated_at:new Date().toISOString()})});}
+
+const KEY='discinsanity_hub_v1';
+const TYPE_STYLE={'Disc Drop':{ic:'🛒',bg:'linear-gradient(135deg,#0066B3,#003a66)',c:'#fff'},'Tags Recap':{ic:'🏆',bg:'linear-gradient(135deg,#F4CE1A,#d9b400)',c:'#5a4500'},'Doubles':{ic:'👥',bg:'linear-gradient(135deg,#7a3fb0,#4d2a73)',c:'#fff'},'Announcement':{ic:'📣',bg:'linear-gradient(135deg,#1f9d57,#15633a)',c:'#fff'},'Event':{ic:'📅',bg:'linear-gradient(135deg,#e8742c,#b9591c)',c:'#fff'}};
+let hub={};
+
+function seed(){return {
+  thisWeek:[
+    {kind:'Tags',day:'Sunday · 9:00a',where:'South Mountain · White Tee',color:'#0066B3'},
+    {kind:'Doubles',day:'Wednesday · 6:00p',where:'Random draw · format TBD',color:'#7a3fb0'}],
+  news:[
+    {id:'n1',type:'Disc Drop',title:'New stock just landed',body:"Fresh discs, fresh plastic — tap to browse what's new in the Pro Shop.",link:'https://discinsanity.com',when:'Today'},
+    {id:'n2',type:'Tags Recap',title:'Sunday Tags — Ricky Doc grabs MA1 #1',body:'Full standings across MPO/MA1/MA2/MA3 are live in the Tags app.',link:'index.html',when:'Yesterday'},
+    {id:'n3',type:'Announcement',title:'Doubles moves to Wednesdays',body:'New night, same chaos. Sign-up details coming to the Doubles module.',link:'',when:'This week'}]
+};}
+
+async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(e){}}if(!s){const raw=localStorage.getItem(KEY);if(raw){try{s=JSON.parse(raw);}catch(e){}}}if(!s)s=seed();hub=s;persist(false);}
+function persist(remote=true){localStorage.setItem(KEY,JSON.stringify(hub));if(remote&&remoteOn())remoteSave(hub).catch(()=>{});}
+
+function renderWeek(){
+  document.getElementById('week').innerHTML=hub.thisWeek.map((w,i)=>`
+    <div class="wk" onclick="editWeek(${i})"><div class="tagk">${w.kind==='Tags'?'🥏':'👥'}</div>
+      <div class="k" style="color:${w.color}">${w.kind}</div><div class="d">${w.day}</div><div class="m">${w.where}</div></div>`).join('');
+}
+function renderNews(){
+  document.getElementById('news').innerHTML=hub.news.map(p=>{const st=TYPE_STYLE[p.type]||TYPE_STYLE['Announcement'];
+    const href=p.link||'#';
+    return `<div class="post">
+      <div class="pedit"><button class="e" onclick="editPost('${p.id}')">✎</button><button class="x" onclick="delPost('${p.id}')">✕</button></div>
+      <a class="go" href="${href}" ${p.link&&p.link.startsWith('http')?'target="_blank" rel="noopener"':''}>
+        <div class="top" style="background:${st.bg};color:${st.c}">${st.ic}</div>
+        <div class="b"><div class="tg">${p.type}</div><h3>${esc(p.title)}</h3><p>${esc(p.body)}</p><div class="when">${esc(p.when||'')}</div></div></a></div>`;}).join('');
+}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function render(){renderWeek();renderNews();
+  document.getElementById('cloud').innerHTML=remoteOn()?'<span style="background:#d8eede;color:#1f9d57;padding:2px 7px;border-radius:10px">☁ cloud</span>':'<span style="background:#eef3f8;color:#67737f;padding:2px 7px;border-radius:10px">● local</span>';
+  document.getElementById('note').textContent=document.body.classList.contains('admin')?'Admin mode — add / edit / delete posts and tap a This-Week card to edit it.':'Concept shell · sign in as admin to manage content.';
+}
+
+/* ===== admin ===== */
+function toggleAdmin(){
+  if(document.body.classList.contains('admin')){document.body.classList.remove('admin');document.getElementById('signbtn').textContent='Sign in';render();return;}
+  const v=prompt('Admin code (Jeff):');if(v==null)return;
+  if(v.trim()===ADMIN_CODE){document.body.classList.add('admin');document.getElementById('signbtn').textContent='Admin ✓';render();}else alert('Wrong code');
+}
+let editId=null;
+function editPost(id){
+  editId=id||null;const p=id?hub.news.find(x=>x.id===id):null;
+  document.getElementById('m-title').textContent=p?'Edit post':'New post';
+  document.getElementById('m-type').value=p?p.type:'Disc Drop';
+  document.getElementById('m-head').value=p?p.title:'';
+  document.getElementById('m-body').value=p?p.body:'';
+  document.getElementById('m-link').value=p?(p.link||''):'';
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+function savePost(){
+  const type=document.getElementById('m-type').value,title=document.getElementById('m-head').value.trim();
+  const body=document.getElementById('m-body').value.trim(),link=document.getElementById('m-link').value.trim();
+  if(!title){alert('Add a headline.');return;}
+  if(editId){const p=hub.news.find(x=>x.id===editId);Object.assign(p,{type,title,body,link});}
+  else hub.news.unshift({id:'n'+Date.now(),type,title,body,link,when:'Just now'});
+  persist();closeModal();render();
+}
+function delPost(id){if(!confirm('Delete this post?'))return;hub.news=hub.news.filter(x=>x.id!==id);persist();render();}
+function editWeek(i){if(!document.body.classList.contains('admin'))return;const w=hub.thisWeek[i];
+  const day=prompt(w.kind+' — day & time:',w.day);if(day==null)return;const where=prompt(w.kind+' — course / details:',w.where);if(where==null)return;
+  w.day=day;w.where=where;persist();render();}
+function soon(name){alert(name+' — module coming next.\n\nThe backend foundation goes in first, then we build each module (doubles is next) on top of the working Tags app.');}
+
+function goAccount(){location.href='account.html';}
+function syncAuth(){if(!window.DI)return;const me=DI.current();document.body.classList.toggle('admin',DI.isAdmin());const b=document.getElementById('signbtn');if(b)b.textContent=me?(DI.isAdmin()?'Admin ✓':me.name.split(' ')[0]):'Sign in';}
+load().then(()=>{render();syncAuth();});
+</script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
+</body>
+</html>
