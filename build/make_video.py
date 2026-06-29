@@ -4,6 +4,8 @@ import pathlib, csv, io, os, glob
 APP = "file:///C:/Users/sbilg/Code/disc-golf-tags/index.html"
 VID_DIR = "build/video"
 pathlib.Path(VID_DIR).mkdir(parents=True, exist_ok=True)
+REAL_CSV = os.environ.get("REAL_CSV", "")   # set -> real-data demo
+REAL = bool(REAL_CSV)
 
 CAP_JS = """(t)=>{let e=document.getElementById('vcap');
 if(!e){e=document.createElement('div');e.id='vcap';
@@ -22,83 +24,92 @@ document.querySelector('.phone').appendChild(e);}"""
 with sync_playwright() as p:
     b = p.chromium.launch()
     ctx = b.new_context(viewport={"width": 390, "height": 844},
-                        record_video_dir=VID_DIR,
-                        record_video_size={"width": 390, "height": 844})
+                        record_video_dir=VID_DIR, record_video_size={"width": 390, "height": 844})
     pg = ctx.new_page()
+    pg.on("dialog", lambda d: d.accept("discinsanity" if d.type == "prompt" else None))
 
-    def cap(t, ms):
-        pg.evaluate(CAP_JS, t); pg.wait_for_timeout(int(ms * 1.5))
-    def hidecap():
-        pg.evaluate(HIDE_JS)
+    def cap(t, ms): pg.evaluate(CAP_JS, t); pg.wait_for_timeout(int(ms * 1.5))
+    def hidecap(): pg.evaluate(HIDE_JS)
 
     pg.goto(APP); pg.wait_for_timeout(700)
 
     # 1) LOCK
     cap("Open the link. Members-only — pick today's date to get in.", 3000)
     tok = pg.evaluate("accessToken()")
-    pg.fill("#lockInput", f"{tok[:4]}-{tok[4:6]}-{tok[6:8]}"); pg.wait_for_timeout(1300)
+    pg.fill("#lockInput", f"{tok[:4]}-{tok[4:6]}-{tok[6:8]}"); pg.wait_for_timeout(1200)
     pg.click("#lock .btn"); pg.wait_for_timeout(700)
 
-    # 2) STANDINGS
-    cap("Live standings — each division keeps its own tags. \U0001F451 = current #1.", 5000)
+    if REAL:
+        # organizer + clean slate + import the REAL Sunday card
+        cap("Organizers unlock editing with a code.", 3000)
+        pg.click("#hkey"); pg.wait_for_timeout(800)
+        pg.evaluate("players=[];rounds=[];trades=[];persist();resetTonight();renderAll();")
+        pg.click("button[data-tab='tonight']"); pg.wait_for_timeout(400)
+        cap("Import Sunday's UDisc scorecard — 31 players, auto-sorted into all four divisions.", 4800)
+        pg.set_input_files("#v-tonight input[type=file]", os.path.abspath(REAL_CSV)); pg.wait_for_timeout(1400)
+        cap("Week one: each division's tags are set by finishing order.", 4600)
+        pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(900)
+        if "hide" not in (pg.get_attribute("#celebrate", "class") or ""): pg.click("#celebrate"); pg.wait_for_timeout(400)
+        # STANDINGS (real)
+        pg.click("button[data-tab='players']"); pg.wait_for_timeout(500)
+        cap("Live standings — MPO, MA1, MA2, MA3 — a crown on each division's #1.", 5200)
+        # PROFILE (real, with PDGA)
+        pg.evaluate("openProfile('Sean Bilger')"); pg.wait_for_timeout(700)
+        cap("Every player's profile — tag graph, history, and a link to their PDGA page.", 5200)
+        # SCHEDULE
+        pg.click("button[data-tab='schedule']"); pg.wait_for_timeout(500)
+        cap("The weekly Valley rotation — this week's course, tap-through to UDisc.", 4800)
+        # WEEK 2 -> #1 celebration with a real name
+        pg.click("button[data-tab='tonight']"); pg.wait_for_timeout(400)
+        w2 = "PlayerName,Division,Total\nRicky Doc,MA1,55\nDale Swartwood,MA1,53\nSean Bilger,MA1,51\nAustin Stachowski,MA1,47\n"
+        w2p = os.path.abspath("build/_week2.csv"); pathlib.Path(w2p).write_text(w2, encoding="utf-8")
+        cap("Next week — post the hot round and steal the #1 tag.", 4200)
+        pg.set_input_files("#v-tonight input[type=file]", w2p); pg.wait_for_timeout(1200)
+        hidecap()
+        pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(6800)
+        if "hide" not in (pg.get_attribute("#celebrate", "class") or ""): pg.click("#celebrate"); pg.wait_for_timeout(500)
+        # HISTORY + EXPORT
+        pg.click("button[data-tab='history']"); pg.wait_for_timeout(500)
+        cap("Every week's scorecard is saved, grouped by division.", 4200)
+        pg.click("button[data-tab='players']"); pg.wait_for_timeout(300)
+        pg.click("button:has-text('Export / Share')"); pg.wait_for_timeout(500)
+        cap("Export the standings to share in the group chat.", 4200)
+        hidecap()
+    else:
+        # ---- seed demo (privacy-safe) ----
+        cap("Live standings — each division keeps its own tags. \U0001F451 = current #1.", 4800)
+        pg.click("button[data-tab='schedule']"); pg.wait_for_timeout(600)
+        cap("The weekly Valley rotation — this week's course, tap-through to UDisc.", 5000)
+        pg.evaluate("openProfile('Sarah')"); pg.wait_for_timeout(700)
+        cap("Every player's tag graph, history — and a link to their PDGA page.", 5000)
+        cap("Organizers unlock editing with a code (the key, top-right).", 3200)
+        pg.click("#hkey"); pg.wait_for_timeout(800)
+        rows = pg.evaluate("players.map(p=>({name:p.name,division:p.division,tag:p.tag}))")
+        buf = io.StringIO(); w = csv.writer(buf); w.writerow(["PlayerName", "Division", "Total"])
+        for did in sorted({r["division"] for r in rows}):
+            grp = sorted([r for r in rows if r["division"] == did], key=lambda r: -r["tag"])
+            for i, r in enumerate(grp): w.writerow([r["name"], did, 48 + i * 4])
+        cp = os.path.abspath("build/demo-night.csv"); pathlib.Path(cp).write_text(buf.getvalue(), encoding="utf-8")
+        pg.click("button[data-tab='tonight']"); pg.wait_for_timeout(500)
+        cap("Import the UDisc scores — it auto-fills who played and auto-adds anyone new.", 4400)
+        pg.set_input_files("#v-tonight input[type=file]", cp); pg.wait_for_timeout(1300)
+        cap("Tags reshuffle per division — best score takes the lowest tag.", 4600)
+        cap("Save the round… and claim the #1 tag \U0001F3C6", 2600)
+        hidecap()
+        pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(6800)
+        if "hide" not in (pg.get_attribute("#celebrate", "class") or ""): pg.click("#celebrate"); pg.wait_for_timeout(600)
+        cap("Every week's scorecard is saved, grouped by division.", 4200)
+        pg.click("button[data-tab='history']"); pg.wait_for_timeout(500)
+        cap("Browse the whole league history at a glance.", 3800)
+        pg.click("button[data-tab='players']"); pg.wait_for_timeout(400)
+        pg.click("button:has-text('Export / Share')"); pg.wait_for_timeout(500)
+        cap("Export the standings to share in the group chat.", 4200)
+        hidecap()
 
-    # 3) SCHEDULE
-    pg.click("button[data-tab='schedule']"); pg.wait_for_timeout(600)
-    cap("The weekly Valley rotation — this week's course, with a tap-through to the UDisc event.", 5200)
-
-    # 4) PROFILE + PDGA
-    pg.evaluate("openProfile('Sarah')"); pg.wait_for_timeout(700)
-    cap("Every player's tag graph, full history — and a link straight to their PDGA page.", 5200)
-
-    # 5) ORGANIZER
-    pg.on("dialog", lambda d: d.accept("discinsanity"))
-    cap("Organizers unlock editing with a code (the key, top-right).", 3400)
-    pg.click("#hkey"); pg.wait_for_timeout(900)
-
-    # build a CSV that makes the worst-tag player in each division win -> claims #1
-    rows = pg.evaluate("players.map(p=>({name:p.name,division:p.division,tag:p.tag}))")
-    buf = io.StringIO(); w = csv.writer(buf); w.writerow(["PlayerName", "Division", "Total"])
-    for dv, label in [("PRO", "Mixed Pro"), ("AM", "Mixed Amateur")]:
-        grp = sorted([r for r in rows if r["division"] == dv], key=lambda r: -r["tag"])
-        for i, r in enumerate(grp):
-            w.writerow([r["name"], label, 48 + i * 4])
-    csv_path = os.path.abspath("build/demo-night.csv")
-    pathlib.Path(csv_path).write_text(buf.getvalue(), encoding="utf-8")
-
-    # 6) IMPORT (hands-off)
-    pg.click("button[data-tab='tonight']"); pg.wait_for_timeout(500)
-    cap("Import the UDisc scores — it auto-fills who played and auto-adds anyone new.", 4400)
-    pg.set_input_files("#v-tonight input[type=file]", csv_path); pg.wait_for_timeout(1300)
-
-    # 7) RESULT
-    cap("Tags reshuffle per division — best score takes the lowest tag.", 5000)
-
-    # 8) SAVE -> CELEBRATION
-    cap("Save the round… and claim the #1 tag \U0001F3C6", 2600)
-    hidecap()
-    pg.click("button:has-text('Save Round to History')"); pg.wait_for_timeout(6800)
-    if "hide" not in (pg.get_attribute("#celebrate", "class") or ""):
-        pg.click("#celebrate"); pg.wait_for_timeout(600)
-
-    # 9) ROUND DETAIL
-    cap("Every week's scorecard is saved, grouped by division.", 4400)
-
-    # 10) HISTORY
-    pg.click("button[data-tab='history']"); pg.wait_for_timeout(500)
-    cap("Browse the whole league history at a glance.", 4000)
-
-    # 11) EXPORT
-    pg.click("button[data-tab='players']"); pg.wait_for_timeout(400)
-    pg.click("button:has-text('Export / Share')"); pg.wait_for_timeout(500)
-    cap("Export the standings to share in the group chat.", 4400)
-    hidecap()
-
-    # 12) END CARD
-    pg.evaluate(END_JS, "sbilger.github.io/disc-golf-tags"); pg.wait_for_timeout(5500)
-
+    pg.evaluate(END_JS, "sbilger.github.io/disc-golf-tags"); pg.wait_for_timeout(5200)
     path = pg.video.path()
     ctx.close(); b.close()
 
-print("raw video:", path)
+print("MODE:", "REAL" if REAL else "SEED")
 webms = sorted(glob.glob(VID_DIR + "/*.webm"), key=os.path.getmtime)
-print("webm files:", webms)
+print("webm:", webms[-1] if webms else None)
