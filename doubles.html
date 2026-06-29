@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#7a3fb0">
 <title>Discinsanity Doubles</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -266,5 +269,6 @@ let toastT=null;function toast(t){const e=document.getElementById('toast');e.tex
 (async()=>{await load();state.players.forEach(p=>present[p.name]=false);renderAll();
   if(localStorage.getItem(ACCESS_KEY)===accessToken())grant();else document.getElementById('lockInput').focus();})();
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
 </html>

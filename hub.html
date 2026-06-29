@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#0066B3">
 <title>Discinsanity</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,7 +102,7 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
     <div class="grid">
       <a class="mod live" href="index.html"><span class="pill on">Live</span><span class="ic">🥏</span><span class="t">Tags League</span><span class="s">Weekly bag-tag standings, history, profiles</span></a>
       <a class="mod live" href="doubles.html"><span class="pill on">Live</span><span class="ic">👥</span><span class="t">Doubles</span><span class="s">Random-draw partners, results & standings</span></a>
-      <a class="mod" href="#" onclick="soon('Events');return false"><span class="pill soon">Soon</span><span class="ic">📅</span><span class="t">Events</span><span class="s">Leagues, one-offs & tournaments calendar</span></a>
+      <a class="mod live" href="events.html"><span class="pill on">Live</span><span class="ic">📅</span><span class="t">Events</span><span class="s">Leagues, one-offs & tournaments calendar</span></a>
       <a class="mod" href="#" onclick="soon('Leaderboards');return false"><span class="pill soon">Soon</span><span class="ic">🏆</span><span class="t">Leaderboards</span><span class="s">Season points across tags & doubles</span></a>
       <a class="mod" href="https://discinsanity.com" target="_blank" rel="noopener"><span class="pill shop">Shop</span><span class="ic">🛒</span><span class="t">Pro Shop</span><span class="s">Discs, apparel & the latest drops</span></a>
       <a class="mod" href="#" onclick="soon('My Profile');return false"><span class="pill soon">Soon</span><span class="ic">👤</span><span class="t">My Profile</span><span class="s">Your tags, PDGA & history in one place</span></a>
@@ -210,5 +213,6 @@ function soon(name){alert(name+' — module coming next.\n\nThe backend foundati
 
 load().then(render);
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
 </html>
