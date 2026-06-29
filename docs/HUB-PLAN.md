@@ -11,11 +11,11 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
 | **Hub / Home** | Landing: this week, news & drops, links to everything | ✅ shell + Jeff-admin built |
 | **Tags League** | Weekly bag-tag standings, history, profiles, PDGA | ✅ working (v1) |
 | **News & Drops** | Jeff posts announcements + new stock | ✅ admin built (local; cloud next) |
-| **Doubles** | Weekly doubles — **random-draw partners**, scoring, standings | ⏳ planned |
-| **Events** | Leagues, one-offs & tournaments calendar | ⏳ planned |
+| **Doubles** | Weekly doubles — **random-draw partners**, scoring, standings | ✅ built |
+| **Events** | Leagues, one-offs & tournaments calendar | ✅ built (Jeff-editable) |
 | **Leaderboards** | Season points across tags + doubles | ⏳ planned |
 | **Shop / Drops** | Links to the Shopify Pro Shop (+ auto drop feed later) | ↗ links live |
-| **My Profile** | A member's tags, PDGA & history in one place | ⏳ planned |
+| **My Profile** | Member login + profile (PDGA, division), admin role | ✅ built (demo auth) |
 
 ## Decisions (locked with Sean)
 - **Backend foundation first** — everything else rides on it.
