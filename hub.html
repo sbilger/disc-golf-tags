@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
 <style>
   :root{--blue:#0066B3;--blue-d:#00518f;--blue-l:#e8f1fa;--gold:#F4CE1A;--purple:#7a3fb0;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--shadow:0 6px 18px rgba(20,40,70,.08)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -91,7 +92,7 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
   <header>
     <img src="assets/discinsanity-logo.png" alt="Discinsanity">
     <div class="htitle"><b>Discinsanity</b><small>Lehigh Valley Disc Golf</small></div>
-    <button class="badge" id="signbtn" onclick="toggleAdmin()">Sign in</button>
+    <button class="badge" id="signbtn" onclick="goAccount()">Sign in</button>
   </header>
 
   <div class="body">
@@ -105,7 +106,7 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
       <a class="mod live" href="events.html"><span class="pill on">Live</span><span class="ic">📅</span><span class="t">Events</span><span class="s">Leagues, one-offs & tournaments calendar</span></a>
       <a class="mod" href="#" onclick="soon('Leaderboards');return false"><span class="pill soon">Soon</span><span class="ic">🏆</span><span class="t">Leaderboards</span><span class="s">Season points across tags & doubles</span></a>
       <a class="mod" href="https://discinsanity.com" target="_blank" rel="noopener"><span class="pill shop">Shop</span><span class="ic">🛒</span><span class="t">Pro Shop</span><span class="s">Discs, apparel & the latest drops</span></a>
-      <a class="mod" href="#" onclick="soon('My Profile');return false"><span class="pill soon">Soon</span><span class="ic">👤</span><span class="t">My Profile</span><span class="s">Your tags, PDGA & history in one place</span></a>
+      <a class="mod live" href="account.html"><span class="pill on">Live</span><span class="ic">👤</span><span class="t">My Profile</span><span class="s">Your tags, PDGA & history in one place</span></a>
     </div>
 
     <div class="sech"><h2>News &amp; Drops</h2><span class="cloud" id="cloud"></span><button class="addbtn" onclick="editPost()">+ Add post</button></div>
@@ -211,7 +212,9 @@ function editWeek(i){if(!document.body.classList.contains('admin'))return;const 
   w.day=day;w.where=where;persist();render();}
 function soon(name){alert(name+' — module coming next.\n\nThe backend foundation goes in first, then we build each module (doubles is next) on top of the working Tags app.');}
 
-load().then(render);
+function goAccount(){location.href='account.html';}
+function syncAuth(){if(!window.DI)return;const me=DI.current();document.body.classList.toggle('admin',DI.isAdmin());const b=document.getElementById('signbtn');if(b)b.textContent=me?(DI.isAdmin()?'Admin ✓':me.name.split(' ')[0]):'Sign in';}
+load().then(()=>{render();syncAuth();});
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
