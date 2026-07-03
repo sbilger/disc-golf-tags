@@ -46,14 +46,18 @@ Live (Pages now serves the hub branch): **https://sbilger.github.io/disc-golf-ta
 - **Leaderboards** — season points rolled up across Tags + Doubles (podium, per-division boards,
   tap-a-player night-by-night log). Points = field size − place + 1, ties share the better place.
 - **Accounts + Profiles** — login / sign-up / member profile (PDGA, division), admin role.
-- **PWA** — manifest + app icon + service worker → installable on phones.
+- **PWA** — manifest + app icon + service worker → installable on phones. Service worker now
+  caches the app shell (network-first) → the suite keeps working offline on the course.
 - **Plan:** [`HUB-PLAN.md`](HUB-PLAN.md). All branded Discinsanity blue/gold, animated, social links.
 
 ### Demo logins (try on the live link)
 - Member: create any account.
 - Admin (Jeff): `jeff@discinsanity.com` / `discinsanity` → then Hub shows "Admin ✓" + edit controls.
-- Any module: unlock = **today's date**; organizer = `discinsanity`.
+- Unlock = **today's date**, entered **once anywhere** — `suite.js` now shares one unlock + one
+  organizer state across the whole suite. Signed-in members skip the date lock entirely;
+  Jeff's admin account = organizer **everywhere**. Sign-out drops organizer too.
 
 ## Next session (me) — once you've done #1
-Supabase wiring + real auth → unify login across modules → polish + (optional) Capacitor mobile
-wrap. (Leaderboards: ✅ built.)
+Supabase wiring + real auth (login is already unified locally via `suite.js` + `account.js` —
+Supabase Auth drops in behind the same `DI` shape) → polish + (optional) Capacitor mobile
+wrap. (Leaderboards: ✅ built. Unified suite session: ✅ built.)

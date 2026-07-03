@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
+<script src="suite.js"></script>
 <style>
   :root{--org:#e8742c;--org-d:#b9591c;--org-l:#fdeede;--blue:#0066B3;--gold:#F4CE1A;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -123,7 +125,7 @@ tap 🔑 + admin code to add/edit events like Jeff would.</p>
 </div>
 <script>
 const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='discinsanity-events';
-const ACCESS_MODE='date'; const ORGANIZER_CODE='discinsanity'; const ACCESS_KEY='di_evt_access';
+const ORGANIZER_CODE='discinsanity';  // CHANGE pre-launch - suite-wide unlock/admin session = suite.js (DIS)
 const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
 async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
 async function remoteSave(s){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state:s,updated_at:new Date().toISOString()})});}
@@ -134,12 +136,9 @@ const KIND={tags:{ic:'🥏',label:'Tags'},doubles:{ic:'👥',label:'Doubles'},to
 let state={events:[]};
 const today=()=>new Date().toISOString().slice(0,10);
 
-function onlyDigits(s){return (s||'').replace(/\D/g,'');}
-function accessToken(){const t=new Date();return `${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}`;}
-function checkAccess(v){const d=onlyDigits(v);const t=new Date();return d===`${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}`||d===`${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}${t.getFullYear()}`;}
-function submitAccess(){if(checkAccess(document.getElementById('lockInput').value)){localStorage.setItem(ACCESS_KEY,accessToken());grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
+function submitAccess(){if(DIS.checkDate(document.getElementById('lockInput').value)){DIS.grantAccess();grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
 function grant(){document.getElementById('lock').classList.add('hide');render();}
-function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');render();return;}const v=prompt('Admin code (Jeff):');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');toast('Admin mode ON');render();}else toast('Wrong code');}
+function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();render();return;}const v=prompt('Admin code (Jeff):');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Admin mode ON');render();}else toast('Wrong code');}
 
 function seed(){const d=n=>{const x=new Date();x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};return {events:[
   {id:'e1',kind:'tags',title:'Sunday Tags',date:d(2),time:'9:00a',course:'South Mountain · White Tee',details:'Weekly bag-tag league. Low tag wins. All divisions.',link:'https://app.udisc.com/applink/event/v2/event_listing_olsn95bvjjgmfnrkpuvxyfym'},
@@ -191,7 +190,7 @@ function delEvent(id){if(!confirm('Delete this event?'))return;state.events=stat
 function show(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById('v-'+name).classList.add('on');
   const parent=name==='detail'?'upcoming':name;document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));}
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
-(async()=>{await load();if(localStorage.getItem(ACCESS_KEY)===accessToken())grant();else{render();document.getElementById('lockInput').focus();}})();
+(async()=>{await load();if(DIS.isOrg())document.body.classList.add('org');if(DIS.hasAccess())grant();else{render();document.getElementById('lockInput').focus();}})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

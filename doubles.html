@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
+<script src="suite.js"></script>
 <style>
   :root{--purple:#7a3fb0;--purple-d:#5a2c84;--purple-l:#f1eafa;--blue:#0066B3;--gold:#F4CE1A;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--good:#1f9d57;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -144,7 +146,7 @@ check players in, draw teams, score, save. Season points roll up in Standings.</
 
 <script>
 const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='discinsanity-doubles';
-const ACCESS_MODE='date'; const ORGANIZER_CODE='discinsanity'; const ACCESS_KEY='di_dbl_access';
+const ORGANIZER_CODE='discinsanity';  // CHANGE pre-launch - suite-wide unlock/organizer session = suite.js (DIS)
 const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
 async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
 async function remoteSave(s){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state:s,updated_at:new Date().toISOString()})});}
@@ -156,12 +158,9 @@ const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 const initials=n=>n.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
 
 /* ===== access ===== */
-function onlyDigits(s){return (s||'').replace(/\D/g,'');}
-function accessToken(){const t=new Date();return `${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}`;}
-function checkAccess(v){const d=onlyDigits(v);const t=new Date();const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),da=String(t.getDate()).padStart(2,'0');return d===`${y}${m}${da}`||d===`${m}${da}${y}`;}
-function submitAccess(){const v=document.getElementById('lockInput').value;if(checkAccess(v)){localStorage.setItem(ACCESS_KEY,accessToken());grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
+function submitAccess(){const v=document.getElementById('lockInput').value;if(DIS.checkDate(v)){DIS.grantAccess();grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
 function grant(){document.getElementById('lock').classList.add("hide");renderAll();show(document.body.classList.contains('org')?'tonight':'standings');}
-function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');show('standings');return;}const v=prompt('Organizer code:');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');toast('Organizer mode ON');show('tonight');}else toast('Wrong code');}
+function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();show('standings');return;}const v=prompt('Organizer code:');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Organizer mode ON');show('tonight');}else toast('Wrong code');}
 
 /* ===== store ===== */
 function seed(){
@@ -266,8 +265,8 @@ function renderAll(){renderRoster();renderStandings();renderHistory();renderTeam
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
 
 /* ===== boot ===== */
-(async()=>{await load();state.players.forEach(p=>present[p.name]=false);renderAll();
-  if(localStorage.getItem(ACCESS_KEY)===accessToken())grant();else document.getElementById('lockInput').focus();})();
+(async()=>{await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');renderAll();
+  if(DIS.hasAccess())grant();else document.getElementById('lockInput').focus();})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

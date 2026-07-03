@@ -10,6 +10,9 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
+<script src="suite.js"></script>
 <style>
   :root{--gold:#F4CE1A;--gold-d:#a3850a;--gold-t:#3a2e00;--gold-l:#fdf6d8;--blue:#0066B3;--purple:#7a3fb0;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -156,12 +159,8 @@ async function remoteLoadBoth(){
   if(!r.ok)throw 0;const rows=await r.json();const out={};rows.forEach(x=>out[x.id]=x.state);return out;
 }
 
-/* ===== access (same date unlock as every module) ===== */
-const ACCESS_KEY='di_lb_access';
-function onlyDigits(s){return (s||'').replace(/\D/g,'');}
-function accessToken(){const t=new Date();return `${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}`;}
-function checkAccess(v){const d=onlyDigits(v);const t=new Date();const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),da=String(t.getDate()).padStart(2,'0');return d===`${y}${m}${da}`||d===`${m}${da}${y}`;}
-function submitAccess(){const v=document.getElementById('lockInput').value;if(checkAccess(v)){localStorage.setItem(ACCESS_KEY,accessToken());grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
+/* ===== access (suite-wide date unlock — see suite.js) ===== */
+function submitAccess(){const v=document.getElementById('lockInput').value;if(DIS.checkDate(v)){DIS.grantAccess();grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
 function grant(){document.getElementById('lock').classList.add('hide');renderAll();}
 
 /* ===== source data (read-only: this module never writes league state) ===== */
@@ -313,7 +312,7 @@ window.addEventListener('storage',e=>{if(e.key===TAGS_KEY||e.key===DBL_KEY)refre
 
 /* ===== boot ===== */
 (async()=>{await load();
-  if(localStorage.getItem(ACCESS_KEY)===accessToken())grant();else document.getElementById('lockInput').focus();})();
+  if(DIS.hasAccess())grant();else document.getElementById('lockInput').focus();})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

@@ -71,6 +71,7 @@
   </footer>
 </div>
 <script src="account.js"></script>
+<script src="suite.js"></script>
 <script>
 const DIVS=['','MPO','MA1','MA2','MA3','MA4','FA1'];
 let mode='in';
@@ -127,7 +128,7 @@ function profileHTML(me){
       <a class="lk" href="events.html"><span class="ic">📅</span><span class="t">Events</span><span class="s">Upcoming</span></a>
       <a class="lk" href="hub.html"><span class="ic">🏠</span><span class="t">Hub</span><span class="s">Everything</span></a>
     </div>
-    <button class="btn red" style="margin-top:16px" onclick="DI.signOut();mode='in';render()">Sign out</button>
+    <button class="btn red" style="margin-top:16px" onclick="DI.signOut();DIS.dropOrg();mode='in';render()">Sign out</button>
     <p class="note">${isA?'Admin: you can post news & manage events from the Hub.':''}</p>`;
 }
 function editProfile(){const me=DI.current();const el=document.getElementById('body');

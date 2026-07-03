@@ -27,6 +27,9 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
   cheap, easy. `hub.html` = home; `index.html` = tags; future modules = more sections/pages.
 - **Dual-mode store** (same pattern as the tags app): runs on **localStorage** today, and flips to
   **Supabase** the moment URL + anon key are pasted in — no rewrite. Admin edits already work this way.
+- **Shared session (`suite.js`)** — ONE date-unlock + ONE organizer state for the whole suite;
+  a signed-in member (account.js) bypasses the lock, an admin is organizer everywhere.
+  Supabase Auth later fills the exact same shape.
 - **Backend = Supabase** (free tier): content tables + **Auth** (member sign-in, `admin` role for Jeff).
 - Eventually point a domain at it (e.g. `app.discinsanity.com`) instead of github.io.
 
