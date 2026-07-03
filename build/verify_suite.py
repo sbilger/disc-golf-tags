@@ -137,6 +137,12 @@ with sync_playwright() as p:
           page4.evaluate("leagueStats(DI.current()).dblPts > 0"))
     page4.screenshot(path=os.path.join(SHOTS, "v_account_stats.png"))
 
+    # 8) live Shopify drops feed on hub (needs internet; CORS is open on the shop)
+    page4.goto(f"{BASE}/hub.html"); page4.wait_for_timeout(3500)
+    check("hub Fresh Drops feed rendered from Shopify",
+          page4.evaluate("document.querySelectorAll('#drops .drop').length > 0"))
+    page4.screenshot(path=os.path.join(SHOTS, "v_hub_drops.png"))
+
     browser.close()
 
 httpd.shutdown()

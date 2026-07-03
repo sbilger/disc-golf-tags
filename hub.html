@@ -65,6 +65,15 @@
   .pedit .e{background:rgba(255,255,255,.92);color:var(--blue)}
   .pedit .x{background:rgba(255,255,255,.92);color:#d2453a}
 
+  .drops{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+  .drops::-webkit-scrollbar{display:none}
+  .drop{flex:0 0 128px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;text-decoration:none;color:var(--ink);box-shadow:var(--shadow)}
+  .drop img{width:128px;height:110px;object-fit:cover;display:block;background:#f2f5f8}
+  .drop .b{padding:8px 9px 10px}
+  .drop .t{font-size:12px;font-weight:800;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .drop .p{margin-top:4px;font-size:12px;font-weight:800;color:var(--blue)}
+  .drop.more{display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--blue);font-size:13px;min-height:150px}
+
   footer{flex:0 0 auto;background:#fff;border-top:1px solid var(--line);padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:center}
   footer a{color:var(--blue);font-weight:800;font-size:12px;text-decoration:none}
   .note{margin:16px 2px 0;font-size:11px;color:#8a96a2;text-align:center;line-height:1.4}
@@ -110,6 +119,9 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
       <a class="mod" href="https://discinsanity.com" target="_blank" rel="noopener"><span class="pill shop">Shop</span><span class="ic">🛒</span><span class="t">Pro Shop</span><span class="s">Discs, apparel & the latest drops</span></a>
       <a class="mod live" href="account.html"><span class="pill on">Live</span><span class="ic">👤</span><span class="t">My Profile</span><span class="s">Your tags, PDGA & history in one place</span></a>
     </div>
+
+    <div class="sech" id="dropsh" style="display:none"><h2>Fresh Drops</h2><span class="cloud"><span style="background:#fdf3cf;color:#a3850a;padding:2px 7px;border-radius:10px">☁ live from the shop</span></span></div>
+    <div class="drops" id="drops"></div>
 
     <div class="sech"><h2>News &amp; Drops</h2><span class="cloud" id="cloud"></span><button class="addbtn" onclick="editPost()">+ Add post</button></div>
     <div class="news" id="news"></div>
@@ -222,9 +234,26 @@ function editWeek(i){if(!document.body.classList.contains('admin'))return;const 
   const day=prompt(w.kind+' — day & time:',w.day);if(day==null)return;const where=prompt(w.kind+' — course / details:',w.where);if(where==null)return;
   w.day=day;w.where=where;persist();render();}
 
+/* live disc drops — Shopify's public products.json (CORS: *). Fails silently offline. */
+async function loadDrops(){
+  try{
+    const r=await fetch('https://discinsanity.com/products.json?limit=10');if(!r.ok)return;
+    const j=await r.json();
+    const ps=(j.products||[]).filter(p=>(p.images||[]).length&&(p.variants||[]).length)
+      .sort((a,b)=>(a.published_at<b.published_at?1:-1)).slice(0,8);
+    if(!ps.length)return;
+    document.getElementById('drops').innerHTML=ps.map(p=>{
+      const src=p.images[0].src, img=src+(src.includes('?')?'&':'?')+'width=320'; // CDN transcodes heic -> png
+      const price=p.variants[0].price;
+      return `<a class="drop" href="https://discinsanity.com/products/${encodeURIComponent(p.handle)}" target="_blank" rel="noopener">
+        <img src="${img}" alt="" loading="lazy"><div class="b"><div class="t">${esc(p.title)}</div><div class="p">$${esc(price)}</div></div></a>`;
+    }).join('')+'<a class="drop more" href="https://discinsanity.com" target="_blank" rel="noopener">See all →</a>';
+    document.getElementById('dropsh').style.display='flex';
+  }catch(e){}
+}
 function goAccount(){location.href='account.html';}
 function syncAuth(){if(!window.DI)return;const me=DI.current();document.body.classList.toggle('admin',DI.isAdmin());const b=document.getElementById('signbtn');if(b)b.textContent=me?(DI.isAdmin()?'Admin ✓':me.name.split(' ')[0]):'Sign in';}
-load().then(()=>{render();syncAuth();});
+load().then(()=>{render();syncAuth();loadDrops();});
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

@@ -14,7 +14,7 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
 | **Doubles** | Weekly doubles — **random-draw partners**, scoring, standings | ✅ built |
 | **Events** | Leagues, one-offs & tournaments calendar | ✅ built (Jeff-editable) |
 | **Leaderboards** | Season points across tags + doubles | ✅ built |
-| **Shop / Drops** | Links to the Shopify Pro Shop (+ auto drop feed later) | ↗ links live |
+| **Shop / Drops** | Live **Fresh Drops** feed on the Hub (Shopify public `products.json`, CORS open) + links | ✅ built |
 | **My Profile** | Member login + profile (PDGA, division), admin role | ✅ built (demo auth) |
 
 ## Decisions (locked with Sean)
@@ -49,8 +49,9 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
 - Unified calendar (tags/doubles/one-offs); season points combining tags + doubles
   (`leaderboards.html`: overall podium + per-division tags board + doubles board + player night log).
 
-**Phase 4 — Shop + Profiles**
-- Auto disc-drop feed from the Shopify store; unified member profile (tags, doubles, PDGA).
+**Phase 4 — Shop + Profiles** — DONE (local-store edition)
+- ✅ Auto disc-drop feed from the Shopify store (Hub · Fresh Drops; CDN transcodes heic→png, `&width=320`).
+- ✅ Unified member profile: My league stats card (current tag, tags/doubles points, season total).
 
 ## What Sean must do for Phase 1 (the one thing me can't do)
 Create the Supabase project + run [`supabase-hub-schema.sql`](../supabase-hub-schema.sql) + paste the
