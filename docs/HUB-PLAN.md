@@ -13,7 +13,7 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
 | **News & Drops** | Jeff posts announcements + new stock | ✅ admin built (local; cloud next) |
 | **Doubles** | Weekly doubles — **random-draw partners**, scoring, standings | ✅ built |
 | **Events** | Leagues, one-offs & tournaments calendar | ✅ built (Jeff-editable) |
-| **Leaderboards** | Season points across tags + doubles | ⏳ planned |
+| **Leaderboards** | Season points across tags + doubles | ✅ built |
 | **Shop / Drops** | Links to the Shopify Pro Shop (+ auto drop feed later) | ↗ links live |
 | **My Profile** | Member login + profile (PDGA, division), admin role | ✅ built (demo auth) |
 
@@ -42,8 +42,9 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
 **Phase 2 — Doubles** (random draw)
 - Check-in players → auto-draw partners → enter team scores → standings + season points.
 
-**Phase 3 — Events + Leaderboards**
-- Unified calendar (tags/doubles/one-offs); season points combining tags + doubles.
+**Phase 3 — Events + Leaderboards** — DONE
+- Unified calendar (tags/doubles/one-offs); season points combining tags + doubles
+  (`leaderboards.html`: overall podium + per-division tags board + doubles board + player night log).
 
 **Phase 4 — Shop + Profiles**
 - Auto disc-drop feed from the Shopify store; unified member profile (tags, doubles, PDGA).

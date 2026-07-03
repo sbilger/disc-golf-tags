@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F4CE1A">
+<title>Discinsanity Leaderboards</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+  :root{--gold:#F4CE1A;--gold-d:#a3850a;--gold-t:#3a2e00;--gold-l:#fdf6d8;--blue:#0066B3;--purple:#7a3fb0;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Assistant',-apple-system,Segoe UI,Roboto,sans-serif;background:#c4ccd6;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px;color:var(--ink)}
+  .lead{max-width:380px;text-align:center;color:#3c4651;margin:0 0 18px;font-size:14px;line-height:1.45}
+  .phone{width:380px;max-width:100%;height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
+  header{background:#fff;border-bottom:3px solid var(--gold);padding:12px 16px;display:flex;align-items:center;gap:10px;flex:0 0 auto;z-index:3}
+  header img{height:32px;background:#fff;border-radius:7px;padding:2px}
+  .htitle b{font-size:14px;font-weight:800;display:block;line-height:1}
+  .htitle small{font-size:10px;color:var(--muted);font-weight:600}
+  .hback{border:0;background:var(--gold-l);color:var(--gold-d);border-radius:9px;padding:6px 10px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none}
+  .hkey{margin-left:auto;border:0;background:var(--gold-l);color:var(--gold-d);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:15px}
+  .views{flex:1;position:relative;overflow:hidden}
+  .view{position:absolute;inset:0;overflow-y:auto;padding:16px 16px 24px;display:none}
+  .view.on{display:block;animation:in .3s ease}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h2{margin:2px 2px 12px;font-size:21px;font-weight:800}
+  .sub{margin:-6px 2px 14px;color:var(--muted);font-size:13px}
+  .tabbar{flex:0 0 auto;display:flex;background:#fff;border-top:1px solid var(--line)}
+  .tabbar button{flex:1;border:0;background:none;padding:10px 0 8px;cursor:pointer;color:#9aa6b2;font-size:11px;font-weight:700}
+  .tabbar button.on{color:var(--gold-d)}
+  /* podium */
+  .podium{display:flex;align-items:flex-end;gap:8px;margin:6px 0 16px;min-height:150px}
+  .pcol{flex:1;text-align:center;animation:rise .55s cubic-bezier(.2,.9,.3,1) both}
+  .pcol:nth-child(1){animation-delay:.15s}.pcol:nth-child(2){animation-delay:0s}.pcol:nth-child(3){animation-delay:.25s}
+  @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  .pav{width:44px;height:44px;margin:0 auto 5px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff}
+  .pname{font-weight:800;font-size:12px;line-height:1.2;margin-bottom:2px;word-break:break-word}
+  .ppts{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px}
+  .pbar{border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-size:20px}
+  .p1 .pbar{height:86px;background:linear-gradient(180deg,#F4CE1A,#d9b400)}
+  .p2 .pbar{height:62px;background:linear-gradient(180deg,#c7d1dc,#a9b6c4)}
+  .p3 .pbar{height:46px;background:linear-gradient(180deg,#e2ab6d,#c98a4b)}
+  .p1 .pav{background:var(--gold);color:var(--gold-t)}
+  .p2 .pav{background:#a9b6c4}
+  .p3 .pav{background:#c98a4b}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 4px;border-bottom:2px solid var(--line)}
+  th.r,td.r{text-align:right}
+  td{padding:10px 4px;border-bottom:1px solid var(--line);font-size:15px}
+  tbody tr{cursor:pointer}
+  tbody tr:active{background:var(--gold-l)}
+  .rank{width:30px;font-weight:800;color:var(--gold-d)}
+  .pts{font-weight:800;color:var(--gold-d)}
+  .dim{color:var(--muted);font-size:13px}
+  .divhead td{background:#eef2f6;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:7px 6px;border-radius:8px}
+  .divdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+  .note{margin:16px 2px 0;color:#55626e;font-size:12.5px;background:#fff;border:1px solid var(--line);padding:11px 13px;border-radius:12px;line-height:1.45}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:22px 16px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.5}
+  .empty a{color:var(--blue);font-weight:800;text-decoration:none}
+  /* player detail */
+  .dhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .back{border:0;background:#e3e9f0;color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;box-shadow:var(--shadow)}
+  .stat .v{font-size:19px;font-weight:800;color:var(--gold-d)}
+  .stat .k{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .log{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;animation:in .35s ease both}
+  .lic{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .lic.tags{background:#e8f1fa}.lic.dbl{background:#f1eafa}
+  .lbody{flex:1;min-width:0}.lbody .c{font-weight:800;font-size:14px}.lbody .s{font-size:11.5px;color:var(--muted);font-weight:600}
+  .lpts{font-weight:800;color:var(--gold-d);font-size:16px;flex:0 0 auto}
+  .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .lock{position:absolute;inset:0;background:linear-gradient(160deg,#fff,#fdf6d8 60%,#f7e9ae);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+  .lock.hide{display:none}
+  .lock img{width:150px;margin-bottom:16px}.lock h1{font-size:20px;margin:0 0 4px}.lock p{font-size:13px;color:var(--muted);margin:0 0 16px}
+  .lock input{width:100%;max-width:280px;padding:14px;border:2px solid var(--line);border-radius:12px;font-size:16px;text-align:center;font-weight:700;font-family:inherit;margin-bottom:10px}
+  .lock .err{color:var(--bad);font-size:13px;font-weight:700;min-height:18px}
+  .btn{width:100%;border:0;border-radius:14px;background:var(--gold);color:var(--gold-t);font-weight:800;font-size:16px;padding:15px;cursor:pointer;margin-top:6px;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+  @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<p class="lead"><b>Discinsanity Leaderboards</b> — season points rolled up across <b>Tags</b> and <b>Doubles</b>.
+Reads whatever both modules have saved (local now, cloud once Supabase keys go in). Tap a player for their night-by-night log.</p>
+
+<div class="phone">
+  <div class="lock" id="lock">
+    <img src="assets/discinsanity-logo.png" alt="">
+    <h1>Leaderboards</h1><p>Members only — enter today's date.</p>
+    <input id="lockInput" type="date" onkeydown="if(event.key==='Enter')submitAccess()">
+    <button class="btn" onclick="submitAccess()">Enter</button>
+    <div class="err" id="lockErr"></div>
+  </div>
+
+  <header>
+    <a class="hback" href="hub.html">‹ Hub</a>
+    <img src="assets/discinsanity-logo.png" alt="">
+    <div class="htitle"><b>Leaderboards</b><small>Season points · tags + doubles</small></div>
+    <button class="hkey" onclick="refresh(true)" title="Refresh">⟳</button>
+  </header>
+
+  <div class="views">
+    <!-- OVERALL -->
+    <section class="view on" id="v-overall">
+      <h2>Season Overall <span id="cloud"></span></h2>
+      <p class="sub">Tags points + doubles points, one crown.</p>
+      <div id="podium"></div>
+      <div id="overall"></div>
+      <div class="note">🧮 <b>Points each night:</b> field size − place + 1 (per division in tags, per team in doubles).
+      Ties share the better place. Show up more, earn more.</div>
+    </section>
+
+    <!-- TAGS -->
+    <section class="view" id="v-tags">
+      <h2>Tags Season</h2>
+      <p class="sub">Points by division across every tags night.</p>
+      <div id="tagsBoard"></div>
+    </section>
+
+    <!-- DOUBLES -->
+    <section class="view" id="v-doubles">
+      <h2>Doubles Season</h2>
+      <p class="sub">Points across every doubles night.</p>
+      <div id="dblBoard"></div>
+    </section>
+
+    <!-- PLAYER DETAIL -->
+    <section class="view" id="v-player">
+      <div class="dhead"><button class="back" onclick="show(lastTab)">‹ Back</button><div style="font-size:19px;font-weight:800" id="pd-name">Player</div></div>
+      <div class="stats" id="pd-stats"></div>
+      <div id="pd-log"></div>
+    </section>
+  </div>
+
+  <nav class="tabbar">
+    <button data-tab="overall" class="on" onclick="show('overall')">🏆 Overall</button>
+    <button data-tab="tags" onclick="show('tags')">🥏 Tags</button>
+    <button data-tab="doubles" onclick="show('doubles')">👥 Doubles</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ===== BACKEND CONFIG (see BACKEND.md) — same keys as the other modules ===== */
+const SUPA_URL=''; const SUPA_KEY='';
+const TAGS_ID='discinsanity'; const DBL_ID='discinsanity-doubles';
+const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
+async function remoteLoadBoth(){
+  const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=in.(${TAGS_ID},${DBL_ID})&select=id,state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});
+  if(!r.ok)throw 0;const rows=await r.json();const out={};rows.forEach(x=>out[x.id]=x.state);return out;
+}
+
+/* ===== access (same date unlock as every module) ===== */
+const ACCESS_KEY='di_lb_access';
+function onlyDigits(s){return (s||'').replace(/\D/g,'');}
+function accessToken(){const t=new Date();return `${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}`;}
+function checkAccess(v){const d=onlyDigits(v);const t=new Date();const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),da=String(t.getDate()).padStart(2,'0');return d===`${y}${m}${da}`||d===`${m}${da}${y}`;}
+function submitAccess(){const v=document.getElementById('lockInput').value;if(checkAccess(v)){localStorage.setItem(ACCESS_KEY,accessToken());grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
+function grant(){document.getElementById('lock').classList.add('hide');renderAll();}
+
+/* ===== source data (read-only: this module never writes league state) ===== */
+const TAGS_KEY='tagshuffle_v4_div', DBL_KEY='discinsanity_doubles_v1';
+let tags=null,dbl=null;
+function readLocal(k){try{return JSON.parse(localStorage.getItem(k))||null;}catch(e){return null;}}
+async function load(){
+  tags=readLocal(TAGS_KEY);dbl=readLocal(DBL_KEY);
+  if(remoteOn()){try{const both=await remoteLoadBoth();if(both[TAGS_ID])tags=both[TAGS_ID];if(both[DBL_ID])dbl=both[DBL_ID];}catch(e){}}
+}
+
+/* ===== division cosmetics (mirrors the tags app) ===== */
+const DIV_LABELS={MPO:'MPO — Pro',FPO:'FPO — Women Pro',MA1:'MA1 — Advanced',MA2:'MA2 — Intermediate',MA3:'MA3 — Recreational',MA4:'MA4 — Novice',FA1:'FA1 — Women Am',PRO:'Mixed Pro',AM:'Mixed Amateur'};
+const DIV_ORDER=['MPO','FPO','MA1','MA2','MA3','MA4','FA1','FA2','PRO','AM'];
+const DIV_PALETTE=['#0066B3','#7a3fb0','#1f2d4d','#1f9d57','#e8742c','#0f7d8c','#b03f6e','#5a6b2f'];
+const divLabel=id=>DIV_LABELS[id]||id;
+function divColor(id){const i=DIV_ORDER.indexOf(id);return DIV_PALETTE[(i>=0?i:0)%DIV_PALETTE.length];}
+
+/* ===== points engine =====
+   One rule everywhere: points = field size − place + 1; tied scores share the better place.
+   Tags places are recomputed per division per night from raw scores (tie-fair);
+   doubles rounds already carry place + points per team. */
+function placesFromScores(entries){ // [{score}] sorted asc -> assign shared places
+  const sorted=[...entries].sort((a,b)=>a.score-b.score);
+  let place=0,prev=null;
+  sorted.forEach((e,i)=>{if(e.score!==prev){place=i+1;prev=e.score;}e._place=place;});
+  return sorted;
+}
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmt(iso){const p=(iso||'').split('-');return p.length===3?`${MON[+p[1]-1]} ${+p[2]}`:iso;}
+const norm=n=>(n||'').trim().toLowerCase();
+
+function compute(){
+  const players={}; // key -> {name,division,tagsPts,tagsNights,tagsWins,dblPts,dblNights,dblWins,log:[]}
+  const get=(name,division)=>{const k=norm(name);const p=players[k]||(players[k]={name:name.trim(),division:null,tagsPts:0,tagsNights:0,tagsWins:0,dblPts:0,dblNights:0,dblWins:0,log:[]});if(division&&!p.division)p.division=division;return p;};
+  (tags&&tags.rounds||[]).forEach(r=>{
+    const byDiv={};(r.results||[]).forEach(x=>{(byDiv[x.division||'AM']=byDiv[x.division||'AM']||[]).push(x);});
+    Object.keys(byDiv).forEach(d=>{
+      const grp=byDiv[d].map(x=>({name:x.name,score:x.score}));const n=grp.length;
+      placesFromScores(grp).forEach(e=>{
+        const pts=n-e._place+1;const p=get(e.name,d);
+        p.tagsPts+=pts;p.tagsNights++;if(e._place===1)p.tagsWins++;
+        p.log.push({date:r.date,mod:'tags',course:(r.course||'')+(r.layout?' · '+r.layout:''),detail:divLabel(d)+` · score ${e.score} · ${ord(e._place)} of ${n}`,pts});
+      });
+    });
+  });
+  // keep divisions current from the roster (results may predate a division change)
+  (tags&&tags.players||[]).forEach(x=>{const k=norm(x.name);if(players[k])players[k].division=x.division;});
+  (dbl&&dbl.rounds||[]).forEach(r=>{
+    (r.teams||[]).forEach(t=>{(t.players||[]).forEach(nm=>{
+      const p=get(nm,null);
+      p.dblPts+=(t.points||0);p.dblNights++;if(t.place===1)p.dblWins++;
+      p.log.push({date:r.date,mod:'dbl',course:r.course||'Doubles',detail:`with ${(t.players||[]).filter(x=>norm(x)!==norm(nm)).join(' + ')||'—'} · score ${t.score} · ${ord(t.place)} of ${(r.teams||[]).length}`,pts:t.points||0});
+    });});
+  });
+  const list=Object.values(players);
+  list.forEach(p=>{p.total=p.tagsPts+p.dblPts;p.nights=p.tagsNights+p.dblNights;p.wins=p.tagsWins+p.dblWins;p.log.sort((a,b)=>a.date<b.date?1:-1);});
+  return list;
+}
+function ord(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const initials=n=>n.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+
+/* ===== rendering ===== */
+let board=[];
+function emptyState(which){
+  const links='<a href="index.html">🥏 Tags</a> &nbsp;·&nbsp; <a href="doubles.html">👥 Doubles</a>';
+  const msg=which==='tags'?'No tags rounds on this device yet.':which==='dbl'?'No doubles nights on this device yet.':'No season data on this device yet.';
+  return `<div class="empty">${msg}<br>Open the module and save a round — or wire Supabase — and points appear here.<br><br>${links}</div>`;
+}
+function renderPodium(rows){
+  const el=document.getElementById('podium');
+  if(rows.length<2){el.innerHTML='';return;}
+  const top=[rows[1],rows[0],rows[2]].filter(Boolean);
+  const cls=['p2','p1','p3'],medal=['🥈','🥇','🥉'];
+  el.innerHTML='<div class="podium">'+top.map((p,i)=>`
+    <div class="pcol ${cls[i]}">
+      <div class="pav">${initials(p.name)}</div>
+      <div class="pname">${esc(p.name)}</div>
+      <div class="ppts">${p.total} pts</div>
+      <div class="pbar">${medal[i]}</div>
+    </div>`).join('')+'</div>';
+}
+function renderOverall(){
+  const rows=[...board].sort((a,b)=>b.total-a.total||b.wins-a.wins||a.name.localeCompare(b.name));
+  renderPodium(rows);
+  const el=document.getElementById('overall');
+  if(!rows.length){el.innerHTML=emptyState('all');return;}
+  el.innerHTML=`<table><thead><tr><th>#</th><th>Player</th><th class="r">🥏</th><th class="r">👥</th><th class="r">Total</th></tr></thead><tbody>`+
+    rows.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b><span class="dim"> · ${p.nights} night${p.nights===1?'':'s'}${p.wins?' · '+p.wins+'🏆':''}</span></td><td class="r dim">${p.tagsPts||'–'}</td><td class="r dim">${p.dblPts||'–'}</td><td class="r pts">${p.total}</td></tr>`).join('')+'</tbody></table>';
+  document.getElementById('cloud').innerHTML=remoteOn()
+    ?'<span style="font-size:10px;font-weight:800;background:#d8eede;color:#1f9d57;padding:2px 7px;border-radius:10px">☁</span>'
+    :'<span style="font-size:10px;font-weight:800;background:#eef3f8;color:#67737f;padding:2px 7px;border-radius:10px">● local</span>';
+}
+function renderTags(){
+  const el=document.getElementById('tagsBoard');
+  const rows=board.filter(p=>p.tagsNights>0);
+  if(!rows.length){el.innerHTML=emptyState('tags');return;}
+  const ids=[...new Set(rows.map(p=>p.division||'AM'))];
+  ids.sort((a,b)=>{const ia=DIV_ORDER.indexOf(a),ib=DIV_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||(a<b?-1:1);});
+  let html='<table><thead><tr><th>#</th><th>Player</th><th class="r">Nights</th><th class="r">Wins</th><th class="r">Pts</th></tr></thead><tbody>';
+  ids.forEach(d=>{
+    const grp=rows.filter(p=>(p.division||'AM')===d).sort((a,b)=>b.tagsPts-a.tagsPts||b.tagsWins-a.tagsWins||a.name.localeCompare(b.name));
+    html+=`<tr class="divhead"><td colspan="5"><span class="divdot" style="background:${divColor(d)}"></span>${divLabel(d)}</td></tr>`;
+    html+=grp.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b></td><td class="r dim">${p.tagsNights}</td><td class="r dim">${p.tagsWins||'–'}</td><td class="r pts">${p.tagsPts}</td></tr>`).join('');
+  });
+  el.innerHTML=html+'</tbody></table>';
+}
+function renderDoubles(){
+  const el=document.getElementById('dblBoard');
+  const rows=board.filter(p=>p.dblNights>0).sort((a,b)=>b.dblPts-a.dblPts||b.dblWins-a.dblWins||a.name.localeCompare(b.name));
+  if(!rows.length){el.innerHTML=emptyState('dbl');return;}
+  el.innerHTML=`<table><thead><tr><th>#</th><th>Player</th><th class="r">Nights</th><th class="r">Wins</th><th class="r">Pts</th></tr></thead><tbody>`+
+    rows.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b></td><td class="r dim">${p.dblNights}</td><td class="r dim">${p.dblWins||'–'}</td><td class="r pts">${p.dblPts}</td></tr>`).join('')+'</tbody></table>';
+}
+function openPlayer(key){
+  const p=board.find(x=>norm(x.name)===key);if(!p)return;
+  document.getElementById('pd-name').textContent=p.name;
+  document.getElementById('pd-stats').innerHTML=`
+    <div class="stat"><div class="v">${p.total}</div><div class="k">Points</div></div>
+    <div class="stat"><div class="v">${p.nights}</div><div class="k">Nights</div></div>
+    <div class="stat"><div class="v">${p.wins}</div><div class="k">Wins</div></div>
+    <div class="stat"><div class="v">${p.division?esc(p.division):'—'}</div><div class="k">Division</div></div>`;
+  document.getElementById('pd-log').innerHTML=p.log.map((l,i)=>`
+    <div class="log" style="animation-delay:${i*0.03}s">
+      <div class="lic ${l.mod==='tags'?'tags':'dbl'}">${l.mod==='tags'?'🥏':'👥'}</div>
+      <div class="lbody"><div class="c">${esc(l.course)}</div><div class="s">${fmt(l.date)} · ${esc(l.detail)}</div></div>
+      <div class="lpts">+${l.pts}</div>
+    </div>`).join('')||'<p class="sub">No nights logged.</p>';
+  show('player');
+}
+
+/* ===== router ===== */
+let lastTab='overall';
+function show(name){
+  if(name!=='player')lastTab=name;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('v-'+name).classList.add('on');
+  document.querySelectorAll('.views .view').forEach(v=>v.scrollTop=0);
+  const parent=name==='player'?lastTab:name;
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));
+}
+function renderAll(){board=compute();renderOverall();renderTags();renderDoubles();}
+async function refresh(announce){await load();renderAll();if(announce)toast('Refreshed');}
+let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
+
+/* live-update when tags/doubles save in another tab */
+window.addEventListener('storage',e=>{if(e.key===TAGS_KEY||e.key===DBL_KEY)refresh(false);});
+
+/* ===== boot ===== */
+(async()=>{await load();
+  if(localStorage.getItem(ACCESS_KEY)===accessToken())grant();else document.getElementById('lockInput').focus();})();
+</script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
+</body>
+</html>

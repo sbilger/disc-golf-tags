@@ -9,8 +9,8 @@ Jeff's posts/events/accounts be real:
 1. Create a free **Supabase** project → supabase.com.
 2. SQL Editor → run [`supabase-hub-schema.sql`](../supabase-hub-schema.sql).
 3. **Settings → API**, copy the **Project URL** + **anon public** key, paste into the
-   `SUPA_URL` / `SUPA_KEY` constants at the top of the `<script>` in **all four**:
-   `index.html` (tags), `hub.html`, `doubles.html`, `events.html`.
+   `SUPA_URL` / `SUPA_KEY` constants at the top of the `<script>` in **all five**:
+   `index.html` (tags), `hub.html`, `doubles.html`, `events.html`, `leaderboards.html`.
    → each flips from `● local` to `☁ cloud` automatically; data syncs across phones.
 4. Ping me — I'll then swap the **demo accounts** (account.js) over to **real Supabase Auth**
    (email sign-in, Jeff = admin role) and unify login across every module.
@@ -43,6 +43,8 @@ Live (Pages now serves the hub branch): **https://sbilger.github.io/disc-golf-ta
 - **Tags** — the v1 app (bookmarked at tag `v1-tags-app`).
 - **Doubles** — random-draw teams → team scores → season points standings + history.
 - **Events** — Jeff-editable calendar (add/edit, detail, add-to-calendar .ics).
+- **Leaderboards** — season points rolled up across Tags + Doubles (podium, per-division boards,
+  tap-a-player night-by-night log). Points = field size − place + 1, ties share the better place.
 - **Accounts + Profiles** — login / sign-up / member profile (PDGA, division), admin role.
 - **PWA** — manifest + app icon + service worker → installable on phones.
 - **Plan:** [`HUB-PLAN.md`](HUB-PLAN.md). All branded Discinsanity blue/gold, animated, social links.
@@ -53,5 +55,5 @@ Live (Pages now serves the hub branch): **https://sbilger.github.io/disc-golf-ta
 - Any module: unlock = **today's date**; organizer = `discinsanity`.
 
 ## Next session (me) — once you've done #1
-Supabase wiring + real auth → **Leaderboards** (season points across tags + doubles) → unify login
-across modules → polish + (optional) Capacitor mobile wrap.
+Supabase wiring + real auth → unify login across modules → polish + (optional) Capacitor mobile
+wrap. (Leaderboards: ✅ built.)

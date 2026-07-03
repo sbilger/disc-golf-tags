@@ -104,7 +104,7 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
       <a class="mod live" href="index.html"><span class="pill on">Live</span><span class="ic">🥏</span><span class="t">Tags League</span><span class="s">Weekly bag-tag standings, history, profiles</span></a>
       <a class="mod live" href="doubles.html"><span class="pill on">Live</span><span class="ic">👥</span><span class="t">Doubles</span><span class="s">Random-draw partners, results & standings</span></a>
       <a class="mod live" href="events.html"><span class="pill on">Live</span><span class="ic">📅</span><span class="t">Events</span><span class="s">Leagues, one-offs & tournaments calendar</span></a>
-      <a class="mod" href="#" onclick="soon('Leaderboards');return false"><span class="pill soon">Soon</span><span class="ic">🏆</span><span class="t">Leaderboards</span><span class="s">Season points across tags & doubles</span></a>
+      <a class="mod live" href="leaderboards.html"><span class="pill on">Live</span><span class="ic">🏆</span><span class="t">Leaderboards</span><span class="s">Season points across tags & doubles</span></a>
       <a class="mod" href="https://discinsanity.com" target="_blank" rel="noopener"><span class="pill shop">Shop</span><span class="ic">🛒</span><span class="t">Pro Shop</span><span class="s">Discs, apparel & the latest drops</span></a>
       <a class="mod live" href="account.html"><span class="pill on">Live</span><span class="ic">👤</span><span class="t">My Profile</span><span class="s">Your tags, PDGA & history in one place</span></a>
     </div>
@@ -210,7 +210,6 @@ function delPost(id){if(!confirm('Delete this post?'))return;hub.news=hub.news.f
 function editWeek(i){if(!document.body.classList.contains('admin'))return;const w=hub.thisWeek[i];
   const day=prompt(w.kind+' — day & time:',w.day);if(day==null)return;const where=prompt(w.kind+' — course / details:',w.where);if(where==null)return;
   w.day=day;w.where=where;persist();render();}
-function soon(name){alert(name+' — module coming next.\n\nThe backend foundation goes in first, then we build each module (doubles is next) on top of the working Tags app.');}
 
 function goAccount(){location.href='account.html';}
 function syncAuth(){if(!window.DI)return;const me=DI.current();document.body.classList.toggle('admin',DI.isAdmin());const b=document.getElementById('signbtn');if(b)b.textContent=me?(DI.isAdmin()?'Admin ✓':me.name.split(' ')[0]):'Sign in';}
