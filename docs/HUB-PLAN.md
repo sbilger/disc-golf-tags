@@ -11,7 +11,7 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
 | **Hub / Home** | Landing: this week, news & drops, links to everything | ✅ shell + Jeff-admin built |
 | **Tags League** | Weekly bag-tag standings, history, profiles, PDGA | ✅ working (v1) |
 | **News & Drops** | Jeff posts announcements + new stock | ✅ admin built (local; cloud next) |
-| **Doubles** | Weekly doubles — **random-draw partners**, scoring, standings | ✅ built |
+| **Doubles** | Check-in (open) → one-tap **random teams + starting holes**; organizer scores; UDisc-style ±par | ✅ rebuilt |
 | **Events** | Leagues, one-offs & tournaments calendar | ✅ built (Jeff-editable) |
 | **Leaderboards** | Season points across tags + doubles | ✅ built |
 | **Shop / Drops** | Live **Fresh Drops** feed on the Hub (Shopify public `products.json`, CORS open) + links | ✅ built |

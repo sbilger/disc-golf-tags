@@ -1,10 +1,10 @@
 /* Discinsanity — service worker: offline app shell.
    Network-first (fresh deploys always win) with cache fallback, so the whole
    suite keeps working on the course with no signal. */
-const CACHE = 'discinsanity-v2';
+const CACHE = 'discinsanity-v3';
 const SHELL = [
   'hub.html', 'index.html', 'doubles.html', 'events.html', 'leaderboards.html', 'account.html',
-  'account.js', 'suite.js', 'manifest.webmanifest',
+  'account.js', 'suite.js', 'courses.js', 'manifest.webmanifest',
   'assets/discinsanity-logo.png', 'assets/favicon.png', 'assets/icon-192.png',
   'assets/icon-512.png', 'assets/apple-touch-icon.png'
 ];

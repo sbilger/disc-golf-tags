@@ -25,6 +25,9 @@ All currently `discinsanity` — change them:
 ## 🟡 3. Info to get from Jeff (shapes the next builds)
 - **Doubles format details:** scoring = best-disc, combined, or handicap? Buy-in / payouts? Points scheme?
 - **Tags course rotation:** which course each Sunday (the Schedule TBD weeks).
+- **Course pars:** app has a shared LV course DB (`courses.js`: South Mountain White/Blue, Jordan
+  Creek Short/Long, Little Gap, Trexler) defaulted to par 54 / 18 holes — have Jeff correct any
+  via ✎ next to the Doubles course picker (UDisc has no public API; see RESEARCH-udisc-data.md).
 - **Real event lineup** for the Events calendar (or Jeff adds them in-app via admin).
 - **Jeff's real email** (replace the demo `jeff@discinsanity.com`).
 - **Social links** — confirm IG `@discinsanitydgproshop`, FB `/Discinsanity` (already wired).

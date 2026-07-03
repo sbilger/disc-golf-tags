@@ -123,7 +123,66 @@ with sync_playwright() as p:
           page4.evaluate("leagueStats(DI.current()).dblPts > 0"))
     page4.screenshot(path=os.path.join(SHOTS, "v_account_stats.png"))
 
-    # 6) live Shopify drops feed on hub (needs internet; CORS is open on the shop)
+    # 6) NEW doubles flow: open check-in -> draw teams + starting holes; org scores +/-par; save
+    ctx5 = browser.new_context(viewport={"width": 420, "height": 900})
+    page5 = ctx5.new_page()
+    page5.on("console", lambda m: console_errs.append(f"{page5.url} :: {m.text}") if m.type == "error" else None)
+    page5.on("pageerror", lambda e: console_errs.append(f"{page5.url} :: PAGEERROR {e}"))
+    page5.goto(f"{BASE}/doubles.html"); page5.wait_for_timeout(600)
+    check("doubles: check-in view is default (no standings tab)",
+          page5.evaluate("document.getElementById('v-checkin').classList.contains('on') && !document.getElementById('v-standings')"))
+    check("doubles: course picker populated from courses.js",
+          page5.evaluate("document.querySelectorAll('#courseSel option').length >= 6"))
+    # viewer adds himself + checks in 3 more
+    page5.fill("#addName", "Zed Tester"); page5.click("text=Add"); page5.wait_for_timeout(200)
+    for i in range(3): page5.locator("#roster .toggle").nth(i).click()
+    check("doubles: 4 players checked in (viewer, no code needed)",
+          page5.evaluate("document.getElementById('count').textContent.includes('4')"))
+    # viewer taps draw -> teams + starting holes
+    page5.click(".btn.gold"); page5.wait_for_timeout(300)
+    check("doubles: draw made teams (viewer click)", page5.evaluate("document.querySelectorAll('#teams .team').length >= 2"))
+    check("doubles: every team got a starting hole",
+          page5.evaluate("[...document.querySelectorAll('#teams .hole .hn')].every(e=>+e.textContent>=1)"))
+    check("doubles: draw survives reload (persisted)",
+          (page5.reload(), page5.wait_for_timeout(600),
+           page5.evaluate("document.querySelectorAll('#teams .team').length >= 2"))[-1])
+    # organizer enters scores -> UDisc-style to-par chip -> save -> history detail
+    page5.evaluate("window.prompt = () => 'discinsanity'")
+    page5.click("#hkey"); page5.wait_for_timeout(300)
+    n_teams = page5.evaluate("document.querySelectorAll('#teams .team').length")
+    for i in range(n_teams):
+        page5.locator("#teams .tscore").nth(i).fill(str(50 + i))
+    page5.wait_for_timeout(200)
+    check("doubles: to-par chip shows UDisc-style (50 on par 54 = -4)",
+          page5.evaluate("document.getElementById('tp-0').textContent === '-4'"))
+    before = page5.evaluate("JSON.parse(localStorage.getItem('discinsanity_doubles_v1')).rounds.length")
+    page5.click("#saveBtn"); page5.wait_for_timeout(400)
+    after = page5.evaluate("JSON.parse(localStorage.getItem('discinsanity_doubles_v1')).rounds.length")
+    check("doubles: save added a round to history", after == before + 1)
+    check("doubles: round detail shows hole + score to par",
+          page5.evaluate("document.getElementById('rdBody').innerText.includes('H') && document.getElementById('rdBody').innerText.includes('(')"))
+    # course DB: org edits par -> label + math update
+    page5.evaluate("DIC.set('South Mountain','White Tee',{par:57,holes:18})")
+    page5.evaluate("renderCourseSel()")
+    check("courses: par override reflected in picker",
+          page5.evaluate("document.querySelector('#courseSel option').textContent.includes('par 57')"))
+    check("courses: toPar math (54 on par 57 = -3, 57 = E)",
+          page5.evaluate("DIC.toPar(54,57)==='-3' && DIC.toPar(57,57)==='E'"))
+    page5.screenshot(path=os.path.join(SHOTS, "v_doubles_new.png"))
+
+    # 7) tags starting holes (organizer propagated from doubles via suite session)
+    page5.goto(f"{BASE}/index.html"); page5.wait_for_timeout(700)
+    check("tags: organizer inherited for holes test", page5.evaluate("document.body.classList.contains('org')"))
+    page5.evaluate("players.slice(0,6).forEach(p=>{tonight[p.name]=tonight[p.name]||{};tonight[p.name].present=true})")
+    page5.evaluate("assignHoles()")
+    page5.wait_for_timeout(300)
+    check("tags: starting-hole groups rendered",
+          page5.evaluate("document.querySelectorAll('#holeGroups .hgrp').length >= 2"))
+    check("tags: groups spread across holes",
+          page5.evaluate("new Set([...document.querySelectorAll('#holeGroups .hole .hn')].map(e=>e.textContent)).size >= 2"))
+    page5.screenshot(path=os.path.join(SHOTS, "v_tags_holes.png"))
+
+    # 8) live Shopify drops feed on hub (needs internet; CORS is open on the shop)
     page4.goto(f"{BASE}/hub.html"); page4.wait_for_timeout(3500)
     check("hub Fresh Drops feed rendered from Shopify",
           page4.evaluate("document.querySelectorAll('#drops .drop').length > 0"))

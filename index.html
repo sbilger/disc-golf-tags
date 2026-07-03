@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="account.js"></script>
 <script src="suite.js"></script>
+<script src="courses.js"></script>
 <style>
   :root{
     --blue:#0066B3;--blue-d:#00518f;--blue-l:#e8f1fa;--gold:#F4CE1A;--gold-d:#d9b400;
@@ -149,6 +150,11 @@
   .srow input:nth-child(2){flex:1}
   .srow input:nth-child(3){flex:0 0 64px}
   .xbtn{flex:0 0 auto;border:0;background:#f8e3e1;color:var(--bad);border-radius:8px;width:32px;height:32px;font-weight:800;cursor:pointer}
+  .hgrp{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow);animation:rowIn .3s ease both}
+  .hole{flex:0 0 auto;text-align:center;background:var(--gold);color:#3a2e00;border-radius:10px;padding:4px 9px;font-weight:800;cursor:pointer;line-height:1.05}
+  .hole .hh{font-size:9px;text-transform:uppercase;letter-spacing:.4px;display:block}
+  .hole .hn{font-size:17px}
+  .hnames{flex:1;font-weight:700;font-size:14px;line-height:1.35}
   .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .backbadge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:8px}
@@ -221,6 +227,8 @@ Viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
       <div class="row" style="animation:none"><div class="meta" style="flex:1">Course / layout</div>
         <select id="courseSel" class="score" style="width:auto;font-size:14px;font-weight:700;padding:0 8px"></select></div>
       <div id="roster"></div>
+      <button class="btn ghost" style="margin-top:0" onclick="assignHoles()">⛳ Assign starting holes</button>
+      <div id="holeGroups"></div>
       <button class="btn" id="mainBtn" onclick="reshuffle()">Reshuffle Tags</button>
     </section>
 
@@ -360,7 +368,7 @@ const DIV_PALETTE=['#0066B3','#7a3fb0','#1f2d4d','#1f9d57','#e8742c','#0f7d8c','
 function divLabel(id){return DIV_LABELS[id]||id;}
 function divColor(id){const i=DIV_ORDER.indexOf(id);return DIV_PALETTE[(i>=0?i:0)%DIV_PALETTE.length];}
 function divs(){const ids=[...new Set(players.map(p=>p.division))];ids.sort((a,b)=>{const ia=DIV_ORDER.indexOf(a),ib=DIV_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||(a<b?-1:1);});return ids.map(id=>({id,label:divLabel(id)}));}
-const COURSES=[{course:'South Mountain',layout:'White Tee',par:54}];
+const COURSES=[{course:'South Mountain',layout:'White Tee',par:54,holes:18}];
 
 /* ===== STATE ===== */
 const KEY='tagshuffle_v4_div';
@@ -413,7 +421,7 @@ let tonight={},lastResult=null;
 function resetTonight(){tonight={};players.forEach(p=>tonight[p.name]={present:false,score:null});pendingImport=null;const mp=document.getElementById('mapPanel');if(mp)mp.innerHTML='';msg('');}
 function nextSundays(n,from){const out=[];let d=from?new Date(from+'T12:00:00'):new Date();d.setHours(12,0,0,0);while(d.getDay()!==0)d.setDate(d.getDate()+1);for(let i=0;i<n;i++){out.push(new Date(d).toISOString().slice(0,10));d.setDate(d.getDate()+7);}return out;}
 function seedSchedule(){return nextSundays(8).map((dt,i)=>({date:dt,course:i===0?'South Mountain':'TBD',layout:i===0?'White Tee':'',eventUrl:i===0?EVENT_APPLINK:''}));}
-function courseOptions(){const seen=new Set(),list=[];schedule.forEach(s=>{if(s.course&&s.course!=='TBD'){const k=s.course+'|'+(s.layout||'');if(!seen.has(k)){seen.add(k);list.push({course:s.course,layout:s.layout||'',par:54});}}});return list.length?list:COURSES;}
+function courseOptions(){const seen=new Set(),list=[];schedule.forEach(s=>{if(s.course&&s.course!=='TBD'){const k=s.course+'|'+(s.layout||'');if(!seen.has(k)){seen.add(k);const known=DIC.get(s.course,s.layout||'');list.push({course:s.course,layout:s.layout||'',par:known?known.par:54,holes:known?known.holes:18});}}});return list.length?list:COURSES;}
 function todayCourseIdx(list){const t=today();const a=[...schedule].sort((x,y)=>x.date<y.date?-1:1);const e=a.find(x=>x.date===t)||a.find(x=>x.date>=t)||a[a.length-1];if(e){const i=list.findIndex(c=>c.course===e.course&&(c.layout||'')===(e.layout||''));if(i>=0)return i;}return 0;}
 function renderCourseSel(){courseList=courseOptions();const sel=document.getElementById('courseSel');if(!sel)return;sel.innerHTML=courseList.map((c,i)=>`<option value="${i}">${c.course}${c.layout?' — '+c.layout:''}</option>`).join('');sel.value=todayCourseIdx(courseList);}
 function renderSchedule(){const el=document.getElementById('schedList');if(!el)return;schedule.sort((a,b)=>a.date<b.date?-1:1);el.innerHTML='';const t=today();let thisIdx=schedule.findIndex(s=>s.date>=t);if(thisIdx<0)thisIdx=schedule.length-1;const org=document.body.classList.contains('org');
@@ -545,7 +553,7 @@ function openRound(id,from){const r=rounds.find(x=>x.id===id);if(!r)return;round
   divs().forEach(d=>{const grp=r.results.filter(x=>x.division===d.id);if(!grp.length)return;
     const hd=document.createElement('tr');hd.className='divhead';hd.innerHTML=`<td colspan="4">${d.label}</td>`;body.appendChild(hd);
     [...grp].sort((a,b)=>a.place-b.place).forEach(x=>{const dir=x.newTag<x.oldTag?'up':x.newTag>x.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
-      const tr=document.createElement('tr');stagger(tr,i++);tr.innerHTML=`<td>${x.place}</td><td><b>${x.name}</b></td><td>${x.score}</td><td><span class="chg ${dir}">${x.oldTag} ${arrow} ${x.newTag}</span></td>`;body.appendChild(tr);});});
+      const tr=document.createElement('tr');stagger(tr,i++);tr.innerHTML=`<td>${x.place}</td><td><b>${x.name}</b></td><td>${DIC.fmtScore(x.score,r.par)}</td><td><span class="chg ${dir}">${x.oldTag} ${arrow} ${x.newTag}</span></td>`;body.appendChild(tr);});});
   show('round');
 }
 
@@ -660,6 +668,41 @@ function bigConfetti(){const host=document.querySelector('.phone');if(!host)retu
 function no1Streak(name){const tl=timeline(name).filter(e=>e.kind==='round');let st=0;for(let i=tl.length-1;i>=0;i--){if(tl[i].newTag===1)st++;else break;}return st;}
 function confetti(){const host=document.querySelector('.phone');if(!host)return;const colors=['#0066B3','#F4CE1A','#1f9d57','#1f2d4d'];for(let k=0;k<20;k++){const c=document.createElement('div');c.className='confetti';c.style.left=(8+Math.random()*84)+'%';c.style.background=colors[k%colors.length];c.style.animationDelay=(Math.random()*0.25)+'s';c.style.width=(7+Math.random()*5)+'px';host.appendChild(c);setTimeout(()=>c.remove(),1800);}}
 let toastT=null;function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1800);}
+
+/* ===== STARTING HOLES (shotgun groups for tonight) ===== */
+let holeGroups=null;
+function shuffleArr(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function presentNames(){return players.filter(p=>tonight[p.name]&&tonight[p.name].present).map(p=>p.name);}
+function assignHoles(){
+  const names=shuffleArr(presentNames());
+  if(names.length<2){toast('Check in at least 2 players first');return;}
+  const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);
+  const nG=Math.ceil(names.length/4);                       // groups of 3-4
+  const groups=Array.from({length:nG},()=>[]);
+  names.forEach((n,i)=>groups[i%nG].push(n));
+  const hs=DIC.spreadHoles(nG,c.holes||18);                 // spread across the course
+  holeGroups={course:c.course+(c.layout?' — '+c.layout:''),groups:groups.map((g,i)=>({hole:hs[i],names:g}))};
+  renderHoleGroups();toast('Starting holes assigned');
+}
+function renderHoleGroups(){
+  const el=document.getElementById('holeGroups');if(!el)return;el.innerHTML='';
+  if(!holeGroups)return;
+  holeGroups.groups.forEach((g,i)=>{const d=document.createElement('div');d.className='hgrp';
+    d.innerHTML=`<div class="hole" title="Tap to change" onclick="editGroupHole(${i})"><span class="hh">Hole</span><span class="hn">${g.hole}</span></div><div class="hnames">${g.names.join(', ')}</div>`;el.appendChild(d);});
+  const c=document.createElement('button');c.className='btn ghost sm';c.style.marginBottom='10px';
+  c.textContent='📋 Copy starting holes (for group chat)';c.onclick=copyHoles;el.appendChild(c);
+}
+function editGroupHole(i){
+  const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);const max=c.holes||18;
+  const g=holeGroups.groups[i];const v=parseInt(prompt(`Starting hole for ${g.names.join(', ')} (1–${max}):`,g.hole),10);
+  if(isNaN(v)||v<1||v>max)return;g.hole=v;renderHoleGroups();
+}
+function copyHoles(){
+  if(!holeGroups)return;
+  const txt='⛳ Starting holes — '+holeGroups.course+' ('+today()+')\n'
+    +holeGroups.groups.map(g=>`Hole ${g.hole}: ${g.names.join(', ')}`).join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Starting holes copied!'),()=>fallbackCopy(txt));}else fallbackCopy(txt);
+}
 
 /* ===== BOOT ===== */
 (async()=>{

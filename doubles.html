@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="account.js"></script>
 <script src="suite.js"></script>
+<script src="courses.js"></script>
 <style>
   :root{--purple:#7a3fb0;--purple-d:#5a2c84;--purple-l:#f1eafa;--blue:#0066B3;--gold:#F4CE1A;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--good:#1f9d57;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -49,16 +50,21 @@
   .btn.ghost{background:#fff;color:var(--purple);border:2px solid var(--purple);box-shadow:none}
   .btn.sm{font-size:14px;padding:11px;margin-top:0}
   .field{display:flex;gap:8px;margin-bottom:12px}
-  .field input{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:600;font-family:inherit}
-  .team{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;animation:in .35s ease both}
-  .tnum{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--purple-l);color:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:800}
-  .tnames{flex:1;font-weight:800;font-size:15px}.tnames small{display:block;font-size:11px;color:var(--muted);font-weight:600}
-  .tscore{width:64px;height:42px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:800;font-family:inherit}
+  .field input,.field select{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:600;font-family:inherit;background:#fff;min-width:0}
+  .cbtn{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--purple);border-radius:10px;width:42px;font-weight:800;cursor:pointer;font-size:15px}
+  .count{font-size:12px;font-weight:800;color:var(--purple);background:var(--purple-l);border-radius:20px;padding:3px 10px;margin-left:8px;vertical-align:middle}
+  .team{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;animation:in .35s ease both}
+  .tnum{width:30px;height:30px;flex:0 0 auto;border-radius:10px;background:var(--purple-l);color:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+  .hole{flex:0 0 auto;text-align:center;background:var(--gold);color:#3a2e00;border-radius:10px;padding:4px 8px;font-weight:800;cursor:pointer;line-height:1.05}
+  .hole .hh{font-size:9px;text-transform:uppercase;letter-spacing:.4px;display:block}
+  .hole .hn{font-size:17px}
+  .tnames{flex:1;font-weight:800;font-size:15px;min-width:0}.tnames small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+  .tscore{width:58px;height:42px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:17px;font-weight:800;font-family:inherit;flex:0 0 auto}
+  .topar{flex:0 0 auto;min-width:34px;text-align:center;font-size:12px;font-weight:800;color:var(--purple)}
   table{width:100%;border-collapse:collapse}
   th{text-align:left;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 4px;border-bottom:2px solid var(--line)}
   td{padding:10px 4px;border-bottom:1px solid var(--line);font-size:15px}
   .rank{width:30px;font-weight:800;color:var(--purple)}
-  .pts{font-weight:800;color:var(--purple)}
   .hcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:11px;cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
   .hdate{flex:0 0 auto;text-align:center;background:var(--purple);color:#fff;border-radius:12px;padding:8px 10px;min-width:52px}
   .hdate .d{font-size:18px;font-weight:800;line-height:1}.hdate .m{font-size:11px;text-transform:uppercase;opacity:.9}
@@ -76,8 +82,8 @@
 </style>
 </head>
 <body>
-<p class="lead"><b>Discinsanity Doubles</b> — random-draw weekly. Tap the 🔑 for organizer, check
-players in, draw teams, score, save. Season points roll up in Standings.</p>
+<p class="lead"><b>Discinsanity Doubles</b> — check in, tap <b>Draw</b>, and teams + starting holes are
+random every week. Scores show UDisc-style (to par per course); organizer 🔑 enters &amp; saves them.</p>
 
 <div class="phone">
   <header>
@@ -88,30 +94,24 @@ players in, draw teams, score, save. Season points roll up in Standings.</p>
   </header>
 
   <div class="views">
-    <!-- TONIGHT -->
-    <section class="view on" id="v-tonight">
-      <h2>Tonight's Doubles</h2>
-      <div class="roview">👀 Viewer mode — tap 🔑 to run the draw.</div>
-      <div class="org-only">
-        <div class="field"><input id="course" placeholder="Course / layout" value="South Mountain · White Tee"></div>
-        <div class="field"><input id="addName" placeholder="Add a player…" onkeydown="if(event.key==='Enter')addPlayer()"><button class="btn ghost sm" style="flex:0 0 auto;width:auto;padding:0 14px" onclick="addPlayer()">Add</button></div>
-        <div id="roster"></div>
-        <button class="btn gold" onclick="draw()">🎲 Draw teams</button>
-        <div id="teams"></div>
-        <button class="btn" id="saveBtn" style="display:none" onclick="saveRound()">Save round + award points</button>
+    <!-- CHECK-IN -->
+    <section class="view on" id="v-checkin">
+      <h2>Tonight's Doubles <span class="count" id="count"></span></h2>
+      <div class="roview">🔓 Check-in &amp; draw are open to everyone — organizer 🔑 enters &amp; saves scores.</div>
+      <div class="field">
+        <select id="courseSel" onchange="courseChanged()"></select>
+        <button class="cbtn org-only" title="Edit holes / par" onclick="editCourse()">✎</button>
       </div>
-    </section>
-
-    <!-- STANDINGS -->
-    <section class="view" id="v-standings">
-      <h2>Season Standings <span id="cloud"></span></h2>
-      <p class="sub">Points roll up across every doubles night.</p>
-      <table><thead><tr><th>#</th><th>Player</th><th>Nights</th><th>Wins</th><th>Pts</th></tr></thead><tbody id="standings"></tbody></table>
+      <div class="field"><input id="addName" placeholder="Add your name…" onkeydown="if(event.key==='Enter')addPlayer()"><button class="btn ghost sm" style="flex:0 0 auto;width:auto;padding:0 14px" onclick="addPlayer()">Add</button></div>
+      <div id="roster"></div>
+      <button class="btn gold" onclick="draw()">🎲 Draw teams + starting holes</button>
+      <div id="teams"></div>
+      <button class="btn org-only" id="saveBtn" style="display:none" onclick="saveRound()">Save round</button>
     </section>
 
     <!-- HISTORY -->
     <section class="view" id="v-history">
-      <h2>History</h2><p class="sub">Past doubles nights. Tap for the teams.</p>
+      <h2>History <span id="cloud"></span></h2><p class="sub">Past doubles nights. Tap for teams, holes &amp; scores.</p>
       <div id="history"></div>
     </section>
 
@@ -119,13 +119,12 @@ players in, draw teams, score, save. Season points roll up in Standings.</p>
     <section class="view" id="v-round">
       <div class="dhead"><button class="back" onclick="show('history')">‹ History</button><div style="font-size:19px;font-weight:800" id="rd-title">Night</div></div>
       <p class="sub" id="rd-sub"></p>
-      <table><thead><tr><th>#</th><th>Team</th><th>Score</th><th>Pts</th></tr></thead><tbody id="rdBody"></tbody></table>
+      <table><thead><tr><th>#</th><th>Hole</th><th>Team</th><th>Score</th></tr></thead><tbody id="rdBody"></tbody></table>
     </section>
   </div>
 
   <nav class="tabbar">
-    <button data-tab="tonight" class="on org-only" onclick="show('tonight')">🎲 Tonight</button>
-    <button data-tab="standings" onclick="show('standings')">🏆 Standings</button>
+    <button data-tab="checkin" class="on" onclick="show('checkin')">🥏 Check-in</button>
     <button data-tab="history" onclick="show('history')">🗓 History</button>
   </nav>
   <div class="toast" id="toast"></div>
@@ -133,89 +132,133 @@ players in, draw teams, score, save. Season points roll up in Standings.</p>
 
 <script>
 const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='discinsanity-doubles';
-const ORGANIZER_CODE='discinsanity';  // CHANGE pre-launch - suite-wide unlock/organizer session = suite.js (DIS)
+const ORGANIZER_CODE='discinsanity';  // CHANGE pre-launch - suite-wide organizer session = suite.js (DIS)
 const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
 async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
 async function remoteSave(s){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state:s,updated_at:new Date().toISOString()})});}
 
 const KEY='discinsanity_doubles_v1';
-let state={players:[],rounds:[]};
+let state={players:[],rounds:[],tonight:null};
 const today=()=>new Date().toISOString().slice(0,10);
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const initials=n=>n.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* ===== roles (viewer default; organizer = 🔑 code, suite-wide via suite.js) ===== */
-function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();show('standings');return;}const v=prompt('Organizer code:');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Organizer mode ON');show('tonight');}else toast('Wrong code');}
+/* ===== roles (viewer default; check-in + draw open; organizer = 🔑 = scores/save) ===== */
+function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();renderAll();return;}const v=prompt('Organizer code:');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Organizer mode ON');renderAll();}else toast('Wrong code');}
 
 /* ===== store ===== */
 function seed(){
   const names=['Mike R','Sara P','Dale S','Kevin B','Cory L','Chris B','Ray G','Jo M','Cole T','Nate W','Ricky D','Taylor O'];
   const players=names.map(n=>({name:n}));
-  // one past night for demo standings
   const teams=[['Mike R','Ray G'],['Sara P','Cole T'],['Dale S','Jo M'],['Kevin B','Nate W'],['Cory L','Chris B'],['Ricky D','Taylor O']];
   const scores=[48,50,51,53,54,57];
-  const res=teams.map((t,i)=>({players:t,score:scores[i]}));
-  const round=scoreRound({id:'d0',date:isoDaysAgo(7),course:'Jordan Creek · Long',teams:res});
-  return {players,rounds:[round]};
+  const holes=DIC.spreadHoles(teams.length,18);
+  const res=teams.map((t,i)=>({players:t,score:scores[i],hole:holes[i]}));
+  const round=scoreRound({id:'d0',date:isoDaysAgo(7),course:'Jordan Creek — Long',par:54,holes:18,teams:res});
+  return {players,rounds:[round],tonight:null};
 }
 function isoDaysAgo(d){const x=new Date();x.setDate(x.getDate()-d);return x.toISOString().slice(0,10);}
-async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(e){}}if(!s){const r=localStorage.getItem(KEY);if(r){try{s=JSON.parse(r);}catch(e){}}}if(!s)s=seed();state=s;persist(false);}
+async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(e){}}if(!s){const r=localStorage.getItem(KEY);if(r){try{s=JSON.parse(r);}catch(e){}}}if(!s)s=seed();if(!('tonight'in s))s.tonight=null;state=s;persist(false);}
 function persist(remote=true){localStorage.setItem(KEY,JSON.stringify(state));if(remote&&remoteOn())remoteSave(state).catch(()=>{});}
 
-/* ===== scoring ===== */
-function scoreRound(r){ // assign place (ties share) + points
+/* ===== scoring (place kept internally so Leaderboards can aggregate) ===== */
+function scoreRound(r){
   const sorted=[...r.teams].sort((a,b)=>a.score-b.score);
   const n=r.teams.length;let place=0,prev=null;
   sorted.forEach((t,i)=>{if(t.score!==prev){place=i+1;prev=t.score;}t.place=place;t.points=n-place+1;});
   return r;
 }
 
-/* ===== TONIGHT ===== */
-let present={}, drawnTeams=null;
+/* ===== course picker (shared DB — courses.js) ===== */
+function renderCourseSel(){
+  const sel=document.getElementById('courseSel');const list=DIC.list();
+  const cur=sel.value;
+  sel.innerHTML=list.map((c,i)=>`<option value="${i}">${esc(DIC.label(c))} · par ${c.par}</option>`).join('')
+    +(document.body.classList.contains('org')?'<option value="__add">＋ Add course…</option>':'');
+  if(cur&&sel.querySelector(`option[value="${cur}"]`))sel.value=cur;
+  document.getElementById('cloud').innerHTML=remoteOn()?'<span style="font-size:10px;font-weight:800;background:#d8eede;color:#1f9d57;padding:2px 7px;border-radius:10px">☁</span>':'<span style="font-size:10px;font-weight:800;background:#eef3f8;color:#67737f;padding:2px 7px;border-radius:10px">● local</span>';
+}
+function selCourse(){const list=DIC.list();const v=document.getElementById('courseSel').value;return list[+v]||list[0];}
+function courseChanged(){
+  const sel=document.getElementById('courseSel');
+  if(sel.value==='__add'){sel.value='0';addCourseFlow();return;}
+}
+function addCourseFlow(){
+  const course=prompt('Course name:');if(!course||!course.trim())return;
+  const layout=prompt('Layout / tee (optional):','')||'';
+  const holes=parseInt(prompt('Holes:','18'),10)||18;
+  const par=parseInt(prompt('Par:','54'),10)||54;
+  DIC.set(course.trim(),layout.trim(),{holes,par});renderCourseSel();
+  const i=DIC.list().findIndex(c=>c.course===course.trim()&&(c.layout||'')===layout.trim());
+  if(i>=0)document.getElementById('courseSel').value=String(i);
+  toast('Course added');
+}
+function editCourse(){
+  const c=selCourse();if(!c)return;
+  const holes=parseInt(prompt(`${DIC.label(c)} — holes:`,c.holes),10);if(isNaN(holes)||holes<1)return;
+  const par=parseInt(prompt(`${DIC.label(c)} — par:`,c.par),10);if(isNaN(par)||par<holes)return void toast('Par looks off');
+  DIC.set(c.course,c.layout,{holes,par});renderCourseSel();renderTeams();toast('Course updated');
+}
+
+/* ===== CHECK-IN (open to everyone) ===== */
+let present={};
+function checkedIn(){return state.players.filter(p=>present[p.name]).map(p=>p.name);}
 function renderRoster(){
   const el=document.getElementById('roster');el.innerHTML='';
-  state.players.forEach((p,i)=>{const on=present[p.name];const row=document.createElement('div');row.className='row'+(on?'':' off');
-    row.innerHTML=`<div class="av">${initials(p.name)}</div><div class="name">${p.name}</div>
+  state.players.forEach(p=>{const on=present[p.name];const row=document.createElement('div');row.className='row'+(on?'':' off');
+    row.innerHTML=`<div class="av">${initials(p.name)}</div><div class="name">${esc(p.name)}</div>
       <div class="toggle ${on?'on':''}" onclick="togglePresent('${p.name.replace(/'/g,"\\'")}')"><div class="knob"></div></div>`;el.appendChild(row);});
+  document.getElementById('count').textContent=checkedIn().length?checkedIn().length+' in':'';
 }
 function togglePresent(n){present[n]=!present[n];renderRoster();}
-function addPlayer(){const i=document.getElementById('addName');const n=i.value.trim();if(!n)return;if(!state.players.find(p=>p.name.toLowerCase()===n.toLowerCase())){state.players.push({name:n});present[n]=true;persist();}i.value='';renderRoster();}
+function addPlayer(){const i=document.getElementById('addName');const n=i.value.trim();if(!n)return;if(!state.players.find(p=>p.name.toLowerCase()===n.toLowerCase())){state.players.push({name:n});persist();}present[n]=true;i.value='';renderRoster();toast(n+' checked in');}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ===== DRAW — one tap: random teams + starting holes ===== */
 function draw(){
-  const pool=shuffle(state.players.filter(p=>present[p.name]).map(p=>p.name));
+  const pool=shuffle(checkedIn());
   if(pool.length<2){alert('Check in at least 2 players.');return;}
-  const teams=[];while(pool.length>=2){teams.push({players:[pool.shift(),pool.shift()],score:null});}
+  const teams=[];while(pool.length>=2)teams.push({players:[pool.shift(),pool.shift()],score:null});
   if(pool.length===1)teams[teams.length-1].players.push(pool.shift()); // odd -> last team of 3
-  drawnTeams=teams;renderTeams();toast('Teams drawn — score them below');
+  const c=selCourse();
+  const holes=DIC.spreadHoles(teams.length,c.holes);
+  teams.forEach((t,i)=>t.hole=holes[i]);
+  state.tonight={course:{course:c.course,layout:c.layout,holes:c.holes,par:c.par},teams};
+  persist();renderTeams();toast('Teams + holes drawn — good luck!');
 }
 function renderTeams(){
   const el=document.getElementById('teams');el.innerHTML='';
-  if(!drawnTeams){document.getElementById('saveBtn').style.display='none';return;}
-  drawnTeams.forEach((t,i)=>{const d=document.createElement('div');d.className='team';
-    d.innerHTML=`<div class="tnum">${i+1}</div><div class="tnames">${t.players.join(' + ')}<small>${t.players.length} players</small></div>
-      <input class="tscore" type="number" inputmode="numeric" placeholder="score" value="${t.score??''}" oninput="setTeamScore(${i},this.value)">`;el.appendChild(d);});
+  const t9=state.tonight;
+  if(!t9||!t9.teams||!t9.teams.length){document.getElementById('saveBtn').style.display='none';return;}
+  t9.teams.forEach((t,i)=>{const d=document.createElement('div');d.className='team';
+    d.innerHTML=`<div class="tnum">${i+1}</div>
+      <div class="hole" title="Tap to change" onclick="editHole(${i})"><span class="hh">Hole</span><span class="hn">${t.hole||'—'}</span></div>
+      <div class="tnames">${t.players.map(esc).join(' + ')}<small>${t.players.length} players</small></div>
+      <input class="tscore org-only" type="number" inputmode="numeric" placeholder="score" value="${t.score??''}" oninput="setTeamScore(${i},this.value)">
+      <span class="topar" id="tp-${i}">${DIC.toPar(t.score,t9.course&&t9.course.par)}</span>`;el.appendChild(d);});
   document.getElementById('saveBtn').style.display='block';
 }
-function setTeamScore(i,v){drawnTeams[i].score=v===''?null:Number(v);}
+function editHole(i){
+  const t9=state.tonight;if(!t9)return;const t=t9.teams[i];
+  const max=(t9.course&&t9.course.holes)||18;
+  const v=parseInt(prompt(`Starting hole for ${t.players.join(' + ')} (1–${max}):`,t.hole||1),10);
+  if(isNaN(v)||v<1||v>max)return;
+  t.hole=v;persist();renderTeams();
+}
+function setTeamScore(i,v){
+  const t9=state.tonight;if(!t9)return;
+  t9.teams[i].score=v===''?null:Number(v);persist(false);
+  document.getElementById('tp-'+i).textContent=DIC.toPar(t9.teams[i].score,t9.course&&t9.course.par);
+}
 function saveRound(){
-  if(!drawnTeams){return;}
-  if(drawnTeams.some(t=>t.score===null||isNaN(t.score))){alert('Every team needs a score.');return;}
-  const course=document.getElementById('course').value.trim()||'Doubles';
-  const r=scoreRound({id:'d'+Date.now(),date:today(),course,teams:drawnTeams.map(t=>({players:t.players,score:t.score}))});
-  state.rounds.push(r);persist();drawnTeams=null;present={};renderTeams();renderRoster();renderAll();
-  openRound(r.id);toast('Round saved — points awarded');
-}
-
-/* ===== STANDINGS ===== */
-function standings(){
-  const m={};
-  state.rounds.forEach(r=>r.teams.forEach(t=>t.players.forEach(n=>{const e=m[n]||(m[n]={name:n,pts:0,nights:0,wins:0});e.pts+=t.points;e.nights++;if(t.place===1)e.wins++;})));
-  return Object.values(m).sort((a,b)=>b.pts-a.pts||b.wins-a.wins);
-}
-function renderStandings(){
-  const rows=standings();const el=document.getElementById('standings');
-  el.innerHTML=rows.length?rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td><b>${r.name}</b></td><td>${r.nights}</td><td>${r.wins}</td><td class="pts">${r.pts}</td></tr>`).join(''):'<tr><td colspan="5" style="color:#9aa6b2;padding:14px">No rounds yet.</td></tr>';
-  document.getElementById('cloud').innerHTML=remoteOn()?'<span style="font-size:10px;font-weight:800;background:#d8eede;color:#1f9d57;padding:2px 7px;border-radius:10px">☁</span>':'<span style="font-size:10px;font-weight:800;background:#eef3f8;color:#67737f;padding:2px 7px;border-radius:10px">● local</span>';
+  const t9=state.tonight;if(!t9||!t9.teams.length)return;
+  if(t9.teams.some(t=>t.score===null||t.score===undefined||isNaN(t.score))){alert('Every team needs a score.');return;}
+  const c=t9.course||{};
+  const r=scoreRound({id:'d'+Date.now(),date:today(),course:DIC.label(c)||'Doubles',par:c.par,holes:c.holes,
+    teams:t9.teams.map(t=>({players:t.players,score:t.score,hole:t.hole}))});
+  state.rounds.push(r);state.tonight=null;present={};persist();
+  renderAll();openRound(r.id);toast('Round saved');
 }
 
 /* ===== HISTORY ===== */
@@ -226,32 +269,32 @@ function renderHistory(){
   items.forEach(r=>{const f=fmt(r.date);const win=[...r.teams].sort((a,b)=>a.place-b.place)[0];
     const c=document.createElement('div');c.className='hcard';c.onclick=()=>openRound(r.id);
     c.innerHTML=`<div class="hdate"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
-      <div class="hbody"><div class="c">${r.course}</div><div class="s">${r.teams.length} teams · 🏆 ${win.players.join(' + ')}</div></div><div class="chev">›</div>`;el.appendChild(c);});
+      <div class="hbody"><div class="c">${esc(r.course)}</div><div class="s">${r.teams.length} teams · 🏆 ${win.players.map(esc).join(' + ')} · ${DIC.fmtScore(win.score,r.par)}</div></div><div class="chev">›</div>`;el.appendChild(c);});
 }
 function openRound(id){const r=state.rounds.find(x=>x.id===id);if(!r)return;const f=fmt(r.date);
-  document.getElementById('rd-title').textContent=r.course;document.getElementById('rd-sub').textContent=`${f.m} ${f.d} · ${r.teams.length} teams`;
+  document.getElementById('rd-title').textContent=r.course;
+  document.getElementById('rd-sub').textContent=`${f.m} ${f.d} · ${r.teams.length} teams`+(r.par?` · par ${r.par}`:'');
   const b=document.getElementById('rdBody');b.innerHTML='';
   [...r.teams].sort((a,b)=>a.place-b.place).forEach(t=>{const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="rank">${t.place}</td><td><b>${t.players.join(' + ')}</b></td><td>${t.score}</td><td class="pts">${t.points}</td>`;b.appendChild(tr);});
+    tr.innerHTML=`<td class="rank">${t.place}</td><td>${t.hole?'H'+t.hole:'—'}</td><td><b>${t.players.map(esc).join(' + ')}</b></td><td><b>${DIC.fmtScore(t.score,r.par)}</b></td>`;b.appendChild(tr);});
   show('round');
 }
 
 /* ===== router ===== */
 function show(name){
-  if(!document.body.classList.contains('org')&&name==='tonight')name='standings';
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.getElementById('v-'+name).classList.add('on');
   document.querySelectorAll('.views .view').forEach(v=>v.scrollTop=0);
-  if(name==='standings')renderStandings();if(name==='history')renderHistory();
+  if(name==='history')renderHistory();
   const parent=name==='round'?'history':name;
   document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));
 }
-function renderAll(){renderRoster();renderStandings();renderHistory();renderTeams();}
+function renderAll(){renderCourseSel();renderRoster();renderTeams();renderHistory();}
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
 
 /* ===== boot ===== */
 (async()=>{await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');
-  renderAll();show(document.body.classList.contains('org')?'tonight':'standings');})();
+  renderAll();show('checkin');})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
