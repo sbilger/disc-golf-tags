@@ -111,6 +111,44 @@ function doSignIn(){try{DI.signIn(val('email'),val('pw'));render();}catch(e){err
 function doSignUp(){try{DI.signUp({name:val('name'),email:val('email'),password:val('pw'),pdga:val('pdga'),division:val('division'),code:val('code')});render();}catch(e){err(e.message);}}
 function val(id){const e=document.getElementById(id);return e?e.value:'';}
 
+
+/* real league stats from the tags + doubles stores (same points rule as Leaderboards) */
+function leagueStats(me){
+  const norm=n=>(n||'').trim().toLowerCase();
+  const names=[me.leagueName,me.name].filter(Boolean).map(norm);
+  const match=n=>names.includes(norm(n));
+  const read=k=>{try{return JSON.parse(localStorage.getItem(k))||null;}catch(e){return null;}};
+  const tags=read('tagshuffle_v4_div'),dbl=read('discinsanity_doubles_v1');
+  const out={tag:null,division:null,tagsPts:0,tagsNights:0,tagsWins:0,dblPts:0,dblNights:0,dblWins:0,found:false};
+  const tp=(tags&&tags.players||[]).find(p=>match(p.name));
+  if(tp){out.tag=tp.tag;out.division=tp.division;out.found=true;}
+  (tags&&tags.rounds||[]).forEach(r=>{
+    const byDiv={};(r.results||[]).forEach(x=>{(byDiv[x.division||'AM']=byDiv[x.division||'AM']||[]).push(x);});
+    Object.keys(byDiv).forEach(d=>{
+      const grp=[...byDiv[d]].sort((a,b)=>a.score-b.score);
+      let place=0,prev=null;
+      grp.forEach((e,i)=>{if(e.score!==prev){place=i+1;prev=e.score;}
+        if(match(e.name)){out.found=true;out.tagsPts+=grp.length-place+1;out.tagsNights++;if(place===1)out.tagsWins++;}});
+    });
+  });
+  (dbl&&dbl.rounds||[]).forEach(r=>(r.teams||[]).forEach(t=>(t.players||[]).forEach(nm=>{
+    if(match(nm)){out.found=true;out.dblPts+=(t.points||0);out.dblNights++;if(t.place===1)out.dblWins++;}
+  })));
+  return out;
+}
+function statsCardHTML(me){
+  const st=leagueStats(me);
+  if(!st.found)return `<div class="card"><h3>My league stats</h3>
+    <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.5">No league results for
+    <b>${esc(me.leagueName||me.name)}</b> on this device yet. Listed under a different name at league?
+    Set <b>Name in league lists</b> in Edit profile and your tag + points appear here.</p></div>`;
+  return `<div class="card"><h3>My league stats</h3>
+    <div class="kv"><span class="k">Current tag</span><span class="v">${st.tag?'#'+st.tag+(st.division?' · '+esc(st.division):''):'—'}</span></div>
+    <div class="kv"><span class="k">Tags</span><span class="v">${st.tagsPts} pts · ${st.tagsNights} nights · ${st.tagsWins} wins</span></div>
+    <div class="kv"><span class="k">Doubles</span><span class="v">${st.dblPts} pts · ${st.dblNights} nights · ${st.dblWins} wins</span></div>
+    <div class="kv"><span class="k">Season total</span><span class="v">${st.tagsPts+st.dblPts} pts</span></div>
+    <a href="leaderboards.html" style="display:block;text-align:center;margin-top:10px;color:var(--blue);font-weight:800;font-size:13px;text-decoration:none">🏆 Full leaderboards ›</a></div>`;
+}
 function profileHTML(me){
   const isA=me.role==='admin'||me.role==='organizer';
   return `<div class="hero">
@@ -121,6 +159,7 @@ function profileHTML(me){
       <div class="kv"><span class="k">Division</span><span class="v">${me.division||'—'}</span></div>
       <div class="kv"><span class="k">Member since</span><span class="v">${me.created||'—'}</span></div>
       <button class="btn ghost" onclick="editProfile()">Edit profile</button></div>
+    ${statsCardHTML(me)}
     <h3 style="margin:6px 2px 10px;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">My stuff</h3>
     <div class="links">
       <a class="lk" href="index.html"><span class="ic">🥏</span><span class="t">My Tags</span><span class="s">Standings & history</span></a>
@@ -137,11 +176,12 @@ function editProfile(){const me=DI.current();const el=document.getElementById('b
       <label>Name</label><input id="e-name" value="${esc(me.name)}">
       <label>PDGA #</label><input id="e-pdga" inputmode="numeric" value="${esc(me.pdga||'')}">
       <label>Division</label><select id="e-div">${DIVS.map(d=>`<option value="${d}" ${d===me.division?'selected':''}>${d||'—'}</option>`).join('')}</select>
+      <label>Name in league lists (if different)</label><input id="e-league" value="${esc(me.leagueName||'')}" placeholder="e.g. Mike R">
       ${me.role==='admin'?'':'<label>Organizer code (optional)</label><input id="e-code" placeholder="becomes admin if correct">'}
       <button class="btn" onclick="saveProfile()">Save</button>
       <button class="btn ghost" onclick="render()">Cancel</button></div>`;
 }
-function saveProfile(){const patch={name:val('e-name'),pdga:val('e-pdga'),division:val('e-div')};const c=document.getElementById('e-code');if(c)patch.code=c.value;DI.update(patch);render();}
+function saveProfile(){const patch={name:val('e-name'),pdga:val('e-pdga'),division:val('e-div'),leagueName:val('e-league')};const c=document.getElementById('e-code');if(c)patch.code=c.value;DI.update(patch);render();}
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 render();
 </script>

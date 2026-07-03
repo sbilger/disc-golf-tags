@@ -114,6 +114,29 @@ with sync_playwright() as p:
     check("legacy di_dbl_access token migrates + unlocks events",
           page3.evaluate("document.getElementById('lock').classList.contains('hide')"))
 
+    # 7) integration: hub This-Week mirrors Events; profile shows real league stats
+    ctx4 = browser.new_context(viewport={"width": 420, "height": 900})
+    page4 = ctx4.new_page()
+    page4.on("console", lambda m: console_errs.append(f"{page4.url} :: {m.text}") if m.type == "error" else None)
+    page4.on("pageerror", lambda e: console_errs.append(f"{page4.url} :: PAGEERROR {e}"))
+    page4.goto(f"{BASE}/events.html"); page4.wait_for_timeout(600)   # seeds events store
+    page4.goto(f"{BASE}/doubles.html"); page4.wait_for_timeout(600)  # seeds doubles store (Mike R history)
+    page4.goto(f"{BASE}/hub.html"); page4.wait_for_timeout(600)
+    check("hub This-Week mirrors Events calendar (marker present)",
+          page4.evaluate("!!document.querySelector('#week .wkev')"))
+    check("hub This-Week shows event course",
+          page4.evaluate("document.getElementById('week').innerText.includes('South Mountain')"))
+    page4.screenshot(path=os.path.join(SHOTS, "v_hub_eventsync.png"))
+    page4.goto(f"{BASE}/account.html"); page4.wait_for_timeout(400)
+    page4.evaluate("setMode('up')")
+    page4.fill("#name", "Mike R"); page4.fill("#email", "mike@test.com"); page4.fill("#pw", "test1234")
+    page4.click("#form .btn"); page4.wait_for_timeout(400)
+    check("profile shows My league stats card",
+          page4.evaluate("document.body.innerText.includes('My league stats')"))
+    check("profile picked up real doubles points",
+          page4.evaluate("leagueStats(DI.current()).dblPts > 0"))
+    page4.screenshot(path=os.path.join(SHOTS, "v_account_stats.png"))
+
     browser.close()
 
 httpd.shutdown()
