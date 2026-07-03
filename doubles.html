@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#7a3fb0">
+<title>Discinsanity Doubles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
+<script src="suite.js"></script>
+<style>
+  :root{--purple:#7a3fb0;--purple-d:#5a2c84;--purple-l:#f1eafa;--blue:#0066B3;--gold:#F4CE1A;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--good:#1f9d57;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Assistant',-apple-system,Segoe UI,Roboto,sans-serif;background:#c4ccd6;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px;color:var(--ink)}
+  .lead{max-width:380px;text-align:center;color:#3c4651;margin:0 0 18px;font-size:14px;line-height:1.45}
+  .phone{width:380px;max-width:100%;height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
+  header{background:#fff;border-bottom:3px solid var(--purple);padding:12px 16px;display:flex;align-items:center;gap:10px;flex:0 0 auto;z-index:3}
+  header img{height:32px;background:#fff;border-radius:7px;padding:2px}
+  .htitle b{font-size:14px;font-weight:800;display:block;line-height:1}
+  .htitle small{font-size:10px;color:var(--muted);font-weight:600}
+  .hback{border:0;background:var(--purple-l);color:var(--purple);border-radius:9px;padding:6px 10px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none}
+  .hkey{margin-left:auto;border:0;background:var(--purple-l);color:var(--purple);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:15px}
+  body.org .hkey{background:var(--gold);color:#3a2e00}
+  .views{flex:1;position:relative;overflow:hidden}
+  .view{position:absolute;inset:0;overflow-y:auto;padding:16px 16px 24px;display:none}
+  .view.on{display:block;animation:in .3s ease}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h2{margin:2px 2px 12px;font-size:21px;font-weight:800}
+  .sub{margin:-6px 2px 14px;color:var(--muted);font-size:13px}
+  .tabbar{flex:0 0 auto;display:flex;background:#fff;border-top:1px solid var(--line)}
+  .tabbar button{flex:1;border:0;background:none;padding:10px 0 8px;cursor:pointer;color:#9aa6b2;font-size:11px;font-weight:700}
+  .tabbar button.on{color:var(--purple)}
+  .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .row.off{opacity:.5}
+  .av{width:38px;height:38px;flex:0 0 auto;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+  .name{flex:1;font-weight:700;font-size:16px}.meta{font-size:12px;color:var(--muted);font-weight:600}
+  .toggle{width:52px;height:30px;border-radius:30px;background:#cdd5de;position:relative;cursor:pointer;flex:0 0 auto}
+  .toggle.on{background:var(--purple)}
+  .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .toggle.on .knob{left:25px}
+  .btn{width:100%;border:0;border-radius:14px;background:var(--purple);color:#fff;font-weight:800;font-size:16px;padding:15px;cursor:pointer;margin-top:6px;font-family:inherit;box-shadow:0 4px 12px rgba(122,63,176,.25)}
+  .btn:active{transform:translateY(1px)}
+  .btn.gold{background:var(--gold);color:#3a2e00;box-shadow:none}
+  .btn.ghost{background:#fff;color:var(--purple);border:2px solid var(--purple);box-shadow:none}
+  .btn.sm{font-size:14px;padding:11px;margin-top:0}
+  .field{display:flex;gap:8px;margin-bottom:12px}
+  .field input{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:600;font-family:inherit}
+  .team{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;animation:in .35s ease both}
+  .tnum{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--purple-l);color:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:800}
+  .tnames{flex:1;font-weight:800;font-size:15px}.tnames small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+  .tscore{width:64px;height:42px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:800;font-family:inherit}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 4px;border-bottom:2px solid var(--line)}
+  td{padding:10px 4px;border-bottom:1px solid var(--line);font-size:15px}
+  .rank{width:30px;font-weight:800;color:var(--purple)}
+  .pts{font-weight:800;color:var(--purple)}
+  .hcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:11px;cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+  .hdate{flex:0 0 auto;text-align:center;background:var(--purple);color:#fff;border-radius:12px;padding:8px 10px;min-width:52px}
+  .hdate .d{font-size:18px;font-weight:800;line-height:1}.hdate .m{font-size:11px;text-transform:uppercase;opacity:.9}
+  .hbody{flex:1}.hbody .c{font-weight:800;font-size:15px}.hbody .s{font-size:12px;color:var(--muted)}
+  .chev{color:#c0c9d3;font-size:20px;font-weight:800}
+  .dhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .back{border:0;background:#e3e9f0;color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit}
+  .note{margin:14px 2px 0;color:#55626e;font-size:13px;background:#fff;border:1px solid var(--line);padding:11px 13px;border-radius:12px}
+  .roview{display:none;font-size:11px;color:var(--muted);background:#f1eafa;border:1px solid #ddc9ef;border-radius:10px;padding:8px 10px;margin-bottom:12px;font-weight:600}
+  body:not(.org) .roview{display:block}
+  body:not(.org) .org-only{display:none!important}
+  .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<p class="lead"><b>Discinsanity Doubles</b> — random-draw weekly. Tap the 🔑 for organizer, check
+players in, draw teams, score, save. Season points roll up in Standings.</p>
+
+<div class="phone">
+  <header>
+    <a class="hback" href="hub.html">‹ Hub</a>
+    <img src="assets/discinsanity-logo.png" alt="">
+    <div class="htitle"><b>Doubles</b><small>Random draw</small></div>
+    <button class="hkey" id="hkey" onclick="toggleOrg()">🔑</button>
+  </header>
+
+  <div class="views">
+    <!-- TONIGHT -->
+    <section class="view on" id="v-tonight">
+      <h2>Tonight's Doubles</h2>
+      <div class="roview">👀 Viewer mode — tap 🔑 to run the draw.</div>
+      <div class="org-only">
+        <div class="field"><input id="course" placeholder="Course / layout" value="South Mountain · White Tee"></div>
+        <div class="field"><input id="addName" placeholder="Add a player…" onkeydown="if(event.key==='Enter')addPlayer()"><button class="btn ghost sm" style="flex:0 0 auto;width:auto;padding:0 14px" onclick="addPlayer()">Add</button></div>
+        <div id="roster"></div>
+        <button class="btn gold" onclick="draw()">🎲 Draw teams</button>
+        <div id="teams"></div>
+        <button class="btn" id="saveBtn" style="display:none" onclick="saveRound()">Save round + award points</button>
+      </div>
+    </section>
+
+    <!-- STANDINGS -->
+    <section class="view" id="v-standings">
+      <h2>Season Standings <span id="cloud"></span></h2>
+      <p class="sub">Points roll up across every doubles night.</p>
+      <table><thead><tr><th>#</th><th>Player</th><th>Nights</th><th>Wins</th><th>Pts</th></tr></thead><tbody id="standings"></tbody></table>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="view" id="v-history">
+      <h2>History</h2><p class="sub">Past doubles nights. Tap for the teams.</p>
+      <div id="history"></div>
+    </section>
+
+    <!-- ROUND DETAIL -->
+    <section class="view" id="v-round">
+      <div class="dhead"><button class="back" onclick="show('history')">‹ History</button><div style="font-size:19px;font-weight:800" id="rd-title">Night</div></div>
+      <p class="sub" id="rd-sub"></p>
+      <table><thead><tr><th>#</th><th>Team</th><th>Score</th><th>Pts</th></tr></thead><tbody id="rdBody"></tbody></table>
+    </section>
+  </div>
+
+  <nav class="tabbar">
+    <button data-tab="tonight" class="on org-only" onclick="show('tonight')">🎲 Tonight</button>
+    <button data-tab="standings" onclick="show('standings')">🏆 Standings</button>
+    <button data-tab="history" onclick="show('history')">🗓 History</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='discinsanity-doubles';
+const ORGANIZER_CODE='discinsanity';  // CHANGE pre-launch - suite-wide unlock/organizer session = suite.js (DIS)
+const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
+async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
+async function remoteSave(s){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state:s,updated_at:new Date().toISOString()})});}
+
+const KEY='discinsanity_doubles_v1';
+let state={players:[],rounds:[]};
+const today=()=>new Date().toISOString().slice(0,10);
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const initials=n=>n.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+
+/* ===== roles (viewer default; organizer = 🔑 code, suite-wide via suite.js) ===== */
+function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();show('standings');return;}const v=prompt('Organizer code:');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Organizer mode ON');show('tonight');}else toast('Wrong code');}
+
+/* ===== store ===== */
+function seed(){
+  const names=['Mike R','Sara P','Dale S','Kevin B','Cory L','Chris B','Ray G','Jo M','Cole T','Nate W','Ricky D','Taylor O'];
+  const players=names.map(n=>({name:n}));
+  // one past night for demo standings
+  const teams=[['Mike R','Ray G'],['Sara P','Cole T'],['Dale S','Jo M'],['Kevin B','Nate W'],['Cory L','Chris B'],['Ricky D','Taylor O']];
+  const scores=[48,50,51,53,54,57];
+  const res=teams.map((t,i)=>({players:t,score:scores[i]}));
+  const round=scoreRound({id:'d0',date:isoDaysAgo(7),course:'Jordan Creek · Long',teams:res});
+  return {players,rounds:[round]};
+}
+function isoDaysAgo(d){const x=new Date();x.setDate(x.getDate()-d);return x.toISOString().slice(0,10);}
+async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(e){}}if(!s){const r=localStorage.getItem(KEY);if(r){try{s=JSON.parse(r);}catch(e){}}}if(!s)s=seed();state=s;persist(false);}
+function persist(remote=true){localStorage.setItem(KEY,JSON.stringify(state));if(remote&&remoteOn())remoteSave(state).catch(()=>{});}
+
+/* ===== scoring ===== */
+function scoreRound(r){ // assign place (ties share) + points
+  const sorted=[...r.teams].sort((a,b)=>a.score-b.score);
+  const n=r.teams.length;let place=0,prev=null;
+  sorted.forEach((t,i)=>{if(t.score!==prev){place=i+1;prev=t.score;}t.place=place;t.points=n-place+1;});
+  return r;
+}
+
+/* ===== TONIGHT ===== */
+let present={}, drawnTeams=null;
+function renderRoster(){
+  const el=document.getElementById('roster');el.innerHTML='';
+  state.players.forEach((p,i)=>{const on=present[p.name];const row=document.createElement('div');row.className='row'+(on?'':' off');
+    row.innerHTML=`<div class="av">${initials(p.name)}</div><div class="name">${p.name}</div>
+      <div class="toggle ${on?'on':''}" onclick="togglePresent('${p.name.replace(/'/g,"\\'")}')"><div class="knob"></div></div>`;el.appendChild(row);});
+}
+function togglePresent(n){present[n]=!present[n];renderRoster();}
+function addPlayer(){const i=document.getElementById('addName');const n=i.value.trim();if(!n)return;if(!state.players.find(p=>p.name.toLowerCase()===n.toLowerCase())){state.players.push({name:n});present[n]=true;persist();}i.value='';renderRoster();}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function draw(){
+  const pool=shuffle(state.players.filter(p=>present[p.name]).map(p=>p.name));
+  if(pool.length<2){alert('Check in at least 2 players.');return;}
+  const teams=[];while(pool.length>=2){teams.push({players:[pool.shift(),pool.shift()],score:null});}
+  if(pool.length===1)teams[teams.length-1].players.push(pool.shift()); // odd -> last team of 3
+  drawnTeams=teams;renderTeams();toast('Teams drawn — score them below');
+}
+function renderTeams(){
+  const el=document.getElementById('teams');el.innerHTML='';
+  if(!drawnTeams){document.getElementById('saveBtn').style.display='none';return;}
+  drawnTeams.forEach((t,i)=>{const d=document.createElement('div');d.className='team';
+    d.innerHTML=`<div class="tnum">${i+1}</div><div class="tnames">${t.players.join(' + ')}<small>${t.players.length} players</small></div>
+      <input class="tscore" type="number" inputmode="numeric" placeholder="score" value="${t.score??''}" oninput="setTeamScore(${i},this.value)">`;el.appendChild(d);});
+  document.getElementById('saveBtn').style.display='block';
+}
+function setTeamScore(i,v){drawnTeams[i].score=v===''?null:Number(v);}
+function saveRound(){
+  if(!drawnTeams){return;}
+  if(drawnTeams.some(t=>t.score===null||isNaN(t.score))){alert('Every team needs a score.');return;}
+  const course=document.getElementById('course').value.trim()||'Doubles';
+  const r=scoreRound({id:'d'+Date.now(),date:today(),course,teams:drawnTeams.map(t=>({players:t.players,score:t.score}))});
+  state.rounds.push(r);persist();drawnTeams=null;present={};renderTeams();renderRoster();renderAll();
+  openRound(r.id);toast('Round saved — points awarded');
+}
+
+/* ===== STANDINGS ===== */
+function standings(){
+  const m={};
+  state.rounds.forEach(r=>r.teams.forEach(t=>t.players.forEach(n=>{const e=m[n]||(m[n]={name:n,pts:0,nights:0,wins:0});e.pts+=t.points;e.nights++;if(t.place===1)e.wins++;})));
+  return Object.values(m).sort((a,b)=>b.pts-a.pts||b.wins-a.wins);
+}
+function renderStandings(){
+  const rows=standings();const el=document.getElementById('standings');
+  el.innerHTML=rows.length?rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td><b>${r.name}</b></td><td>${r.nights}</td><td>${r.wins}</td><td class="pts">${r.pts}</td></tr>`).join(''):'<tr><td colspan="5" style="color:#9aa6b2;padding:14px">No rounds yet.</td></tr>';
+  document.getElementById('cloud').innerHTML=remoteOn()?'<span style="font-size:10px;font-weight:800;background:#d8eede;color:#1f9d57;padding:2px 7px;border-radius:10px">☁</span>':'<span style="font-size:10px;font-weight:800;background:#eef3f8;color:#67737f;padding:2px 7px;border-radius:10px">● local</span>';
+}
+
+/* ===== HISTORY ===== */
+function fmt(iso){const [y,m,d]=iso.split('-').map(Number);return {d,m:MON[m-1]};}
+function renderHistory(){
+  const el=document.getElementById('history');const items=[...state.rounds].sort((a,b)=>a.date<b.date?1:-1);
+  el.innerHTML=items.length?'':'<p class="sub">No nights yet.</p>';
+  items.forEach(r=>{const f=fmt(r.date);const win=[...r.teams].sort((a,b)=>a.place-b.place)[0];
+    const c=document.createElement('div');c.className='hcard';c.onclick=()=>openRound(r.id);
+    c.innerHTML=`<div class="hdate"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
+      <div class="hbody"><div class="c">${r.course}</div><div class="s">${r.teams.length} teams · 🏆 ${win.players.join(' + ')}</div></div><div class="chev">›</div>`;el.appendChild(c);});
+}
+function openRound(id){const r=state.rounds.find(x=>x.id===id);if(!r)return;const f=fmt(r.date);
+  document.getElementById('rd-title').textContent=r.course;document.getElementById('rd-sub').textContent=`${f.m} ${f.d} · ${r.teams.length} teams`;
+  const b=document.getElementById('rdBody');b.innerHTML='';
+  [...r.teams].sort((a,b)=>a.place-b.place).forEach(t=>{const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="rank">${t.place}</td><td><b>${t.players.join(' + ')}</b></td><td>${t.score}</td><td class="pts">${t.points}</td>`;b.appendChild(tr);});
+  show('round');
+}
+
+/* ===== router ===== */
+function show(name){
+  if(!document.body.classList.contains('org')&&name==='tonight')name='standings';
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('v-'+name).classList.add('on');
+  document.querySelectorAll('.views .view').forEach(v=>v.scrollTop=0);
+  if(name==='standings')renderStandings();if(name==='history')renderHistory();
+  const parent=name==='round'?'history':name;
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));
+}
+function renderAll(){renderRoster();renderStandings();renderHistory();renderTeams();}
+let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
+
+/* ===== boot ===== */
+(async()=>{await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');
+  renderAll();show(document.body.classList.contains('org')?'tonight':'standings');})();
+</script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
+</body>
+</html>

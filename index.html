@@ -3,11 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#0066B3">
 <title>Discinsanity Tags</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
+<script src="suite.js"></script>
 <style>
   :root{
     --blue:#0066B3;--blue-d:#00518f;--blue-l:#e8f1fa;--gold:#F4CE1A;--gold-d:#d9b400;
@@ -18,7 +23,7 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;font-family:'Assistant',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#c4ccd6;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px;color:var(--ink)}
   .lead{max-width:380px;text-align:center;color:#3c4651;margin:0 0 18px;font-size:14px;line-height:1.45}
-  .phone{width:360px;max-width:100%;height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
+  .phone{width:380px;max-width:100%;height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
 
   /* header */
   header{background:#fff;border-bottom:3px solid var(--blue);padding:12px 16px;display:flex;align-items:center;gap:10px;flex:0 0 auto;z-index:3}
@@ -151,25 +156,12 @@
   body:not(.org) .roview{display:block}
   body:not(.org) .org-only{display:none!important}
 
-  /* lock screen */
-  .lock{position:absolute;inset:0;background:linear-gradient(160deg,#fff 0%,#eaf2fb 60%,#dceaf8 100%);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
-  .lock.hide{display:none}
-  .lockcard{width:100%;max-width:300px;animation:lockIn .45s cubic-bezier(.2,.8,.2,1)}
-  .lock img{width:170px;max-width:70%;margin-bottom:18px}
-  .lock h1{font-size:20px;font-weight:800;margin:0 0 4px;color:var(--ink)}
-  .lock p{font-size:13px;color:var(--muted);margin:0 0 18px;line-height:1.4}
-  .lock input{width:100%;padding:14px;border:2px solid var(--line);border-radius:12px;font-size:16px;text-align:center;font-weight:700;font-family:inherit;margin-bottom:10px}
-  .lock input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-l)}
-  .lock .err{color:var(--bad);font-size:13px;font-weight:700;min-height:18px;margin-top:8px}
-  .shake{animation:shake .4s}
-
   @keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
   @keyframes pop{0%{transform:scale(.55);opacity:0}65%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
   @keyframes draw{to{stroke-dashoffset:0}}
   @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(244,206,26,.5)}50%{box-shadow:0 0 0 6px rgba(244,206,26,.12)}}
   @keyframes lockIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
-  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
   @keyframes fall{to{top:106%;transform:translateX(24px) rotate(540deg);opacity:.15}}
   @keyframes rockon{0%{transform:scale(0) rotate(-28deg);opacity:0}55%{transform:scale(1.45) rotate(14deg)}100%{transform:scale(1) rotate(0);opacity:1}}
   @keyframes upflash{0%{background:rgba(244,206,26,0)}22%{background:rgba(244,206,26,.30)}100%{background:rgba(244,206,26,0)}}
@@ -201,28 +193,15 @@
     .lead{display:none}
     .phone{width:100%;max-width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}
   }
-  .lock input[type=date]{text-align:center;min-height:50px;color:var(--ink);font-variant-numeric:tabular-nums}
-  .lock input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 </style>
 </head>
 <body>
-<p class="lead"><b>Discinsanity Tags</b> — branded build (logo + colors scraped from discinsanity.com). Date-locked,
-viewer/organizer roles, animations. Tap the key in the header to enter <b>organizer mode</b> and run a night.</p>
+<p class="lead"><b>Discinsanity Tags</b> — branded build (logo + colors scraped from discinsanity.com).
+Viewer/organizer roles, animations. Tap the key in the header to enter <b>organizer mode</b> and run a night.</p>
 
 <div class="phone">
-  <!-- LOCK SCREEN -->
-  <div class="lock" id="lock">
-    <div class="lockcard">
-      <img src="assets/discinsanity-logo.png" alt="Discinsanity">
-      <h1>Tags League</h1>
-      <p id="lockHint">Members only.<br>Pick today&#39;s date to see tonight&#39;s scores.</p>
-      <input id="lockInput" type="date" onkeydown="if(event.key==='Enter')submitAccess()">
-      <button class="btn" onclick="submitAccess()">Enter</button>
-      <div class="err" id="lockErr"></div>
-    </div>
-  </div>
-
   <header>
+    <a href="hub.html" style="text-decoration:none;background:#e8f1fa;color:#0066B3;border-radius:9px;padding:6px 9px;font-weight:800;font-size:13px;flex:0 0 auto">‹</a>
     <img src="assets/discinsanity-logo.png" alt="Discinsanity">
     <div class="htitle"><b>Tags League</b><small>South Mountain</small></div>
     <span class="ctx" id="ctx"></span>
@@ -351,35 +330,18 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
 
 <script>
 /* =========================================================
-   ACCESS / ROLES  (prototype gate — see note)
-   ⚠ This is a CLIENT-SIDE gate only. Anyone technical can bypass it
-   (view source / localStorage). It keeps honest people honest for a
-   private weekly league. REAL access control needs the cloud backend
-   (Supabase RLS / a server check). See BACKEND.md.
+   ROLES (prototype gate — CLIENT-SIDE only; real access control
+   arrives with the cloud backend / Supabase RLS. See BACKEND.md.)
+   Viewer = default, read-only. Organizer = 🔑 code, suite-wide (suite.js).
+   Date-verification gate removed 2026-07-03 (Sean's call).
    ========================================================= */
-const ACCESS_MODE='date';        // 'date' = today's date | 'code' = fixed ACCESS_CODE
-const ACCESS_CODE='';            // used only when ACCESS_MODE==='code' (organizer announces it)
 const ORGANIZER_CODE='discinsanity';  // ⚠ CHANGE THIS — unlocks editing (run/import/trade)
-const ACCESS_KEY='di_access';
 
-function onlyDigits(s){return (s||'').replace(/\D/g,'');}
-function accessToken(){const t=new Date();const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),d=String(t.getDate()).padStart(2,'0');return ACCESS_MODE==='code'?('code:'+ACCESS_CODE):(`${y}${m}${d}`);}
-function checkAccess(v){
-  if(ACCESS_MODE==='code') return ACCESS_CODE!=='' && v.trim()===ACCESS_CODE;
-  const d=onlyDigits(v);const t=new Date();const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),da=String(t.getDate()).padStart(2,'0');
-  return d===`${y}${m}${da}` || d===`${m}${da}${y}`;
-}
-function submitAccess(){
-  const v=document.getElementById('lockInput').value;
-  if(checkAccess(v)){ localStorage.setItem(ACCESS_KEY,accessToken()); grantAccess(); }
-  else { const c=document.querySelector('.lockcard'); c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake'); document.getElementById('lockErr').textContent='Nope — try today\'s date.'; }
-}
-function grantAccess(){ document.getElementById('lock').classList.add('hide'); renderAll(); show(document.body.classList.contains('org')?'tonight':'players'); }
 function toggleOrg(){
-  if(document.body.classList.contains('org')){document.body.classList.remove('org');toast('Viewer mode');show('players');return;}
+  if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();toast('Viewer mode');show('players');return;}
   const v=prompt('Organizer code (to run a night):');
   if(v==null)return;
-  if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');toast('Organizer mode ON');show('tonight');}
+  if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Organizer mode ON');show('tonight');}
   else toast('Wrong code');
 }
 
@@ -702,9 +664,10 @@ let toastT=null;function toast(t){const el=document.getElementById('toast');el.t
 /* ===== BOOT ===== */
 (async()=>{
   await loadState();resetTonight();
-  if(localStorage.getItem(ACCESS_KEY)===accessToken()){ grantAccess(); }
-  else { document.getElementById('lockInput').focus(); }
+  if(DIS.isOrg())document.body.classList.add('org');  // signed-in admin or suite organizer token
+  renderAll();show(document.body.classList.contains('org')?'tonight':'players');
 })();
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
 </html>
