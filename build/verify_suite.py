@@ -182,7 +182,67 @@ with sync_playwright() as p:
           page5.evaluate("new Set([...document.querySelectorAll('#holeGroups .hole .hn')].map(e=>e.textContent)).size >= 2"))
     page5.screenshot(path=os.path.join(SHOTS, "v_tags_holes.png"))
 
-    # 8) live Shopify drops feed on hub (needs internet; CORS is open on the shop)
+    # 8) SCORECARD: doubles team -> hole-by-hole card -> totals flow back
+    ctx6 = browser.new_context(viewport={"width": 420, "height": 900})
+    page6 = ctx6.new_page()
+    page6.on("console", lambda m: console_errs.append(f"{page6.url} :: {m.text}") if m.type == "error" else None)
+    page6.on("pageerror", lambda e: console_errs.append(f"{page6.url} :: PAGEERROR {e}"))
+    page6.goto(f"{BASE}/doubles.html"); page6.wait_for_timeout(600)
+    for i in range(4): page6.locator("#roster .toggle").nth(i).click()
+    page6.click(".btn.gold"); page6.wait_for_timeout(300)
+    team_hole = page6.evaluate("JSON.parse(localStorage.getItem('discinsanity_doubles_v1')).tonight.teams[0].hole")
+    page6.locator("#teams .pad").nth(0).click(); page6.wait_for_timeout(800)
+    check("scorecard: opens prefilled from doubles team",
+          "scorecard.html" in page6.url and page6.evaluate("document.getElementById('v-score').classList.contains('on')"))
+    check("scorecard: starts on the team's assigned hole",
+          page6.evaluate(f"document.getElementById('holeNum').textContent === 'Hole {team_hole}'"))
+    # UDisc-style interactions: tap = par, steppers, color class
+    page6.locator(".sc").nth(0).click(); page6.wait_for_timeout(150)
+    check("scorecard: tap empty score sets par", page6.evaluate("document.querySelector('.sc').textContent === '3'"))
+    page6.locator(".prow .step").nth(1).click(); page6.wait_for_timeout(150)  # + stepper
+    check("scorecard: + stepper -> bogey color", page6.evaluate("document.querySelector('.sc').classList.contains('bogey')"))
+    page6.click("#nextBtn"); page6.wait_for_timeout(150)
+    nxt = team_hole % 18 + 1
+    check("scorecard: next hole advances (wraps course)",
+          page6.evaluate(f"document.getElementById('holeNum').textContent === 'Hole {nxt}'"))
+    page6.click("#prevBtn"); page6.wait_for_timeout(150)
+    # per-hole par + distance editing persists through courses.js
+    page6.evaluate("DIC.setHole(card.course.course,card.course.layout,curHole(),{par:4,dist:310});renderScore()")
+    check("scorecard: hole par/distance editable + shown",
+          page6.evaluate("document.getElementById('holePar').textContent.includes('4') && document.getElementById('holePar').textContent.includes('310 ft')"))
+    # score every hole at par, finish, send back to doubles
+    page6.evaluate("seq().forEach(h=>{card.rows[0].scores[h]=DIC.holePar(card.course.course,card.course.layout,h)});save();renderScore()")
+    expected = page6.evaluate("rowTotal(card.rows[0]).t")
+    page6.click("text=🏁 Finish round"); page6.wait_for_timeout(300)
+    check("scorecard: summary shows E for all-par round",
+          page6.evaluate("document.getElementById('sumBody').innerText.includes('(E)')"))
+    check("scorecard: send-to-doubles offered",
+          page6.evaluate("document.getElementById('sendBtn').style.display==='block' && document.getElementById('sendBtn').textContent.includes('Doubles')"))
+    page6.screenshot(path=os.path.join(SHOTS, "v_scorecard_summary.png"))
+    page6.click("#sendBtn"); page6.wait_for_timeout(1600)
+    check("scorecard: team total flowed back into doubles",
+          "doubles.html" in page6.url and page6.evaluate("JSON.parse(localStorage.getItem('discinsanity_doubles_v1')).tonight.teams[0].score") == expected)
+
+    # 9) SCORECARD from tags group + import back into tonight's scores
+    page6.goto(f"{BASE}/index.html"); page6.wait_for_timeout(700)
+    page6.evaluate("window.prompt = () => 'discinsanity'")
+    if not page6.evaluate("document.body.classList.contains('org')"):
+        page6.click("#hkey"); page6.wait_for_timeout(300)
+    page6.evaluate("players.slice(0,4).forEach(p=>{tonight[p.name]=tonight[p.name]||{};tonight[p.name].present=true});assignHoles()")
+    page6.wait_for_timeout(300)
+    page6.locator("#holeGroups .hpad").nth(0).click(); page6.wait_for_timeout(800)
+    check("scorecard: opens prefilled from tags group",
+          "scorecard.html" in page6.url and page6.evaluate("card.from==='tags' && card.rows.length>=2"))
+    page6.evaluate("card.rows.forEach(r=>seq().forEach(h=>{r.scores[h]=DIC.holePar(card.course.course,card.course.layout,h)}));save();renderScore()")
+    page6.click("text=🏁 Finish round"); page6.wait_for_timeout(300)
+    page6.click("#sendBtn"); page6.wait_for_timeout(1600)
+    check("tags: back on Tags after send", "index.html" in page6.url)
+    page6.click("text=⬇ Import Scorecard result"); page6.wait_for_timeout(300)
+    check("tags: scorecard totals imported into tonight's scores",
+          page6.evaluate("players.filter(p=>tonight[p.name]&&tonight[p.name].present&&tonight[p.name].score!=null).length >= 2"))
+    page6.screenshot(path=os.path.join(SHOTS, "v_tags_imported.png"))
+
+    # 10) live Shopify drops feed on hub (needs internet; CORS is open on the shop)
     page4.goto(f"{BASE}/hub.html"); page4.wait_for_timeout(3500)
     check("hub Fresh Drops feed rendered from Shopify",
           page4.evaluate("document.querySelectorAll('#drops .drop').length > 0"))

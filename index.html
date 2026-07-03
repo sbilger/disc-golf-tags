@@ -155,6 +155,7 @@
   .hole .hh{font-size:9px;text-transform:uppercase;letter-spacing:.4px;display:block}
   .hole .hn{font-size:17px}
   .hnames{flex:1;font-weight:700;font-size:14px;line-height:1.35}
+  .hpad{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:10px;width:34px;height:38px;cursor:pointer;font-size:15px}
   .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .backbadge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:8px}
@@ -220,6 +221,7 @@ Viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
       <h2>Tonight's Tags</h2>
       <div class="import">
         <label class="btn ghost importbtn">⬆ Import UDisc CSV<input type="file" accept=".csv,text/csv" hidden onchange="onFile(event)"></label>
+        <button class="btn ghost" style="margin-top:8px" onclick="importScorecard()">⬇ Import Scorecard result</button>
         <div class="impmsg" id="impmsg"></div><div id="mapPanel"></div>
         <div class="fmt">Auto-detects name, score & division columns, skips "Par", picks latest round. (Sample CSVs in /samples.)</div>
       </div>
@@ -688,7 +690,7 @@ function renderHoleGroups(){
   const el=document.getElementById('holeGroups');if(!el)return;el.innerHTML='';
   if(!holeGroups)return;
   holeGroups.groups.forEach((g,i)=>{const d=document.createElement('div');d.className='hgrp';
-    d.innerHTML=`<div class="hole" title="Tap to change" onclick="editGroupHole(${i})"><span class="hh">Hole</span><span class="hn">${g.hole}</span></div><div class="hnames">${g.names.join(', ')}</div>`;el.appendChild(d);});
+    d.innerHTML=`<div class="hole" title="Tap to change" onclick="editGroupHole(${i})"><span class="hh">Hole</span><span class="hn">${g.hole}</span></div><div class="hnames">${g.names.join(', ')}</div><button class="hpad" title="Score hole-by-hole" onclick="groupScorecard(${i})">📝</button>`;el.appendChild(d);});
   const c=document.createElement('button');c.className='btn ghost sm';c.style.marginBottom='10px';
   c.textContent='📋 Copy starting holes (for group chat)';c.onclick=copyHoles;el.appendChild(c);
 }
@@ -702,6 +704,22 @@ function copyHoles(){
   const txt='⛳ Starting holes — '+holeGroups.course+' ('+today()+')\n'
     +holeGroups.groups.map(g=>`Hole ${g.hole}: ${g.names.join(', ')}`).join('\n');
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Starting holes copied!'),()=>fallbackCopy(txt));}else fallbackCopy(txt);
+}
+function groupScorecard(i){
+  const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);
+  const g=holeGroups.groups[i];
+  localStorage.setItem('discinsanity_scorecard_setup_v1',JSON.stringify({course:{course:c.course,layout:c.layout,holes:c.holes||18,par:c.par},
+    startHole:g.hole,rows:g.names.map(n=>({label:n,names:[n]})),from:'tags'}));
+  location.href='scorecard.html';
+}
+function importScorecard(){
+  let res=null;try{res=JSON.parse(localStorage.getItem('discinsanity_scorecard_result_v1'));}catch(e){}
+  if(!res){toast('No finished scorecard on this device');return;}
+  let hit=0;
+  res.rows.forEach(r=>{if(!r.names||r.names.length!==1)return;
+    const p=players.find(x=>x.name.toLowerCase()===r.names[0].toLowerCase());
+    if(p){tonight[p.name]=tonight[p.name]||{present:false,score:null};tonight[p.name].present=true;tonight[p.name].score=r.score;hit++;}});
+  renderRoster();toast(hit?hit+' score'+(hit>1?'s':'')+' imported from Scorecard':'No matching players on the roster');
 }
 
 /* ===== BOOT ===== */

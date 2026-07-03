@@ -59,6 +59,7 @@
   .hole .hh{font-size:9px;text-transform:uppercase;letter-spacing:.4px;display:block}
   .hole .hn{font-size:17px}
   .tnames{flex:1;font-weight:800;font-size:15px;min-width:0}.tnames small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+  .pad{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:10px;width:36px;height:42px;cursor:pointer;font-size:16px}
   .tscore{width:58px;height:42px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:17px;font-weight:800;font-family:inherit;flex:0 0 auto}
   .topar{flex:0 0 auto;min-width:34px;text-align:center;font-size:12px;font-weight:800;color:var(--purple)}
   table{width:100%;border-collapse:collapse}
@@ -83,7 +84,7 @@
 </head>
 <body>
 <p class="lead"><b>Discinsanity Doubles</b> — check in, tap <b>Draw</b>, and teams + starting holes are
-random every week. Scores show UDisc-style (to par per course); organizer 🔑 enters &amp; saves them.</p>
+random every week. Tap 📝 on your team to score hole-by-hole; organizer 🔑 saves the round.</p>
 
 <div class="phone">
   <header>
@@ -235,6 +236,7 @@ function renderTeams(){
     d.innerHTML=`<div class="tnum">${i+1}</div>
       <div class="hole" title="Tap to change" onclick="editHole(${i})"><span class="hh">Hole</span><span class="hn">${t.hole||'—'}</span></div>
       <div class="tnames">${t.players.map(esc).join(' + ')}<small>${t.players.length} players</small></div>
+      <button class="pad" title="Score hole-by-hole" onclick="openScorecard(${i})">📝</button>
       <input class="tscore org-only" type="number" inputmode="numeric" placeholder="score" value="${t.score??''}" oninput="setTeamScore(${i},this.value)">
       <span class="topar" id="tp-${i}">${DIC.toPar(t.score,t9.course&&t9.course.par)}</span>`;el.appendChild(d);});
   document.getElementById('saveBtn').style.display='block';
@@ -245,6 +247,12 @@ function editHole(i){
   const v=parseInt(prompt(`Starting hole for ${t.players.join(' + ')} (1–${max}):`,t.hole||1),10);
   if(isNaN(v)||v<1||v>max)return;
   t.hole=v;persist();renderTeams();
+}
+function openScorecard(i){
+  const t9=state.tonight;if(!t9)return;const t=t9.teams[i];
+  localStorage.setItem('discinsanity_scorecard_setup_v1',JSON.stringify({course:t9.course,startHole:t.hole||1,
+    rows:[{label:t.players.join(' + '),names:t.players}],from:'doubles'}));
+  location.href='scorecard.html';
 }
 function setTeamScore(i,v){
   const t9=state.tonight;if(!t9)return;
@@ -295,6 +303,9 @@ let toastT=null;function toast(t){const e=document.getElementById('toast');e.tex
 /* ===== boot ===== */
 (async()=>{await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');
   renderAll();show('checkin');})();
+/* refresh when returning from the Scorecard (it writes team scores into our store) */
+window.addEventListener('pageshow',e=>{if(e.persisted)load().then(renderAll);});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load().then(renderAll);});
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
