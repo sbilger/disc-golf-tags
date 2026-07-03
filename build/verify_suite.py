@@ -1,4 +1,5 @@
-# Headless verify: unified suite session (suite.js) across all modules.
+# Headless verify: Discinsanity suite — open modules (date-gate removed 2026-07-03),
+# shared organizer session, admin sign-in, cross-module integration, live drops.
 # Serves repo on :8123, drives Chromium, asserts every flow, saves screenshots to build/shots/.
 import http.server, socketserver, threading, os, sys, functools
 from playwright.sync_api import sync_playwright
@@ -14,7 +15,7 @@ socketserver.ThreadingTCPServer.allow_reuse_address = True
 httpd = socketserver.ThreadingTCPServer(("", PORT), handler)
 threading.Thread(target=httpd.serve_forever, daemon=True).start()
 
-errors = []   # (page, message)
+errors = []
 passed = []
 
 def check(name, cond):
@@ -30,37 +31,30 @@ with sync_playwright() as p:
     page.on("pageerror", lambda e: console_errs.append(f"{page.url} :: PAGEERROR {e}"))
 
     ALL = ["hub.html", "index.html", "doubles.html", "events.html", "leaderboards.html", "account.html"]
+    MODULES = ["index.html", "doubles.html", "events.html", "leaderboards.html"]
 
-    # 1) every page renders, locked where expected
+    # 1) every page renders OPEN — no lock element anywhere, content visible immediately
     for f in ALL:
         page.goto(f"{BASE}/{f}")
         page.wait_for_timeout(600)
-        if f in ("index.html", "doubles.html", "events.html", "leaderboards.html"):
-            locked = page.evaluate("!document.getElementById('lock').classList.contains('hide')")
-            check(f"{f} starts locked", locked)
-        page.screenshot(path=os.path.join(SHOTS, f"v_{f.replace('.html','')}_locked.png"))
+        check(f"{f}: no lock element", page.evaluate("!document.getElementById('lock')"))
+        if f in MODULES:
+            check(f"{f}: starts as viewer (not organizer)",
+                  page.evaluate("!document.body.classList.contains('org')"))
+        page.screenshot(path=os.path.join(SHOTS, f"v_{f.replace('.html','')}_open.png"))
 
-    # 2) unlock ONCE on tags with today's date -> whole suite opens
-    page.goto(f"{BASE}/index.html")
-    today = page.evaluate("new Date().toISOString().slice(0,10)")
-    page.fill("#lockInput", today)
-    page.click("#lock .btn")
-    page.wait_for_timeout(400)
-    check("tags unlocks with today's date",
-          page.evaluate("document.getElementById('lock').classList.contains('hide')"))
-    for f in ["doubles.html", "events.html", "leaderboards.html"]:
-        page.goto(f"{BASE}/{f}")
-        page.wait_for_timeout(600)
-        check(f"{f} auto-unlocked by suite session",
-              page.evaluate("document.getElementById('lock').classList.contains('hide')"))
-    page.screenshot(path=os.path.join(SHOTS, "v_leaderboards_open.png"))
+    # content actually renders without any unlock step
+    page.goto(f"{BASE}/index.html"); page.wait_for_timeout(600)
+    check("tags: standings content visible with no unlock",
+          page.evaluate("document.body.innerText.length > 200"))
+    page.goto(f"{BASE}/leaderboards.html"); page.wait_for_timeout(800)
+    check("leaderboards: board renders with no unlock",
+          page.evaluate("document.body.innerText.toLowerCase().includes('season')"))
 
-    # 3) organizer code entered ONCE (doubles) -> organizer everywhere, survives reload
-    page.goto(f"{BASE}/doubles.html")
-    page.wait_for_timeout(400)
+    # 2) organizer code entered ONCE (doubles) -> organizer everywhere, survives reload
+    page.goto(f"{BASE}/doubles.html"); page.wait_for_timeout(400)
     page.evaluate("window.prompt = () => 'discinsanity'")
-    page.click("#hkey")
-    page.wait_for_timeout(300)
+    page.click("#hkey"); page.wait_for_timeout(300)
     check("doubles organizer ON via key", page.evaluate("document.body.classList.contains('org')"))
     page.goto(f"{BASE}/index.html"); page.wait_for_timeout(600)
     check("tags inherits organizer mode", page.evaluate("document.body.classList.contains('org')"))
@@ -75,7 +69,7 @@ with sync_playwright() as p:
     page.goto(f"{BASE}/doubles.html"); page.wait_for_timeout(600)
     check("doubles organizer dropped too", page.evaluate("!document.body.classList.contains('org')"))
 
-    # 4) fresh device + Jeff signs in -> suite open + admin everywhere, no date needed
+    # 3) fresh device + Jeff signs in -> admin/organizer everywhere; sign-out drops it
     ctx2 = browser.new_context(viewport={"width": 420, "height": 900})
     page2 = ctx2.new_page()
     page2.on("console", lambda m: console_errs.append(f"{page2.url} :: {m.text}") if m.type == "error" else None)
@@ -83,38 +77,31 @@ with sync_playwright() as p:
     page2.goto(f"{BASE}/account.html"); page2.wait_for_timeout(400)
     page2.fill("#email", "jeff@discinsanity.com")
     page2.fill("#pw", "discinsanity")
-    page2.click("#form .btn")
-    page2.wait_for_timeout(400)
-    check("Jeff signed in (admin badge)", page2.evaluate("document.body.innerText.toLowerCase().includes('admin')"))
-    page2.screenshot(path=os.path.join(SHOTS, "v_account_jeff.png"))
-    for f in ["index.html", "doubles.html", "events.html", "leaderboards.html"]:
+    page2.click("#form .btn"); page2.wait_for_timeout(400)
+    check("Jeff signed in (admin badge)",
+          page2.evaluate("document.body.innerText.toLowerCase().includes('admin')"))
+    for f in ["index.html", "doubles.html", "events.html"]:
         page2.goto(f"{BASE}/{f}"); page2.wait_for_timeout(600)
-        check(f"{f}: signed-in Jeff bypasses lock",
-              page2.evaluate("document.getElementById('lock').classList.contains('hide')"))
-        if f != "leaderboards.html":
-            check(f"{f}: Jeff is organizer/admin", page2.evaluate("document.body.classList.contains('org')"))
+        check(f"{f}: Jeff is organizer/admin", page2.evaluate("document.body.classList.contains('org')"))
     page2.goto(f"{BASE}/hub.html"); page2.wait_for_timeout(600)
-    check("hub shows Admin badge for Jeff", page2.evaluate("document.getElementById('signbtn').textContent.includes('Admin')"))
+    check("hub shows Admin badge for Jeff",
+          page2.evaluate("document.getElementById('signbtn').textContent.includes('Admin')"))
     page2.screenshot(path=os.path.join(SHOTS, "v_hub_admin.png"))
-
-    # 5) sign out -> locks come back on a fresh (never-unlocked) module
     page2.goto(f"{BASE}/account.html"); page2.wait_for_timeout(400)
     page2.click("button.red"); page2.wait_for_timeout(300)
     page2.goto(f"{BASE}/doubles.html"); page2.wait_for_timeout(600)
-    check("after sign-out doubles locks again",
-          page2.evaluate("!document.getElementById('lock').classList.contains('hide')"))
     check("after sign-out organizer dropped", page2.evaluate("!document.body.classList.contains('org')"))
 
-    # 6) legacy migration: old per-module key still opens suite (upgrade path)
+    # 4) housekeeping: suite.js wipes retired date-gate tokens
     ctx3 = browser.new_context(viewport={"width": 420, "height": 900})
     page3 = ctx3.new_page()
     page3.goto(f"{BASE}/hub.html")
-    page3.evaluate("localStorage.setItem('di_dbl_access', new Date().toISOString().slice(0,10).replace(/-/g,''))")
-    page3.goto(f"{BASE}/events.html"); page3.wait_for_timeout(600)
-    check("legacy di_dbl_access token migrates + unlocks events",
-          page3.evaluate("document.getElementById('lock').classList.contains('hide')"))
+    page3.evaluate("localStorage.setItem('di_access','x');localStorage.setItem('discinsanity_access_v1','x')")
+    page3.goto(f"{BASE}/events.html"); page3.wait_for_timeout(500)
+    check("retired date-gate tokens wiped by suite.js",
+          page3.evaluate("!localStorage.getItem('di_access') && !localStorage.getItem('discinsanity_access_v1')"))
 
-    # 7) integration: hub This-Week mirrors Events; profile shows real league stats
+    # 5) integration: hub This-Week mirrors Events; profile shows real league stats
     ctx4 = browser.new_context(viewport={"width": 420, "height": 900})
     page4 = ctx4.new_page()
     page4.on("console", lambda m: console_errs.append(f"{page4.url} :: {m.text}") if m.type == "error" else None)
@@ -126,7 +113,6 @@ with sync_playwright() as p:
           page4.evaluate("!!document.querySelector('#week .wkev')"))
     check("hub This-Week shows event course",
           page4.evaluate("document.getElementById('week').innerText.includes('South Mountain')"))
-    page4.screenshot(path=os.path.join(SHOTS, "v_hub_eventsync.png"))
     page4.goto(f"{BASE}/account.html"); page4.wait_for_timeout(400)
     page4.evaluate("setMode('up')")
     page4.fill("#name", "Mike R"); page4.fill("#email", "mike@test.com"); page4.fill("#pw", "test1234")
@@ -137,7 +123,7 @@ with sync_playwright() as p:
           page4.evaluate("leagueStats(DI.current()).dblPts > 0"))
     page4.screenshot(path=os.path.join(SHOTS, "v_account_stats.png"))
 
-    # 8) live Shopify drops feed on hub (needs internet; CORS is open on the shop)
+    # 6) live Shopify drops feed on hub (needs internet; CORS is open on the shop)
     page4.goto(f"{BASE}/hub.html"); page4.wait_for_timeout(3500)
     check("hub Fresh Drops feed rendered from Shopify",
           page4.evaluate("document.querySelectorAll('#drops .drop').length > 0"))

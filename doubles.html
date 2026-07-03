@@ -72,27 +72,14 @@
   body:not(.org) .org-only{display:none!important}
   .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  .lock{position:absolute;inset:0;background:linear-gradient(160deg,#fff,#f1eafa 60%,#e7d9f6);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
-  .lock.hide{display:none}
-  .lock img{width:150px;margin-bottom:16px}.lock h1{font-size:20px;margin:0 0 4px}.lock p{font-size:13px;color:var(--muted);margin:0 0 16px}
-  .lock input{width:100%;max-width:280px;padding:14px;border:2px solid var(--line);border-radius:12px;font-size:16px;text-align:center;font-weight:700;font-family:inherit;margin-bottom:10px}
-  .lock .err{color:var(--bad);font-size:13px;font-weight:700;min-height:18px}
   @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
 </style>
 </head>
 <body>
-<p class="lead"><b>Discinsanity Doubles</b> — random-draw weekly. Unlock (today's date), tap the 🔑 for organizer,
-check players in, draw teams, score, save. Season points roll up in Standings.</p>
+<p class="lead"><b>Discinsanity Doubles</b> — random-draw weekly. Tap the 🔑 for organizer, check
+players in, draw teams, score, save. Season points roll up in Standings.</p>
 
 <div class="phone">
-  <div class="lock" id="lock">
-    <img src="assets/discinsanity-logo.png" alt="">
-    <h1>Doubles</h1><p>Members only — enter today's date.</p>
-    <input id="lockInput" type="date" onkeydown="if(event.key==='Enter')submitAccess()">
-    <button class="btn" onclick="submitAccess()">Enter</button>
-    <div class="err" id="lockErr"></div>
-  </div>
-
   <header>
     <a class="hback" href="hub.html">‹ Hub</a>
     <img src="assets/discinsanity-logo.png" alt="">
@@ -157,9 +144,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const initials=n=>n.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
 
-/* ===== access ===== */
-function submitAccess(){const v=document.getElementById('lockInput').value;if(DIS.checkDate(v)){DIS.grantAccess();grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
-function grant(){document.getElementById('lock').classList.add("hide");renderAll();show(document.body.classList.contains('org')?'tonight':'standings');}
+/* ===== roles (viewer default; organizer = 🔑 code, suite-wide via suite.js) ===== */
 function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();show('standings');return;}const v=prompt('Organizer code:');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Organizer mode ON');show('tonight');}else toast('Wrong code');}
 
 /* ===== store ===== */
@@ -265,8 +250,8 @@ function renderAll(){renderRoster();renderStandings();renderHistory();renderTeam
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
 
 /* ===== boot ===== */
-(async()=>{await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');renderAll();
-  if(DIS.hasAccess())grant();else document.getElementById('lockInput').focus();})();
+(async()=>{await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');
+  renderAll();show(document.body.classList.contains('org')?'tonight':'standings');})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

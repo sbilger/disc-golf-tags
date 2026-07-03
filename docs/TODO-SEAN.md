@@ -19,8 +19,8 @@ Jeff's posts/events/accounts be real:
 All currently `discinsanity` — change them:
 - Organizer/admin code in `index.html`, `doubles.html`, `events.html` (`ORGANIZER_CODE`).
 - Admin code in `account.js` (`ADMIN_CODE`) — this is what makes someone an admin.
-- Note: the **date** unlock is public knowledge (anyone knows today's date). For real
-  "members only," tell me and I'll switch to a code Jeff announces, or proper Supabase login.
+- Note: the date unlock was **removed** (Sean's call, 2026-07-03) — modules are open read-only;
+  the organizer code gates all editing. For real "members only," proper Supabase login later.
 
 ## 🟡 3. Info to get from Jeff (shapes the next builds)
 - **Doubles format details:** scoring = best-disc, combined, or handicap? Buy-in / payouts? Points scheme?
@@ -53,8 +53,8 @@ Live (Pages now serves the hub branch): **https://sbilger.github.io/disc-golf-ta
 ### Demo logins (try on the live link)
 - Member: create any account.
 - Admin (Jeff): `jeff@discinsanity.com` / `discinsanity` → then Hub shows "Admin ✓" + edit controls.
-- Unlock = **today's date**, entered **once anywhere** — `suite.js` now shares one unlock + one
-  organizer state across the whole suite. Signed-in members skip the date lock entirely;
+- Modules are **open** (read-only by default) — date lock removed 2026-07-03. `suite.js` shares
+  ONE organizer state across the whole suite: enter the 🔑 code once = organizer everywhere;
   Jeff's admin account = organizer **everywhere**. Sign-out drops organizer too.
 
 ## Next session (me) — once you've done #1

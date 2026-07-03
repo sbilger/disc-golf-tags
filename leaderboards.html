@@ -77,11 +77,6 @@
   .lpts{font-weight:800;color:var(--gold-d);font-size:16px;flex:0 0 auto}
   .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  .lock{position:absolute;inset:0;background:linear-gradient(160deg,#fff,#fdf6d8 60%,#f7e9ae);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
-  .lock.hide{display:none}
-  .lock img{width:150px;margin-bottom:16px}.lock h1{font-size:20px;margin:0 0 4px}.lock p{font-size:13px;color:var(--muted);margin:0 0 16px}
-  .lock input{width:100%;max-width:280px;padding:14px;border:2px solid var(--line);border-radius:12px;font-size:16px;text-align:center;font-weight:700;font-family:inherit;margin-bottom:10px}
-  .lock .err{color:var(--bad);font-size:13px;font-weight:700;min-height:18px}
   .btn{width:100%;border:0;border-radius:14px;background:var(--gold);color:var(--gold-t);font-weight:800;font-size:16px;padding:15px;cursor:pointer;margin-top:6px;font-family:inherit}
   .btn:active{transform:translateY(1px)}
   @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
@@ -93,14 +88,6 @@
 Reads whatever both modules have saved (local now, cloud once Supabase keys go in). Tap a player for their night-by-night log.</p>
 
 <div class="phone">
-  <div class="lock" id="lock">
-    <img src="assets/discinsanity-logo.png" alt="">
-    <h1>Leaderboards</h1><p>Members only — enter today's date.</p>
-    <input id="lockInput" type="date" onkeydown="if(event.key==='Enter')submitAccess()">
-    <button class="btn" onclick="submitAccess()">Enter</button>
-    <div class="err" id="lockErr"></div>
-  </div>
-
   <header>
     <a class="hback" href="hub.html">‹ Hub</a>
     <img src="assets/discinsanity-logo.png" alt="">
@@ -159,9 +146,6 @@ async function remoteLoadBoth(){
   if(!r.ok)throw 0;const rows=await r.json();const out={};rows.forEach(x=>out[x.id]=x.state);return out;
 }
 
-/* ===== access (suite-wide date unlock — see suite.js) ===== */
-function submitAccess(){const v=document.getElementById('lockInput').value;if(DIS.checkDate(v)){DIS.grantAccess();grant();}else document.getElementById('lockErr').textContent="Nope — try today's date.";}
-function grant(){document.getElementById('lock').classList.add('hide');renderAll();}
 
 /* ===== source data (read-only: this module never writes league state) ===== */
 const TAGS_KEY='tagshuffle_v4_div', DBL_KEY='discinsanity_doubles_v1';
@@ -311,8 +295,7 @@ let toastT=null;function toast(t){const e=document.getElementById('toast');e.tex
 window.addEventListener('storage',e=>{if(e.key===TAGS_KEY||e.key===DBL_KEY)refresh(false);});
 
 /* ===== boot ===== */
-(async()=>{await load();
-  if(DIS.hasAccess())grant();else document.getElementById('lockInput').focus();})();
+(async()=>{await load();renderAll();})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
