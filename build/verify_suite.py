@@ -132,7 +132,7 @@ with sync_playwright() as p:
     check("doubles: check-in view is default (no standings tab)",
           page5.evaluate("document.getElementById('v-checkin').classList.contains('on') && !document.getElementById('v-standings')"))
     check("doubles: course picker populated from courses.js",
-          page5.evaluate("document.querySelectorAll('#courseSel option').length >= 6"))
+          page5.evaluate("document.querySelectorAll('#courseSel option').length >= 10"))
     # viewer adds himself + checks in 3 more
     page5.fill("#addName", "Zed Tester"); page5.click("text=Add"); page5.wait_for_timeout(200)
     for i in range(3): page5.locator("#roster .toggle").nth(i).click()
@@ -216,6 +216,14 @@ with sync_playwright() as p:
     page6.click("text=🏁 Finish round"); page6.wait_for_timeout(300)
     check("scorecard: summary shows E for all-par round",
           page6.evaluate("document.getElementById('sumBody').innerText.includes('(E)')"))
+    check("scorecard: breakdown shows Front nine + Back nine grids",
+          page6.evaluate("(()=>{const t=[...document.querySelectorAll('#breakdown .gtitle')].map(e=>e.textContent);return t.includes('Front nine')&&t.includes('Back nine');})()"))
+    check("scorecard: breakdown grid has all 18 hole columns",
+          page6.evaluate("document.querySelectorAll('#breakdown .sgrid thead th').length === (2*11)"))
+    check("scorecard: breakdown Out subtotal present",
+          page6.evaluate("[...document.querySelectorAll('#breakdown .sgrid thead th')].some(e=>e.textContent==='Out')"))
+    check("scorecard: winner row highlighted with medal",
+          page6.evaluate("document.querySelector('#sumBody tr.win .rank').textContent.includes('🥇')"))
     check("scorecard: send-to-doubles offered",
           page6.evaluate("document.getElementById('sendBtn').style.display==='block' && document.getElementById('sendBtn').textContent.includes('Doubles')"))
     page6.screenshot(path=os.path.join(SHOTS, "v_scorecard_summary.png"))

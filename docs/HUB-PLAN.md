@@ -16,7 +16,7 @@ news, disc drops — one place for the Lehigh Valley disc golf community Jeff ru
 | **Leaderboards** | Season points across tags + doubles | ✅ built |
 | **Shop / Drops** | Live **Fresh Drops** feed on the Hub (Shopify public `products.json`, CORS open) + links | ✅ built |
 | **My Profile** | Member login + profile (PDGA, division), admin role | ✅ built (demo auth) |
-| **Scorecard** | UDisc-style hole-by-hole scoring (par + distance per hole, swipe holes, ±par); launches from a Doubles team / Tags group 📝 and totals flow back | ✅ built |
+| **Scorecard** | UDisc-style hole-by-hole scoring (par+distance per hole, swipe, ±par); **final card shows full front-9/back-9 breakdown** (birdie circles, bogey squares, Out/In); launches from Doubles/Tags 📝, totals flow back | ✅ built |
 
 ## Decisions (locked with Sean)
 - **Backend foundation first** — everything else rides on it.

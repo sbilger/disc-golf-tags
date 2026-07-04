@@ -11,12 +11,21 @@
 
   /* Defaults: par 54 / 18 holes standard assumption — EDIT in-app if a layout differs. */
   const DEFAULTS = [
+    // Lehigh Valley / eastern PA courses. Holes+par are SENSIBLE DEFAULTS (par 54 / 18)
+    // until Jeff/anyone sets the real numbers in-app (tap a hole's par on the Scorecard).
     { course: 'South Mountain',          layout: 'White Tee', holes: 18, par: 54 },
     { course: 'South Mountain',          layout: 'Blue Tee',  holes: 18, par: 54 },
     { course: 'Jordan Creek',            layout: 'Short',     holes: 18, par: 54 },
     { course: 'Jordan Creek',            layout: 'Long',      holes: 18, par: 54 },
     { course: 'Little Gap',              layout: 'Main',      holes: 18, par: 54 },
-    { course: 'Trexler Nature Preserve', layout: 'Main',      holes: 18, par: 54 }
+    { course: 'Trexler Nature Preserve', layout: 'Main',      holes: 18, par: 54 },
+    { course: 'Nockamixon State Park',   layout: 'Main',      holes: 18, par: 54 },
+    { course: 'Louise Moore Park',       layout: 'Main',      holes: 18, par: 54 },
+    { course: 'Covered Bridge Park',     layout: 'Main',      holes: 18, par: 54 },
+    { course: 'Macungie Memorial Park',  layout: 'Main',      holes: 18, par: 54 },
+    { course: 'Whitehall Parkway',       layout: 'Main',      holes: 18, par: 54 },
+    { course: 'Bethlehem Municipal',     layout: 'Main',      holes: 18, par: 54 },
+    { course: 'Kirkland Village',        layout: 'Main',      holes: 18, par: 54 }
   ];
 
   const readStore = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
