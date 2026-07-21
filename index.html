@@ -317,7 +317,14 @@ Viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
       <button class="btn" onclick="copyStandings()">📋 Copy standings text (for group chat)</button>
       <button class="btn ghost" onclick="downloadCSV()">⤓ Download CSV</button>
       <button class="btn ghost" onclick="downloadHTML()">⤓ Download shareable standings page</button>
+      <button class="btn gold" onclick="downloadPDGAReport()">🏆 Download PDGA League Report (CSV)</button>
       <div class="note">Self-contained read-only HTML. A true auto-updating link comes with the cloud backend (BACKEND.md).</div>
+      <div class="note">The PDGA report's columns (DivCode, First, Last, PDGA #, R1–R10) match the PDGA's own official
+      <b>League Report Spreadsheet</b> (league_report_v18.4d.xlsm, UPLOAD tab — verified by downloading it from pdga.com).
+      Paste these rows straight into that spreadsheet, or key them into PDGA Tournament Manager. This does <b>not</b>
+      submit to the PDGA automatically — Discinsanity has no live PDGA connection, and your league must actually be
+      <a href="https://www.pdga.com/leagues" target="_blank" rel="noopener">PDGA-sanctioned</a> (League Director
+      certified, $25 session fee, $1/player/round) for these results to count toward official ratings.</div>
     </section>
     <!-- SCHEDULE -->
     <section class="view" id="v-schedule">
@@ -641,6 +648,40 @@ function downloadHTML(){const groups=standingsByDiv();
 <style>body{font-family:Assistant,-apple-system,Segoe UI,Roboto,sans-serif;background:#eaeef3;color:#16202b;margin:0;padding:24px}h1{color:#0066B3;margin-bottom:2px}h2{color:#0066B3;margin:20px 0 6px}table{border-collapse:collapse;width:100%;max-width:520px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(20,40,70,.08)}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eef2f6}th{background:#0066B3;color:#fff}.t{font-weight:800;color:#0066B3}small{color:#67737f}</style>
 <h1>🥏 Discinsanity Tag Standings</h1><small>South Mountain · generated ${today()} · ${rounds.length} weeks · read-only snapshot</small>${sections}`;
   dl('discinsanity-standings.html',html,'text/html');toast('Standings page downloaded');}
+/* PDGA League Report export — column layout matches the PDGA's own official
+   League Report Spreadsheet (league_report_v18.4d.xlsm, UPLOAD tab), verified by
+   downloading that file from pdga.com. DivCode/First/Last/PDGA#/R1..R10, one row
+   per player. A PDGA league session is capped at 10 weeks, so this takes the most
+   recent 10 rounds — sanction another session to cover more. This does NOT submit
+   anything to the PDGA; it's a fast copy/paste source for the TD's manual entry. */
+function splitName(full){const parts=(full||'').trim().split(/\s+/);if(parts.length<2)return{first:parts[0]||'',last:''};return{first:parts[0],last:parts.slice(1).join(' ')};}
+function downloadPDGAReport(){
+  const sorted=[...rounds].sort((a,b)=>a.date<b.date?-1:1).slice(0,10);
+  if(!sorted.length){toast('No rounds to export yet');return;}
+  const roster={};
+  sorted.forEach((r,wi)=>{r.results.forEach(res=>{
+    const p=players.find(x=>x.name===res.name);
+    if(!roster[res.name])roster[res.name]={division:res.division,pdga:(p&&p.pdga)||'',scores:Array(10).fill('')};
+    roster[res.name].scores[wi]=res.score;
+    if(res.division)roster[res.name].division=res.division;
+  });});
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const lines=[['DivCode','First Name','Last Name','PDGA #','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10'].map(q).join(',')];
+  Object.keys(roster).sort((a,b)=>a.localeCompare(b)).forEach(name=>{
+    const p=roster[name];const n=splitName(name);
+    lines.push([p.division||'',n.first,n.last,p.pdga||'',...p.scores].map(q).join(','));
+  });
+  const notes=[
+    '', '# PDGA League Report — column layout matches the official League Report Spreadsheet',
+    '# (league_report_v18.4d.xlsm, UPLOAD tab, downloaded from pdga.com) — paste these rows',
+    '# straight into that spreadsheet, or key them into PDGA Tournament Manager.',
+    '# This CSV does NOT submit anything to the PDGA automatically — Discinsanity has no',
+    `# live PDGA connection. Weeks included (most recent 10): ${sorted.map(r=>r.date).join(', ')}.`,
+    '# Division codes (MPO/FPO/MA1-4/FA1) already match official PDGA DivCodes — no remapping needed.'
+  ];
+  dl('discinsanity-pdga-league-report.csv',lines.join('\n')+'\n'+notes.join('\n'),'text/csv');
+  toast('PDGA report CSV downloaded');
+}
 
 /* ===== MISC ===== */
 function pdgaHtml(p){const link=p.pdga?`<a class="pdga" href="https://www.pdga.com/player/${p.pdga}" target="_blank" rel="noopener">PDGA #${p.pdga} ↗</a>`:'<span class="pdga none">No PDGA #</span>';return link+`<button class="pdga-edit org-only" onclick="setPdga('${p.name}')">${p.pdga?'edit':'+ add'}</button>`;}
