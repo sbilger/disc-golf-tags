@@ -272,7 +272,10 @@ Viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
           <select id="npRule" onchange="setRule(this.value)">
             <option value="pool">Joins their division's swap immediately</option>
             <option value="holdout">Holds out first night (worst tag in division, no swap)</option>
-          </select></div></div>
+          </select></div>
+        <div class="field"><label>League fee (¢)</label><input id="feeInput" type="number" inputmode="numeric" min="0" step="1" onchange="setFee(this.value)" placeholder="e.g. 100 = $1.00"></div>
+        <p class="note" style="margin:8px 0 0">Charges each present player's saved card when you save the round (Section 3 — Stripe). Players without a card on file are skipped; the round always saves either way.</p>
+      </div>
       <div class="reset org-only"><button onclick="freshStart()">🆕 start fresh (clear roster)</button> &nbsp; <button onclick="resetDemo()">↺ reset demo data</button></div>
     </section>
 
@@ -381,7 +384,7 @@ const COURSES=[{course:'South Mountain',layout:'White Tee',par:54,holes:18}];
 
 /* ===== STATE ===== */
 const KEY='tagshuffle_v4_div';
-let players=[],rounds=[],trades=[],config={newPlayerRule:'pool'},schedule=[],courseList=[],schedEdit=false;
+let players=[],rounds=[],trades=[],config={newPlayerRule:'pool',feeCents:100},schedule=[],courseList=[],schedEdit=false;
 const today=()=>new Date().toISOString().slice(0,10);
 const playersIn=d=>players.filter(p=>p.division===d).sort((a,b)=>a.tag-b.tag);
 const nextTag=d=>Math.max(0,...players.filter(p=>p.division===d).map(p=>p.tag))+1;
@@ -413,14 +416,14 @@ function buildSeed(){const rng=mulberry32(73);
     const arr=present.map(n=>({name:n,division:dv[n],tag:cur[n],score:Math.round(skill[n]+(rng()*8-3))}));
     const res=reshuffleByDivision(arr,'pool');res.forEach(r=>{cur[r.name]=r.newTag;});
     rs.push({id:'r'+w,date:isoWeeksAgo(WEEKS-1-w),course:COURSES[0].course,layout:COURSES[0].layout,par:COURSES[0].par,results:res});}
-  return {players:roster.map(p=>({name:p.name,division:p.div,tag:cur[p.name],pdga:({Sarah:'45123',Mike:'68920',Dave:'112045',Luis:'89034'})[p.name]})),rounds:rs,trades:[],config:{newPlayerRule:'pool'},schedule:seedSchedule()};}
+  return {players:roster.map(p=>({name:p.name,division:p.div,tag:cur[p.name],pdga:({Sarah:'45123',Mike:'68920',Dave:'112045',Luis:'89034'})[p.name]})),rounds:rs,trades:[],config:{newPlayerRule:'pool',feeCents:100},schedule:seedSchedule()};}
 
 /* ===== STORE ===== */
 async function loadState(){let s=null;
   if(remoteOn()){try{s=await remoteLoad();}catch(e){console.warn('remote load failed',e);}}
   if(!s){const raw=localStorage.getItem(KEY);if(raw){try{s=JSON.parse(raw);}catch(e){}}}
   if(!s)s=buildSeed();
-  players=s.players;rounds=s.rounds;trades=s.trades||[];config=s.config||{newPlayerRule:'pool'};schedule=(s.schedule&&s.schedule.length)?s.schedule:seedSchedule();persist();}
+  players=s.players;rounds=s.rounds;trades=s.trades||[];config=Object.assign({newPlayerRule:'pool',feeCents:100},s.config||{});schedule=(s.schedule&&s.schedule.length)?s.schedule:seedSchedule();persist();}
 function persist(){const state={players,rounds,trades,config,schedule};localStorage.setItem(KEY,JSON.stringify(state));if(remoteOn())remoteSave(state).catch(e=>console.warn('remote save failed',e));}
 function freshStart(){if(!confirm('Clear ALL players, rounds and trades and start an empty season? (Schedule is kept.)'))return;players=[];rounds=[];trades=[];persist();resetTonight();renderAll();show('players');toast('Fresh season — import a scorecard to build the roster');}
 function resetDemo(){localStorage.removeItem(KEY);const s=buildSeed();players=s.players;rounds=s.rounds;trades=s.trades;config=s.config;schedule=s.schedule;persist();resetTonight();renderAll();show('players');toast('Demo data reset');}
@@ -484,8 +487,38 @@ function renderResult(res){
 function saveRound(){
   if(!lastResult)return;const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);const ach=roundAchievements(lastResult);
   lastResult.forEach(r=>{const p=players.find(x=>x.name===r.name);if(p){p.tag=r.newTag;p.isNew=false;p.firstNight=false;}});
-  rounds.push({id:'r'+Date.now(),date:today(),course:c.course,layout:c.layout,par:c.par,results:lastResult});
+  const savedResult=lastResult,savedDate=today(),savedCourse=c;
+  rounds.push({id:'r'+Date.now(),date:savedDate,course:c.course,layout:c.layout,par:c.par,results:savedResult});
   persist();const id=rounds[rounds.length-1].id;lastResult=null;resetTonight();renderAll();if(ach.no1.length||ach.pbs.length){showCelebration(ach,id);}else{confetti();toast('Round saved 🥏');openRound(id,'tonight');}
+  chargeForRound(savedResult,savedDate,savedCourse);
+}
+/* ===== Section 3: charge present players' saved cards when a round is finalized =====
+   Fire-and-forget — never blocks or delays the save/celebration above. Looks up each played
+   player's email via the local demo-account roster (DI.members(), matched by name/leagueName,
+   same pattern account.html/leaderboards.html already use). Players with no matching account,
+   no email, or no card on file are silently skipped by the Edge Function (status no_email/
+   no_card) — this never blocks the round from saving. */
+async function chargeForRound(result,eventDate,course){
+  if(!config.feeCents||config.feeCents<=0)return;
+  const members=(typeof DI!=='undefined'?DI.members():[])||[];
+  const norm=n=>(n||'').trim().toLowerCase();
+  const byName={};members.forEach(m=>{[m.leagueName,m.name].filter(Boolean).forEach(n=>{byName[norm(n)]=m;});});
+  const roster=result.map(r=>{const m=byName[norm(r.name)];return {name:r.name,email:m?m.email:undefined};});
+  try{
+    const res=await fetch(`${SUPA_URL}/functions/v1/charge-players`,{method:'POST',
+      headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
+      body:JSON.stringify({players:roster,eventDate,course:course.course,feeCents:config.feeCents})});
+    const j=await res.json();
+    if(!res.ok){console.warn('charge-players error',j.error);return;}
+    const counts={succeeded:0,requires_action:0,failed:0,no_card:0,no_email:0};
+    (j.results||[]).forEach(r=>{counts[r.status]=(counts[r.status]||0)+1;});
+    const bits=[];
+    if(counts.succeeded)bits.push(counts.succeeded+' charged');
+    if(counts.no_card)bits.push(counts.no_card+' no card');
+    if(counts.failed)bits.push(counts.failed+' failed');
+    if(counts.requires_action)bits.push(counts.requires_action+' needs auth');
+    if(bits.length)toast('$'+(config.feeCents/100).toFixed(2)+' fee: '+bits.join(' · '));
+  }catch(e){console.warn('chargeForRound failed (network?)',e);}
 }
 
 /* ===== CSV IMPORT ===== */
@@ -575,7 +608,7 @@ function renderPlayers(){const el=document.getElementById('playerList');el.inner
     const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot" style="background:${divColor(d.id)}"></span>${d.label}`;el.appendChild(h);
     grp.forEach(p=>{const s=statsFor(p.name);const row=document.createElement('div');row.className='row tap';stagger(row,i++);row.onclick=()=>openProfile(p.name);
       row.innerHTML=`<div class="tag sm ${p.isNew?'new':''} ${p.tag===1?'topseed':''}" style="background:${divColor(d.id)}">${p.tag}</div><div class="name">${p.name}${p.tag===1?'<span class="crownbadge">👑</span>':''}${no1Streak(p.name)>=2?'<span class="streak">🔥 '+no1Streak(p.name)+'× #1</span>':''}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
-  document.getElementById('npRule').value=config.newPlayerRule;}
+  document.getElementById('npRule').value=config.newPlayerRule;const fi=document.getElementById('feeInput');if(fi)fi.value=config.feeCents;}
 function openProfile(name){const {p,tl,roundsN,wins,bestTag,bestScore}=statsFor(name);
   document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${divColor(p.division)}22;color:${divColor(p.division)}">${divLabel(p.division)}</span>`;document.getElementById('pf-pdga').innerHTML=pdgaHtml(p);
   document.getElementById('pf-stats').innerHTML=`
@@ -687,6 +720,7 @@ function downloadPDGAReport(){
 function pdgaHtml(p){const link=p.pdga?`<a class="pdga" href="https://www.pdga.com/player/${p.pdga}" target="_blank" rel="noopener">PDGA #${p.pdga} ↗</a>`:'<span class="pdga none">No PDGA #</span>';return link+`<button class="pdga-edit org-only" onclick="setPdga('${p.name}')">${p.pdga?'edit':'+ add'}</button>`;}
 function setPdga(name){const p=players.find(x=>x.name===name);if(!p)return;const v=prompt('PDGA number for '+name+' (digits only):',p.pdga||'');if(v===null)return;const num=v.replace(/\D/g,'');p.pdga=num||undefined;persist();openProfile(name);}
 function setRule(v){config.newPlayerRule=v;persist();toast('New-player rule: '+(v==='pool'?'join immediately':'hold out first night'));}
+function setFee(v){const n=Math.max(0,parseInt(v,10)||0);config.feeCents=n;persist();toast('League fee set to $'+(n/100).toFixed(2));}
 function thisWeekEventUrl(){const t=today();const a=[...schedule].sort((x,y)=>x.date<y.date?-1:1);const e=a.find(x=>x.date===t)||a.find(x=>x.date>=t)||a[a.length-1];return (e&&e.eventUrl)?e.eventUrl:EVENT_APPLINK;}
 function openUDisc(u){window.open(u||thisWeekEventUrl(),'_blank','noopener');}
 

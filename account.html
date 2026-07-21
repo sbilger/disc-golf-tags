@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
 <style>
   :root{--blue:#0066B3;--blue-d:#00518f;--blue-l:#e8f1fa;--gold:#F4CE1A;--purple:#7a3fb0;--org:#e8742c;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--bad:#d2453a;--good:#1f9d57;--shadow:0 6px 18px rgba(20,40,70,.08)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -51,6 +52,16 @@
   footer a{color:var(--blue);font-weight:800;font-size:12px;text-decoration:none}
   .note{font-size:11px;color:#8a96a2;text-align:center;line-height:1.4;margin-top:8px}
   .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+  .cardbox{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px;background:#fbfcfd}
+  .modal{position:absolute;inset:0;background:rgba(8,30,58,.55);z-index:40;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.on{display:flex}
+  .sheet{background:#fff;border-radius:18px;width:100%;max-width:330px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.4)}
+  .sheet h3{margin:0 0 10px}
+  .srow{display:flex;gap:8px;margin-top:14px}
+  .srow button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  .srow .save{background:var(--blue);color:#fff}.srow .cancel{background:#eef0f3;color:var(--ink)}
+  .toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;min-height:100vh;border:0;border-radius:0;box-shadow:none}}
 </style>
 </head>
@@ -69,10 +80,25 @@
     <a href="https://instagram.com/discinsanitydgproshop" target="_blank" rel="noopener">📷 Instagram</a>
     <a href="https://facebook.com/Discinsanity" target="_blank" rel="noopener">👍 Facebook</a>
   </footer>
+  <div class="modal" id="card-modal"><div class="sheet">
+    <h3>Save a card</h3>
+    <p class="note" style="margin:0 0 10px">Card details go straight to Stripe — Discinsanity never sees or stores your card number.</p>
+    <div class="cardbox" id="card-element"></div>
+    <div class="err" id="card-err"></div>
+    <div class="srow"><button class="cancel" onclick="closeCardModal()">Cancel</button><button class="save" id="card-save-btn" onclick="submitCard()">Save card</button></div>
+  </div></div>
+  <div class="toast" id="toast"></div>
 </div>
 <script src="account.js"></script>
 <script src="suite.js"></script>
 <script>
+/* ===== Stripe (Section 3) — card-on-file, off-session charging ===== */
+const SUPA_URL='https://ohvhhcpmohztmlossbjv.supabase.co'; const SUPA_KEY='sb_publishable_Id_1aKGpo0ivVPKGN9bHPA_IFrPbCXX';
+const STRIPE_PK='';  // paste Stripe TEST publishable key (pk_test_...) here once Sean has a Stripe account — safe for client code, same as SUPA_KEY
+let stripeClient=null, cardElement=null;
+function stripeReady(){return !!(STRIPE_PK && window.Stripe);}
+function initStripe(){if(stripeReady()&&!stripeClient)stripeClient=Stripe(STRIPE_PK);}
+
 const DIVS=['','MPO','MA1','MA2','MA3','MA4','FA1'];
 let mode='in';
 function render(){
@@ -149,6 +175,21 @@ function statsCardHTML(me){
     <div class="kv"><span class="k">Season total</span><span class="v">${st.tagsPts+st.dblPts} pts</span></div>
     <a href="leaderboards.html" style="display:block;text-align:center;margin-top:10px;color:var(--blue);font-weight:800;font-size:13px;text-decoration:none">🏆 Full leaderboards ›</a></div>`;
 }
+/* ===== Payment method card (Section 3) =====
+   `hasCard` is a LOCAL HINT ONLY (localStorage member record) — set after a successful
+   client-side confirmCardSetup, purely so the UI can say "card saved ✓" without another
+   round trip. The AUTHORITATIVE record lives in Supabase's stripe_customers table (written
+   by the stripe-webhook Edge Function on setup_intent.succeeded) and is what charge-players
+   actually checks at charge time — a stale/missing local hint never blocks or fakes a charge. */
+function paymentCardHTML(me){
+  const disabled=!STRIPE_PK;
+  return `<div class="card"><h3>Payment method</h3>
+    ${me.hasCard?`<p style="margin:0 0 10px;font-size:13px;color:var(--good);font-weight:700">💳 Card on file</p>`
+      :`<p style="margin:0 0 10px;font-size:13px;color:var(--muted)">No card saved yet. Needed for the weekly league fee to auto-charge when a round is saved.</p>`}
+    <button class="btn ${me.hasCard?'ghost':''}" ${disabled?'disabled':''} onclick="openCardModal()">${me.hasCard?'Update card':'Save a card'}</button>
+    ${disabled?'<p class="note">Payments aren\'t live yet — Stripe key not configured.</p>':''}
+  </div>`;
+}
 function profileHTML(me){
   const isA=me.role==='admin'||me.role==='organizer';
   return `<div class="hero">
@@ -160,6 +201,7 @@ function profileHTML(me){
       <div class="kv"><span class="k">Division</span><span class="v">${me.division||'—'}</span></div>
       <div class="kv"><span class="k">Member since</span><span class="v">${me.created||'—'}</span></div>
       <button class="btn ghost" onclick="editProfile()">Edit profile</button></div>
+    ${paymentCardHTML(me)}
     ${statsCardHTML(me)}
     <h3 style="margin:6px 2px 10px;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">My stuff</h3>
     <div class="links">
@@ -187,6 +229,39 @@ function editProfile(){const me=DI.current();const el=document.getElementById('b
 }
 function saveProfile(){const patch={name:val('e-name'),pdga:val('e-pdga'),rating:val('e-rating').replace(/\D/g,''),division:val('e-div'),leagueName:val('e-league')};const c=document.getElementById('e-code');if(c)patch.code=c.value;DI.update(patch);render();}
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ===== Card modal flow ===== */
+function openCardModal(){
+  if(!STRIPE_PK){toast('Payments not configured yet');return;}
+  initStripe();
+  document.getElementById('card-modal').classList.add('on');
+  document.getElementById('card-err').textContent='';
+  if(!cardElement){
+    const elements=stripeClient.elements();
+    cardElement=elements.create('card');
+    cardElement.mount('#card-element');
+  }
+}
+function closeCardModal(){document.getElementById('card-modal').classList.remove('on');}
+async function submitCard(){
+  const me=DI.current();if(!me)return;
+  const btn=document.getElementById('card-save-btn');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const r=await fetch(`${SUPA_URL}/functions/v1/save-card`,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},body:JSON.stringify({email:me.email,name:me.name})});
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.error||'Could not start card setup');
+    const result=await stripeClient.confirmCardSetup(j.client_secret,{payment_method:{card:cardElement,billing_details:{email:me.email,name:me.name}}});
+    if(result.error)throw new Error(result.error.message);
+    DI.update({hasCard:true});
+    closeCardModal();toast('Card saved!');render();
+  }catch(e){
+    document.getElementById('card-err').textContent=e.message;
+  }finally{
+    btn.disabled=false;btn.textContent='Save card';
+  }
+}
+let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2200);}
+
 render();
 </script>
 </body>
