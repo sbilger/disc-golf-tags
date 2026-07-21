@@ -10,7 +10,10 @@ UDisc keeps score great, but it **won't auto-reshuffle the tags** — the organi
 by hand every week. This does it instantly: pull in the scores, compute the new tag numbers per
 division, keep the history, and show each player's progression.
 
-> Status: **working single-file prototype**. Open `index.html` in any browser — no build, no install.
+> Status: **Tags is one module of a larger suite now** (Hub, Doubles, Events, Leaderboards,
+> Accounts, Scorecard — see [docs/TODO-SEAN.md](docs/TODO-SEAN.md) for full current state). This
+> README describes the original Tags module specifically; still accurate for that part. Open
+> `hub.html` for the full app, or `index.html` for Tags alone — no build, no install either way.
 
 ## What it does
 
@@ -28,8 +31,10 @@ division, keep the history, and show each player's progression.
   keeps tags unique per division.
 - **New-player rule** — setting: rookie joins their division's swap immediately, or holds out the
   first night.
-- **Standings export / share** — copy text for group chat, download CSV, or download a
-  self-contained read-only standings page (both divisions).
+- **Standings export / share** — copy text for group chat, download CSV, download a
+  self-contained read-only standings page, or download a **PDGA League Report** (matches PDGA's
+  official League Report Spreadsheet column format — see docs/TODO-SEAN.md § 3b for what PDGA
+  sanctioning actually requires).
 - **View live event on UDisc** — deep-links to the real Discinsanity event leaderboard.
 - **Backend-ready** — runs on `localStorage` by default; paste Supabase keys to sync across
   devices. See [BACKEND.md](BACKEND.md).
@@ -54,17 +59,26 @@ TagShuffle does the per-division tag math.**
 ## Going multi-device (cloud)
 
 Default storage is the browser. To sync the organizer + players across phones, wire a free
-Supabase project — 3 steps in [BACKEND.md](BACKEND.md), schema in
-[supabase-schema.sql](supabase-schema.sql).
+Supabase project — steps in [BACKEND.md](BACKEND.md) / [docs/TODO-SEAN.md](docs/TODO-SEAN.md) § 1,
+schema in [supabase-hub-schema.sql](supabase-hub-schema.sql).
 
 ## Files
 
 ```
-index.html              the whole app (HTML + CSS + JS, no dependencies)
-supabase-schema.sql     one-row-per-league cloud store + RLS
-BACKEND.md              how to switch on cloud sync
-docs/RESEARCH-udisc-data.md   how UDisc data export works (research notes)
-samples/                example UDisc CSV exports for testing import
+hub.html                     Hub — home screen for the whole suite
+index.html                   Tags module (this README's original scope)
+doubles.html                 Doubles module (random-draw)
+events.html                  Events/scheduling module (calendar + recurring leagues + RSVP)
+leaderboards.html            Season points across Tags + Doubles
+account.html / account.js    Member accounts + profiles (demo auth)
+scorecard.html               Hole-by-hole scoring
+courses.js                   Shared Lehigh Valley course database
+suite.js                     Shared organizer session, used by every module
+supabase-hub-schema.sql      Cloud store (hubs + leagues tables) + RLS
+BACKEND.md                   How to switch on cloud sync
+docs/TODO-SEAN.md            Current full app state + outstanding to-dos
+docs/RESEARCH-udisc-data.md  How UDisc data export works (research notes)
+samples/                     Example UDisc CSV exports for testing import
 ```
 
 ## License

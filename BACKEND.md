@@ -4,6 +4,11 @@ Right now the app stores everything in the browser's **localStorage** — works 
 phone, but data lives only on that device. To sync across the organizer + players' phones, point
 it at a free **Supabase** project. The app is already wired for it (REST, no build step, no npm).
 
+> **Note (2026-07-21):** this doc predates the Hub-era app (Doubles/Events/Leaderboards/Accounts).
+> For the current, accurate step-by-step (covers all 5 modules that need Supabase keys), see
+> [`docs/TODO-SEAN.md`](docs/TODO-SEAN.md) § 1. This file is kept for the general "how it works"
+> explanation below, which still applies.
+
 There are exactly **3 manual steps** — I can't do these for you because they need YOUR cloud
 account + keys.
 
@@ -11,10 +16,11 @@ account + keys.
 - Go to https://supabase.com → New project (free tier is plenty).
 - Wait for it to finish provisioning.
 
-## 2. Create the table
+## 2. Create the tables
 - In the project: **SQL Editor → New query** → paste the contents of
-  [`supabase-schema.sql`](supabase-schema.sql) → **Run**.
-- That makes a `leagues` table (one JSON row per league) + a prototype access policy.
+  [`supabase-hub-schema.sql`](supabase-hub-schema.sql) → **Run**.
+- That makes `hubs` + `leagues` tables (one JSON row per hub/league) + a prototype access policy.
+  (The old single-table `supabase-schema.sql` was removed 2026-07-21 — superseded by this one.)
 
 ## 3. Paste your keys into the app
 - In Supabase: **Project Settings → API**. Copy:
@@ -22,15 +28,12 @@ account + keys.
   - **anon public** key
 - Open `index.html`, find the top of the `<script>`:
   ```js
-  const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='default';
+  const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='discinsanity';
   ```
-  Paste:
-  ```js
-  const SUPA_URL='https://abcd1234.supabase.co';
-  const SUPA_KEY='eyJhbGciOi...your anon key...';
-  const LEAGUE_ID='default';
-  ```
-- Reload. The Standings header badge flips from **● local** to **☁ cloud**.
+  Paste your URL + key (leave `LEAGUE_ID` as-is — it matches the seed row in the schema).
+  Repeat for `hub.html`, `doubles.html`, `events.html`, `leaderboards.html` (see TODO-SEAN.md § 1
+  for the exact list — 5 files total).
+- Reload. The cloud badge flips from **● local** to **☁ cloud**.
 
 That's it. Every save (round, trade, reassignment, settings) now writes to Supabase, and any
 device loading the page reads the same shared state.
@@ -43,7 +46,7 @@ device loading the page reads the same shared state.
 ## Notes / next steps
 - **Security:** the prototype RLS policy lets the anon key read/write any league row — fine for a
   private group, NOT for a public app. Tighten before launch (per-league secret, or Supabase Auth
-  + `owner_id`). See the commented normalized schema at the bottom of `supabase-schema.sql`.
+  + `owner_id`). See the commented normalized schema at the bottom of `supabase-hub-schema.sql`.
 - **Multiple leagues:** change `LEAGUE_ID` per league, or add a league picker.
 - **Conflict handling:** last-write-wins on the whole blob. Fine for one organizer entering
   results. If multiple people edit at once, move to the normalized schema (per-round rows).
