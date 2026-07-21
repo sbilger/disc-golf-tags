@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="account.js"></script>
 <script src="suite.js"></script>
+<script src="courses.js"></script>
 <style>
   :root{--org:#e8742c;--org-d:#b9591c;--org-l:#fdeede;--blue:#0066B3;--gold:#F4CE1A;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--bad:#d2453a;--shadow:0 6px 18px rgba(20,40,70,.08)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -43,14 +44,17 @@
   .evb .kind{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--org-d)}
   .evb h3{margin:2px 0 3px;font-size:16px}
   .evb .m{font-size:12px;color:var(--muted);font-weight:600;line-height:1.35}
+  .evb .rsvpct{font-size:11px;color:var(--blue);font-weight:700;margin-top:2px}
+  .recur{display:inline-block;margin-left:5px;font-size:9px;background:#eaf1fb;color:var(--blue);border-radius:6px;padding:1px 5px;font-weight:800;vertical-align:middle}
   .pedit{position:absolute;top:8px;right:8px;display:none;gap:6px}
   body.org .pedit{display:flex}
   .pedit button{border:0;border-radius:8px;width:28px;height:28px;font-size:12px;font-weight:800;cursor:pointer}
   .pedit .e{background:#eef3f8;color:var(--blue)}.pedit .x{background:#f8e3e1;color:var(--bad)}
   .btn{width:100%;border:0;border-radius:14px;background:var(--org);color:#fff;font-weight:800;font-size:16px;padding:15px;cursor:pointer;margin-top:6px;font-family:inherit}
   .btn:active{transform:translateY(1px)}.btn.ghost{background:#fff;color:var(--org-d);border:2px solid var(--org)}
+  .btn.blue{background:var(--blue)}.btn.small{padding:10px;font-size:13px;border-radius:12px}
   .tabbar{flex:0 0 auto;display:flex;background:#fff;border-top:1px solid var(--line)}
-  .tabbar button{flex:1;border:0;background:none;padding:11px 0 9px;cursor:pointer;color:#9aa6b2;font-size:12px;font-weight:700}
+  .tabbar button{flex:1;border:0;background:none;padding:11px 0 9px;cursor:pointer;color:#9aa6b2;font-size:11px;font-weight:700}
   .tabbar button.on{color:var(--org-d)}
   .dhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
   .back{border:0;background:#e3e9f0;color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit}
@@ -68,6 +72,19 @@
   .srow{display:flex;gap:8px;margin-top:14px}
   .srow button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
   .srow .save{background:var(--org);color:#fff}.srow .cancel{background:#eef0f3;color:var(--ink)}
+  .lg{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:11px;box-shadow:var(--shadow);position:relative}
+  .lg h3{margin:0 0 3px;font-size:15px}
+  .lg .m{font-size:12px;color:var(--muted);font-weight:600;line-height:1.4}
+  .lg .off{color:var(--bad);font-weight:800;font-size:11px;text-transform:uppercase;margin-top:4px}
+  .section{background:#f4f7fa;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:14px}
+  .section h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .rsvplist{list-style:none;margin:0 0 10px;padding:0;font-size:13px}
+  .rsvplist li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  .rsvplist li:last-child{border-bottom:0}
+  .grp{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:7px;font-size:13px}
+  .grp b{color:var(--org-d)}
+  .toggle-row{display:flex;align-items:center;gap:8px;margin-top:9px}
+  .toggle-row input{width:auto}
   @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
 </style>
 </head>
@@ -91,6 +108,11 @@ Tap 🔑 + admin code to add/edit events like Jeff would.</p>
       <div class="sech"><h2>Past</h2></div>
       <div id="past"></div>
     </section>
+    <section class="view" id="v-leagues">
+      <div class="roview">👀 Recurring leagues — tap 🔑 to add/edit. These auto-generate weekly occurrences into Upcoming.</div>
+      <div class="sech"><h2>Recurring leagues</h2><button class="addbtn" onclick="editLeague()">+ Add league</button></div>
+      <div id="leaguelist"></div>
+    </section>
     <section class="view" id="v-detail">
       <div class="dhead"><button class="back" onclick="show('upcoming')">‹ Events</button></div>
       <div class="det" id="detail"></div>
@@ -99,6 +121,7 @@ Tap 🔑 + admin code to add/edit events like Jeff would.</p>
   <nav class="tabbar">
     <button data-tab="upcoming" class="on" onclick="show('upcoming')">📅 Upcoming</button>
     <button data-tab="past" onclick="show('past')">🗓 Past</button>
+    <button data-tab="leagues" onclick="show('leagues')">🔁 Leagues</button>
   </nav>
   <div class="toast" id="toast"></div>
   <div class="modal" id="modal"><div class="sheet">
@@ -108,9 +131,22 @@ Tap 🔑 + admin code to add/edit events like Jeff would.</p>
     <label>Date</label><input id="m-date" type="date">
     <label>Time</label><input id="m-time" placeholder="6:00p">
     <label>Course</label><input id="m-course" placeholder="South Mountain · White Tee">
+    <label>Track holes for group assignment (optional)</label><select id="m-coursekey"><option value="">— not set (defaults 18 holes) —</option></select>
     <label>Details</label><textarea id="m-details" placeholder="What to know…"></textarea>
     <label>Sign-up / link (optional)</label><input id="m-link" placeholder="https://…">
     <div class="srow"><button class="cancel" onclick="closeModal()">Cancel</button><button class="save" onclick="saveEvent()">Save</button></div>
+  </div></div>
+  <div class="modal" id="lg-modal"><div class="sheet">
+    <h3 id="lg-title">New recurring league</h3>
+    <label>Type</label><select id="lg-kind"><option value="tags">Tags</option><option value="doubles">Doubles</option><option value="tournament">Tournament</option><option value="clinic">Clinic</option><option value="event">Event</option></select>
+    <label>Name</label><input id="lg-name" placeholder="e.g. Wednesday Doubles">
+    <label>Course</label><select id="lg-course"></select>
+    <label>Weekday</label><select id="lg-weekday"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select>
+    <label>Time</label><input id="lg-time" placeholder="6:00p">
+    <label>Starts</label><input id="lg-start" type="date">
+    <label>Ends (optional)</label><input id="lg-end" type="date">
+    <div class="toggle-row"><input type="checkbox" id="lg-active" checked><label style="margin:0">Active (generating occurrences)</label></div>
+    <div class="srow"><button class="cancel" onclick="closeLgModal()">Cancel</button><button class="save" onclick="saveLeague()">Save</button></div>
   </div></div>
 </div>
 <script>
@@ -122,9 +158,13 @@ async function remoteSave(s){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflic
 
 const KEY='discinsanity_events_v1';
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const KIND={tags:{ic:'🥏',label:'Tags'},doubles:{ic:'👥',label:'Doubles'},tournament:{ic:'🏆',label:'Tournament'},clinic:{ic:'🎯',label:'Clinic'},event:{ic:'📅',label:'Event'}};
-let state={events:[]};
+const OCC_WEEKS=8; // how many weeks of recurring occurrences to generate forward
+let state={events:[],leagues:[],rsvps:{},groups:{}};
+let ITEMS_BY_ID={};
 const today=()=>new Date().toISOString().slice(0,10);
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
 
 function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();render();return;}const v=prompt('Admin code (Jeff):');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Admin mode ON');render();}else toast('Wrong code');}
 
@@ -133,52 +173,175 @@ function seed(){const d=n=>{const x=new Date();x.setDate(x.getDate()+n);return x
   {id:'e2',kind:'doubles',title:'Wednesday Doubles',date:d(5),time:'6:00p',course:'South Mountain',details:'Random-draw partners. $5 in, payouts + points.',link:''},
   {id:'e3',kind:'tournament',title:'Discinsanity Summer Shootout',date:d(24),time:'8:30a',course:'Jordan Creek',details:'A/B/Rec tiers. PDGA C-tier. Registration on Disc Golf Scene.',link:'https://discinsanity.com'},
   {id:'e4',kind:'clinic',title:'Putting Clinic w/ the Crew',date:d(12),time:'5:30p',course:'South Mountain',details:'Free putting fundamentals session. All skill levels welcome.',link:''}
-]};}
-async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(e){}}if(!s){const r=localStorage.getItem(KEY);if(r){try{s=JSON.parse(r);}catch(e){}}}if(!s)s=seed();state=s;persist(false);}
+],leagues:[],rsvps:{},groups:{}};}
+async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(e){}}if(!s){const r=localStorage.getItem(KEY);if(r){try{s=JSON.parse(r);}catch(e){}}}if(!s)s=seed();
+  state=Object.assign({events:[],leagues:[],rsvps:{},groups:{}},s);persist(false);}
 function persist(remote=true){localStorage.setItem(KEY,JSON.stringify(state));if(remote&&remoteOn())remoteSave(state).catch(()=>{});}
 
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function fmt(iso){const [y,m,dd]=iso.split('-').map(Number);return {mo:MON[m-1],dy:dd};}
-function card(e){const k=KIND[e.kind]||KIND.event;const f=fmt(e.date);
+
+/* ---------- course dropdowns (fed by courses.js DIC) ---------- */
+function courseOptionsHTML(includeBlank){let h=includeBlank?'<option value="">— not set (defaults 18 holes) —</option>':'';
+  (typeof DIC!=='undefined'?DIC.list():[]).forEach(c=>{const v=c.course+'||'+(c.layout||'');h+=`<option value="${esc(v)}">${esc(DIC.label(c))}</option>`;});return h;}
+function fillCourseSelects(){const a=document.getElementById('m-coursekey');if(a)a.innerHTML=courseOptionsHTML(true);
+  const b=document.getElementById('lg-course');if(b)b.innerHTML=courseOptionsHTML(false);}
+function courseHoles(courseKey){if(!courseKey||typeof DIC==='undefined')return 18;const [c,l]=courseKey.split('||');const rec=DIC.get(c,l);return (rec&&rec.holes)||18;}
+
+/* ---------- recurring league occurrence generation ---------- */
+function occId(leagueId,date){return 'L:'+leagueId+':'+date;}
+function nextWeekdayOnOrAfter(iso,weekday){let d=iso;const wd=(x)=>new Date(x+'T00:00:00').getDay();while(wd(d)!==weekday)d=addDays(d,1);return d;}
+function generateOccurrences(){
+  const t=today();const horizon=addDays(t,OCC_WEEKS*7);const out=[];
+  (state.leagues||[]).filter(lg=>lg.active!==false).forEach(lg=>{
+    const start=lg.startDate&&lg.startDate>t?lg.startDate:t;
+    let d=nextWeekdayOnOrAfter(start,Number(lg.weekday));
+    while(d<=horizon){
+      if(!lg.endDate||d<=lg.endDate){
+        const [c,l]=(lg.course||'||').split('||');
+        out.push({id:occId(lg.id,d),kind:lg.kind,title:lg.name,date:d,time:lg.time||'',
+          course:(typeof DIC!=='undefined'&&c)?DIC.label({course:c,layout:l}):(c||''),
+          details:'',link:'',leagueId:lg.id,courseKey:lg.course,virtual:true});
+      }
+      d=addDays(d,7);
+    }
+  });
+  return out;
+}
+function allUpcomingSource(){return [...state.events, ...generateOccurrences()];}
+
+/* ---------- render ---------- */
+function card(e){const k=KIND[e.kind]||KIND.event;const f=fmt(e.date);const rc=(state.rsvps[e.id]||[]).length;
   return `<div class="ev" onclick="openEvent('${e.id}')">
-    <div class="pedit"><button class="e" onclick="event.stopPropagation();editEvent('${e.id}')">✎</button><button class="x" onclick="event.stopPropagation();delEvent('${e.id}')">✕</button></div>
+    ${e.virtual?'':`<div class="pedit"><button class="e" onclick="event.stopPropagation();editEvent('${e.id}')">✎</button><button class="x" onclick="event.stopPropagation();delEvent('${e.id}')">✕</button></div>`}
     <div class="cal"><div class="mo">${f.mo}</div><div class="dy">${f.dy}</div></div>
-    <div class="evb"><div class="kind">${k.ic} ${k.label}</div><h3>${esc(e.title)}</h3><div class="m">${e.time?esc(e.time)+' · ':''}${esc(e.course||'')}</div></div></div>`;}
+    <div class="evb"><div class="kind">${k.ic} ${k.label}${e.virtual?'<span class="recur">🔁 recurring</span>':''}</div><h3>${esc(e.title)}</h3><div class="m">${e.time?esc(e.time)+' · ':''}${esc(e.course||'')}</div>${rc?`<div class="rsvpct">${rc} signed up</div>`:''}</div></div>`;}
 function render(){
-  const t=today();const sorted=[...state.events].sort((a,b)=>a.date<b.date?-1:1);
-  const up=sorted.filter(e=>e.date>=t),past=sorted.filter(e=>e.date<t).reverse();
+  const t=today();const all=allUpcomingSource();ITEMS_BY_ID={};all.forEach(e=>ITEMS_BY_ID[e.id]=e);
+  const sorted=[...all].sort((a,b)=>a.date<b.date?-1:1);
+  const up=sorted.filter(e=>e.date>=t),past=[...state.events].filter(e=>e.date<t).sort((a,b)=>a.date<b.date?-1:1).reverse();
   document.getElementById('upcoming').innerHTML=up.length?up.map(card).join(''):'<p class="sub" style="color:#9aa6b2">No upcoming events.</p>';
   document.getElementById('past').innerHTML=past.length?past.map(card).join(''):'<p class="sub" style="color:#9aa6b2">No past events.</p>';
+  renderLeagues();
 }
-function openEvent(id){const e=state.events.find(x=>x.id===id);if(!e)return;const k=KIND[e.kind]||KIND.event;const f=fmt(e.date);
-  document.getElementById('detail').innerHTML=`<div class="kind" style="color:var(--org-d);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.5px">${k.ic} ${k.label}</div>
+function renderLeagues(){
+  const el=document.getElementById('leaguelist');if(!el)return;
+  const list=state.leagues||[];
+  el.innerHTML=list.length?list.map(lg=>{
+    const k=KIND[lg.kind]||KIND.event;const [c,l]=(lg.course||'||').split('||');
+    const label=(typeof DIC!=='undefined'&&c)?DIC.label({course:c,layout:l}):(c||'(no course set)');
+    return `<div class="lg">
+      ${`<div class="pedit" style="display:${DIS.isOrg()?'flex':'none'}"><button class="e" onclick="editLeague('${lg.id}')">✎</button><button class="x" onclick="delLeague('${lg.id}')">✕</button></div>`}
+      <h3>${k.ic} ${esc(lg.name)}</h3>
+      <div class="m">Every ${WD[Number(lg.weekday)]} · ${esc(lg.time||'')}${label?' · '+esc(label):''}</div>
+      ${lg.active===false?'<div class="off">Paused — not generating occurrences</div>':''}
+    </div>`;
+  }).join(''):'<p class="sub" style="color:#9aa6b2">No recurring leagues set up yet.</p>';
+}
+function openEvent(id){const e=ITEMS_BY_ID[id]||state.events.find(x=>x.id===id);if(!e)return;const k=KIND[e.kind]||KIND.event;const f=fmt(e.date);
+  const rsvps=state.rsvps[id]||[];const me=DI.current();const iAmIn=me?rsvps.some(r=>r.memberId===me.id):false;
+  const grp=state.groups[id];
+  document.getElementById('detail').innerHTML=`<div class="kind" style="color:var(--org-d);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.5px">${k.ic} ${k.label}${e.virtual?' · 🔁 recurring':''}</div>
     <h1>${esc(e.title)}</h1><div class="meta">${f.mo} ${f.dy}${e.time?' · '+esc(e.time):''}${e.course?' · '+esc(e.course):''}</div>
-    <p>${esc(e.details||'')}</p>${e.link?`<a class="btn" href="${e.link}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:12px">Sign up / more info ↗</a>`:''}
-    <a class="btn ghost" href="#" onclick="addToCal('${e.id}');return false" style="display:block;text-align:center;text-decoration:none;margin-top:10px">＋ Add to calendar</a>`;
+    ${e.details?`<p>${esc(e.details)}</p>`:''}${e.link?`<a class="btn" href="${e.link}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:12px">Sign up / more info ↗</a>`:''}
+    <a class="btn ghost" href="#" onclick="addToCal('${e.id}');return false" style="display:block;text-align:center;text-decoration:none;margin-top:10px">＋ Add to calendar</a>
+    <div class="section">
+      <h4>Who's in (${rsvps.length})</h4>
+      <ul class="rsvplist">${rsvps.length?rsvps.map(r=>`<li><span>${esc(r.name)}</span></li>`).join(''):'<li style="color:#9aa6b2">Nobody yet — be the first!</li>'}</ul>
+      <button class="btn ${iAmIn?'ghost':''}" onclick="toggleRSVP('${id}')">${iAmIn?"✕ Cancel my RSVP":"🙋 I'm in"}</button>
+    </div>
+    <div class="section" style="display:${DIS.isOrg()?'block':'none'}">
+      <h4>Groups &amp; tee times (organizer)</h4>
+      ${grp?grp.groups.map((g,i)=>`<div class="grp"><b>Group ${i+1}</b> · starting hole ${g.hole} — ${g.names.map(esc).join(', ')}</div>`).join(''):'<p style="color:#9aa6b2;font-size:13px;margin:0 0 8px">No groups assigned yet.</p>'}
+      <button class="btn blue small" onclick="assignGroups('${id}')">🎲 ${grp?'Re-assign':'Assign'} groups</button>
+      ${grp?`<button class="btn ghost small" onclick="copyGroups('${id}')" style="margin-top:6px">📋 Copy for group chat</button>`:''}
+    </div>`;
   show('detail');}
-function addToCal(id){const e=state.events.find(x=>x.id===id);if(!e)return;const dt=e.date.replace(/-/g,'');
+function addToCal(id){const e=ITEMS_BY_ID[id]||state.events.find(x=>x.id===id);if(!e)return;const dt=e.date.replace(/-/g,'');
   const ics=['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT',`DTSTART;VALUE=DATE:${dt}`,`SUMMARY:Discinsanity — ${e.title}`,`LOCATION:${e.course||''}`,`DESCRIPTION:${(e.details||'').replace(/\n/g,' ')}`,'END:VEVENT','END:VCALENDAR'].join('\r\n');
   const b=new Blob([ics],{type:'text/calendar'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=e.title.replace(/\W+/g,'-')+'.ics';a.click();toast('Calendar file downloaded');}
 
+/* ---------- RSVP ---------- */
+function toggleRSVP(id){
+  const list=state.rsvps[id]||[];const me=DI.current();
+  let idx;
+  if(me){idx=list.findIndex(r=>r.memberId===me.id);}
+  else{const nm=(prompt("Your name for RSVP:")||'').trim();if(!nm)return;idx=list.findIndex(r=>!r.memberId&&r.name.toLowerCase()===nm.toLowerCase());
+    if(idx>=0){list.splice(idx,1);toast('RSVP removed');}else{list.push({name:nm,memberId:null,ts:Date.now()});toast("You're in!");}
+    state.rsvps[id]=list;persist();openEvent(id);return;}
+  if(idx>=0){list.splice(idx,1);toast('RSVP removed');}else{list.push({name:me.name,memberId:me.id,ts:Date.now()});toast("You're in!");}
+  state.rsvps[id]=list;persist();openEvent(id);
+}
+
+/* ---------- group / tee-time assignment ---------- */
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function assignGroups(id){
+  if(!DIS.isOrg())return;
+  const e=ITEMS_BY_ID[id]||state.events.find(x=>x.id===id);if(!e)return;
+  const rsvps=state.rsvps[id]||[];
+  if(!rsvps.length){toast('No RSVPs yet — nobody to group.');return;}
+  const sizeStr=prompt('Group size (players per group):','4');if(sizeStr==null)return;
+  const size=Math.max(1,parseInt(sizeStr,10)||4);
+  const names=shuffle(rsvps.map(r=>r.name));
+  const groups=[];for(let i=0;i<names.length;i+=size)groups.push(names.slice(i,i+size));
+  const holes=courseHoles(e.courseKey);
+  const starts=(typeof DIC!=='undefined')?DIC.spreadHoles(groups.length,holes):groups.map((_,i)=>i+1);
+  state.groups[id]={size,ts:Date.now(),groups:groups.map((names,i)=>({names,hole:starts[i]}))};
+  persist();openEvent(id);toast('Groups assigned');
+}
+function copyGroups(id){
+  const e=ITEMS_BY_ID[id]||state.events.find(x=>x.id===id);const grp=state.groups[id];if(!e||!grp)return;
+  const lines=[`${e.title} — ${fmt(e.date).mo} ${fmt(e.date).dy}${e.time?' · '+e.time:''}`,''];
+  grp.groups.forEach((g,i)=>lines.push(`Group ${i+1} (hole ${g.hole}): ${g.names.join(', ')}`));
+  const text=lines.join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>toast('Copied!')).catch(()=>toast('Copy failed — select manually'));}
+  else toast('Copy not supported on this browser');
+}
+
+/* ---------- manual event edit ---------- */
 let editId=null;
-function editEvent(id){editId=id||null;const e=id?state.events.find(x=>x.id===id):null;
+function editEvent(id){editId=id||null;const e=id?state.events.find(x=>x.id===id):null;fillCourseSelects();
   document.getElementById('m-title').textContent=e?'Edit event':'New event';
   document.getElementById('m-kind').value=e?e.kind:'tags';document.getElementById('m-name').value=e?e.title:'';
   document.getElementById('m-date').value=e?e.date:today();document.getElementById('m-time').value=e?(e.time||''):'';
-  document.getElementById('m-course').value=e?(e.course||''):'';document.getElementById('m-details').value=e?(e.details||''):'';
+  document.getElementById('m-course').value=e?(e.course||''):'';document.getElementById('m-coursekey').value=e?(e.courseKey||''):'';
+  document.getElementById('m-details').value=e?(e.details||''):'';
   document.getElementById('m-link').value=e?(e.link||''):'';document.getElementById('modal').classList.add('on');}
 function closeModal(){document.getElementById('modal').classList.remove('on');}
 function saveEvent(){const kind=document.getElementById('m-kind').value,title=document.getElementById('m-name').value.trim(),date=document.getElementById('m-date').value;
   if(!title||!date){alert('Title and date required.');return;}
-  const o={kind,title,date,time:document.getElementById('m-time').value.trim(),course:document.getElementById('m-course').value.trim(),details:document.getElementById('m-details').value.trim(),link:document.getElementById('m-link').value.trim()};
+  const o={kind,title,date,time:document.getElementById('m-time').value.trim(),course:document.getElementById('m-course').value.trim(),
+    courseKey:document.getElementById('m-coursekey').value||null,
+    details:document.getElementById('m-details').value.trim(),link:document.getElementById('m-link').value.trim()};
   if(editId)Object.assign(state.events.find(x=>x.id===editId),o);else state.events.push({id:'e'+Date.now(),...o});
   persist();closeModal();render();toast('Event saved');}
-function delEvent(id){if(!confirm('Delete this event?'))return;state.events=state.events.filter(x=>x.id!==id);persist();render();}
+function delEvent(id){if(!confirm('Delete this event?'))return;state.events=state.events.filter(x=>x.id!==id);delete state.rsvps[id];delete state.groups[id];persist();render();}
+
+/* ---------- recurring league edit ---------- */
+let editLgId=null;
+function editLeague(id){editLgId=id||null;const lg=id?state.leagues.find(x=>x.id===id):null;fillCourseSelects();
+  document.getElementById('lg-title').textContent=lg?'Edit recurring league':'New recurring league';
+  document.getElementById('lg-kind').value=lg?lg.kind:'doubles';document.getElementById('lg-name').value=lg?lg.name:'';
+  document.getElementById('lg-course').value=lg?(lg.course||''):'';document.getElementById('lg-weekday').value=lg?String(lg.weekday):'3';
+  document.getElementById('lg-time').value=lg?(lg.time||''):'6:00p';
+  document.getElementById('lg-start').value=lg?lg.startDate:today();document.getElementById('lg-end').value=lg?(lg.endDate||''):'';
+  document.getElementById('lg-active').checked=lg?lg.active!==false:true;
+  document.getElementById('lg-modal').classList.add('on');}
+function closeLgModal(){document.getElementById('lg-modal').classList.remove('on');}
+function saveLeague(){const kind=document.getElementById('lg-kind').value,name=document.getElementById('lg-name').value.trim();
+  if(!name){alert('Name required.');return;}
+  const o={kind,name,course:document.getElementById('lg-course').value||'',weekday:Number(document.getElementById('lg-weekday').value),
+    time:document.getElementById('lg-time').value.trim(),startDate:document.getElementById('lg-start').value||today(),
+    endDate:document.getElementById('lg-end').value||null,active:document.getElementById('lg-active').checked};
+  if(editLgId)Object.assign(state.leagues.find(x=>x.id===editLgId),o);else state.leagues.push({id:'lg'+Date.now(),...o});
+  persist();closeLgModal();render();toast('League saved');}
+function delLeague(id){if(!confirm('Delete this recurring league? (Past occurrences stay in history if they were saved as real events.)'))return;
+  state.leagues=state.leagues.filter(x=>x.id!==id);persist();render();}
 
 function show(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById('v-'+name).classList.add('on');
   const parent=name==='detail'?'upcoming':name;document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));}
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
-(async()=>{await load();if(DIS.isOrg())document.body.classList.add('org');render();})();
+(async()=>{await load();if(DIS.isOrg())document.body.classList.add('org');fillCourseSelects();render();})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
