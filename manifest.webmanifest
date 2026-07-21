@@ -1,0 +1,21 @@
+{
+  "name": "Discinsanity",
+  "short_name": "Discinsanity",
+  "description": "Lehigh Valley disc golf — tags, doubles, events & drops.",
+  "start_url": "hub.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0066B3",
+  "theme_color": "#0066B3",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Tags League", "short_name": "Tags", "url": "index.html", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Doubles", "short_name": "Doubles", "url": "doubles.html", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Events", "short_name": "Events", "url": "events.html", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Leaderboards", "short_name": "Boards", "url": "leaderboards.html", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#0066B3">
 <title>Discinsanity Tags</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="account.js"></script>
+<script src="suite.js"></script>
+<script src="courses.js"></script>
 <style>
   :root{
     --blue:#0066B3;--blue-d:#00518f;--blue-l:#e8f1fa;--gold:#F4CE1A;--gold-d:#d9b400;
@@ -18,7 +24,7 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;font-family:'Assistant',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#c4ccd6;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px;color:var(--ink)}
   .lead{max-width:380px;text-align:center;color:#3c4651;margin:0 0 18px;font-size:14px;line-height:1.45}
-  .phone{width:360px;max-width:100%;height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
+  .phone{width:380px;max-width:100%;height:780px;background:var(--bg);border-radius:36px;box-shadow:0 18px 50px rgba(0,0,0,.32);overflow:hidden;display:flex;flex-direction:column;border:10px solid #0b1118;position:relative}
 
   /* header */
   header{background:#fff;border-bottom:3px solid var(--blue);padding:12px 16px;display:flex;align-items:center;gap:10px;flex:0 0 auto;z-index:3}
@@ -144,6 +150,12 @@
   .srow input:nth-child(2){flex:1}
   .srow input:nth-child(3){flex:0 0 64px}
   .xbtn{flex:0 0 auto;border:0;background:#f8e3e1;color:var(--bad);border-radius:8px;width:32px;height:32px;font-weight:800;cursor:pointer}
+  .hgrp{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow);animation:rowIn .3s ease both}
+  .hole{flex:0 0 auto;text-align:center;background:var(--gold);color:#3a2e00;border-radius:10px;padding:4px 9px;font-weight:800;cursor:pointer;line-height:1.05}
+  .hole .hh{font-size:9px;text-transform:uppercase;letter-spacing:.4px;display:block}
+  .hole .hn{font-size:17px}
+  .hnames{flex:1;font-weight:700;font-size:14px;line-height:1.35}
+  .hpad{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:10px;width:34px;height:38px;cursor:pointer;font-size:15px}
   .toast{position:absolute;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .backbadge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:8px}
@@ -151,25 +163,12 @@
   body:not(.org) .roview{display:block}
   body:not(.org) .org-only{display:none!important}
 
-  /* lock screen */
-  .lock{position:absolute;inset:0;background:linear-gradient(160deg,#fff 0%,#eaf2fb 60%,#dceaf8 100%);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
-  .lock.hide{display:none}
-  .lockcard{width:100%;max-width:300px;animation:lockIn .45s cubic-bezier(.2,.8,.2,1)}
-  .lock img{width:170px;max-width:70%;margin-bottom:18px}
-  .lock h1{font-size:20px;font-weight:800;margin:0 0 4px;color:var(--ink)}
-  .lock p{font-size:13px;color:var(--muted);margin:0 0 18px;line-height:1.4}
-  .lock input{width:100%;padding:14px;border:2px solid var(--line);border-radius:12px;font-size:16px;text-align:center;font-weight:700;font-family:inherit;margin-bottom:10px}
-  .lock input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-l)}
-  .lock .err{color:var(--bad);font-size:13px;font-weight:700;min-height:18px;margin-top:8px}
-  .shake{animation:shake .4s}
-
   @keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
   @keyframes pop{0%{transform:scale(.55);opacity:0}65%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
   @keyframes draw{to{stroke-dashoffset:0}}
   @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(244,206,26,.5)}50%{box-shadow:0 0 0 6px rgba(244,206,26,.12)}}
   @keyframes lockIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
-  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
   @keyframes fall{to{top:106%;transform:translateX(24px) rotate(540deg);opacity:.15}}
   @keyframes rockon{0%{transform:scale(0) rotate(-28deg);opacity:0}55%{transform:scale(1.45) rotate(14deg)}100%{transform:scale(1) rotate(0);opacity:1}}
   @keyframes upflash{0%{background:rgba(244,206,26,0)}22%{background:rgba(244,206,26,.30)}100%{background:rgba(244,206,26,0)}}
@@ -201,28 +200,15 @@
     .lead{display:none}
     .phone{width:100%;max-width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}
   }
-  .lock input[type=date]{text-align:center;min-height:50px;color:var(--ink);font-variant-numeric:tabular-nums}
-  .lock input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6}
 </style>
 </head>
 <body>
-<p class="lead"><b>Discinsanity Tags</b> — branded build (logo + colors scraped from discinsanity.com). Date-locked,
-viewer/organizer roles, animations. Tap the key in the header to enter <b>organizer mode</b> and run a night.</p>
+<p class="lead"><b>Discinsanity Tags</b> — branded build (logo + colors scraped from discinsanity.com).
+Viewer/organizer roles, animations. Tap the key in the header to enter <b>organizer mode</b> and run a night.</p>
 
 <div class="phone">
-  <!-- LOCK SCREEN -->
-  <div class="lock" id="lock">
-    <div class="lockcard">
-      <img src="assets/discinsanity-logo.png" alt="Discinsanity">
-      <h1>Tags League</h1>
-      <p id="lockHint">Members only.<br>Pick today&#39;s date to see tonight&#39;s scores.</p>
-      <input id="lockInput" type="date" onkeydown="if(event.key==='Enter')submitAccess()">
-      <button class="btn" onclick="submitAccess()">Enter</button>
-      <div class="err" id="lockErr"></div>
-    </div>
-  </div>
-
   <header>
+    <a href="hub.html" style="text-decoration:none;background:#e8f1fa;color:#0066B3;border-radius:9px;padding:6px 9px;font-weight:800;font-size:13px;flex:0 0 auto">‹</a>
     <img src="assets/discinsanity-logo.png" alt="Discinsanity">
     <div class="htitle"><b>Tags League</b><small>South Mountain</small></div>
     <span class="ctx" id="ctx"></span>
@@ -235,6 +221,7 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
       <h2>Tonight's Tags</h2>
       <div class="import">
         <label class="btn ghost importbtn">⬆ Import UDisc CSV<input type="file" accept=".csv,text/csv" hidden onchange="onFile(event)"></label>
+        <button class="btn ghost" style="margin-top:8px" onclick="importScorecard()">⬇ Import Scorecard result</button>
         <div class="impmsg" id="impmsg"></div><div id="mapPanel"></div>
         <div class="fmt">Auto-detects name, score & division columns, skips "Par", picks latest round. (Sample CSVs in /samples.)</div>
       </div>
@@ -242,6 +229,8 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
       <div class="row" style="animation:none"><div class="meta" style="flex:1">Course / layout</div>
         <select id="courseSel" class="score" style="width:auto;font-size:14px;font-weight:700;padding:0 8px"></select></div>
       <div id="roster"></div>
+      <button class="btn ghost" style="margin-top:0" onclick="assignHoles()">⛳ Assign starting holes</button>
+      <div id="holeGroups"></div>
       <button class="btn" id="mainBtn" onclick="reshuffle()">Reshuffle Tags</button>
     </section>
 
@@ -284,7 +273,7 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
             <option value="pool">Joins their division's swap immediately</option>
             <option value="holdout">Holds out first night (worst tag in division, no swap)</option>
           </select></div></div>
-      <div class="reset org-only"><button onclick="resetDemo()">↺ reset demo data</button></div>
+      <div class="reset org-only"><button onclick="freshStart()">🆕 start fresh (clear roster)</button> &nbsp; <button onclick="resetDemo()">↺ reset demo data</button></div>
     </section>
 
     <!-- PROFILE -->
@@ -351,35 +340,18 @@ viewer/organizer roles, animations. Tap the key in the header to enter <b>organi
 
 <script>
 /* =========================================================
-   ACCESS / ROLES  (prototype gate — see note)
-   ⚠ This is a CLIENT-SIDE gate only. Anyone technical can bypass it
-   (view source / localStorage). It keeps honest people honest for a
-   private weekly league. REAL access control needs the cloud backend
-   (Supabase RLS / a server check). See BACKEND.md.
+   ROLES (prototype gate — CLIENT-SIDE only; real access control
+   arrives with the cloud backend / Supabase RLS. See BACKEND.md.)
+   Viewer = default, read-only. Organizer = 🔑 code, suite-wide (suite.js).
+   Date-verification gate removed 2026-07-03 (Sean's call).
    ========================================================= */
-const ACCESS_MODE='date';        // 'date' = today's date | 'code' = fixed ACCESS_CODE
-const ACCESS_CODE='';            // used only when ACCESS_MODE==='code' (organizer announces it)
 const ORGANIZER_CODE='discinsanity';  // ⚠ CHANGE THIS — unlocks editing (run/import/trade)
-const ACCESS_KEY='di_access';
 
-function onlyDigits(s){return (s||'').replace(/\D/g,'');}
-function accessToken(){const t=new Date();const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),d=String(t.getDate()).padStart(2,'0');return ACCESS_MODE==='code'?('code:'+ACCESS_CODE):(`${y}${m}${d}`);}
-function checkAccess(v){
-  if(ACCESS_MODE==='code') return ACCESS_CODE!=='' && v.trim()===ACCESS_CODE;
-  const d=onlyDigits(v);const t=new Date();const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),da=String(t.getDate()).padStart(2,'0');
-  return d===`${y}${m}${da}` || d===`${m}${da}${y}`;
-}
-function submitAccess(){
-  const v=document.getElementById('lockInput').value;
-  if(checkAccess(v)){ localStorage.setItem(ACCESS_KEY,accessToken()); grantAccess(); }
-  else { const c=document.querySelector('.lockcard'); c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake'); document.getElementById('lockErr').textContent='Nope — try today\'s date.'; }
-}
-function grantAccess(){ document.getElementById('lock').classList.add('hide'); renderAll(); show(document.body.classList.contains('org')?'tonight':'players'); }
 function toggleOrg(){
-  if(document.body.classList.contains('org')){document.body.classList.remove('org');toast('Viewer mode');show('players');return;}
+  if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();toast('Viewer mode');show('players');return;}
   const v=prompt('Organizer code (to run a night):');
   if(v==null)return;
-  if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');toast('Organizer mode ON');show('tonight');}
+  if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Organizer mode ON');show('tonight');}
   else toast('Wrong code');
 }
 
@@ -392,9 +364,13 @@ async function remoteSave(state){await fetch(`${SUPA_URL}/rest/v1/leagues?on_con
 /* ===== LEAGUE CONSTANTS ===== */
 const EVENT_URL='https://udisc.com/events/discinsanity-tags-league-discinsanity-tags-at-south-mountain-3ZPJs6/leaderboard';
 const EVENT_APPLINK='https://app.udisc.com/applink/event/v2/event_listing_olsn95bvjjgmfnrkpuvxyfym';
-const DIVS=[{id:'PRO',label:'Mixed Pro'},{id:'AM',label:'Mixed Amateur'}];
-const divLabel=id=>(DIVS.find(d=>d.id===id)||{label:id}).label;
-const COURSES=[{course:'South Mountain',layout:'White Tee',par:54}];
+const DIV_LABELS={MPO:'MPO — Pro',FPO:'FPO — Women Pro',MA1:'MA1 — Advanced',MA2:'MA2 — Intermediate',MA3:'MA3 — Recreational',MA4:'MA4 — Novice',FA1:'FA1 — Women Am',PRO:'Mixed Pro',AM:'Mixed Amateur'};
+const DIV_ORDER=['MPO','FPO','MA1','MA2','MA3','MA4','FA1','FA2','PRO','AM'];
+const DIV_PALETTE=['#0066B3','#7a3fb0','#1f2d4d','#1f9d57','#e8742c','#0f7d8c','#b03f6e','#5a6b2f'];
+function divLabel(id){return DIV_LABELS[id]||id;}
+function divColor(id){const i=DIV_ORDER.indexOf(id);return DIV_PALETTE[(i>=0?i:0)%DIV_PALETTE.length];}
+function divs(){const ids=[...new Set(players.map(p=>p.division))];ids.sort((a,b)=>{const ia=DIV_ORDER.indexOf(a),ib=DIV_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||(a<b?-1:1);});return ids.map(id=>({id,label:divLabel(id)}));}
+const COURSES=[{course:'South Mountain',layout:'White Tee',par:54,holes:18}];
 
 /* ===== STATE ===== */
 const KEY='tagshuffle_v4_div';
@@ -411,20 +387,22 @@ function computeReshuffle(present,rule){rule=rule||'pool';
     const out=vr.map((p,i)=>({name:p.name,score:p.score,place:place[p.name],oldTag:p.tag,newTag:pool[i],isNew:false}));
     rookies.forEach(p=>out.push({name:p.name,score:p.score,place:place[p.name],oldTag:p.tag,newTag:p.tag,isNew:true,rookie:true}));return out;}
   const pool=present.map(p=>p.tag).sort((a,b)=>a-b);return ranked.map((p,i)=>({name:p.name,score:p.score,place:i+1,oldTag:p.tag,newTag:pool[i],isNew:!!p.isNew}));}
-function reshuffleByDivision(present,rule){let out=[];DIVS.forEach(d=>{const grp=present.filter(p=>p.division===d.id);if(!grp.length)return;
-  const res=computeReshuffle(grp,rule);res.forEach(r=>r.division=d.id);out=out.concat(res);});return out;}
+function reshuffleByDivision(present,rule){let out=[];const ds=[...new Set(present.map(p=>p.division))];ds.forEach(did=>{const grp=present.filter(p=>p.division===did);if(!grp.length)return;
+  const res=computeReshuffle(grp,rule);res.forEach(r=>r.division=did);out=out.concat(res);});return out;}
 
 /* ===== SEED ===== */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function isoWeeksAgo(w){const d=new Date(2026,5,21);d.setDate(d.getDate()-w*7);return d.toISOString().slice(0,10);}
 function buildSeed(){const rng=mulberry32(73);
-  const roster=[{name:'Sarah',div:'PRO',skill:50},{name:'Mike',div:'PRO',skill:52},{name:'Luis',div:'PRO',skill:54},{name:'Diego',div:'PRO',skill:56},{name:'Owen',div:'PRO',skill:57},{name:'Marcus',div:'PRO',skill:59},
-    {name:'Dave',div:'AM',skill:56},{name:'Kim',div:'AM',skill:58},{name:'Tony',div:'AM',skill:59},{name:'Brandon',div:'AM',skill:60},{name:'Hailey',div:'AM',skill:61},{name:'Ray',div:'AM',skill:62},{name:'Jo',div:'AM',skill:63},{name:'Cole',div:'AM',skill:64},{name:'Nate',div:'AM',skill:66},{name:'Wes',div:'AM',skill:68}];
-  const initial={Mike:1,Sarah:2,Luis:3,Owen:4,Diego:5,Marcus:6,Tony:1,Dave:2,Jo:3,Kim:4,Ray:5,Brandon:6,Hailey:7,Cole:8,Nate:9,Wes:10};
+  const roster=[{name:'Sarah',div:'MPO',skill:50},{name:'Mike',div:'MPO',skill:52},{name:'Luis',div:'MPO',skill:54},
+    {name:'Dave',div:'MA1',skill:55},{name:'Kim',div:'MA1',skill:57},{name:'Tony',div:'MA1',skill:58},{name:'Brandon',div:'MA1',skill:60},{name:'Hailey',div:'MA1',skill:61},
+    {name:'Ray',div:'MA2',skill:56},{name:'Jo',div:'MA2',skill:59},{name:'Cole',div:'MA2',skill:62},{name:'Nate',div:'MA2',skill:64},
+    {name:'Wes',div:'MA3',skill:58},{name:'Diego',div:'MA3',skill:61},{name:'Owen',div:'MA3',skill:63},{name:'Marcus',div:'MA3',skill:66}];
+  const initial={Mike:1,Sarah:2,Luis:3,Tony:1,Dave:2,Kim:3,Brandon:4,Hailey:5,Ray:1,Jo:2,Cole:3,Nate:4,Wes:1,Diego:2,Owen:3,Marcus:4};
   let cur={};roster.forEach(p=>cur[p.name]=initial[p.name]);const skill={},dv={};roster.forEach(p=>{skill[p.name]=p.skill;dv[p.name]=p.div;});
   const rs=[];const WEEKS=8;
   for(let w=0;w<WEEKS;w++){let present=roster.filter(()=>rng()<0.85).map(p=>p.name);
-    DIVS.forEach(d=>{if(present.filter(n=>dv[n]===d.id).length<2){roster.filter(p=>p.div===d.id).forEach(p=>{if(!present.includes(p.name))present.push(p.name);});}});
+    [...new Set(roster.map(p=>p.div))].forEach(did=>{if(present.filter(n=>dv[n]===did).length<2){roster.filter(p=>p.div===did).forEach(p=>{if(!present.includes(p.name))present.push(p.name);});}});
     const arr=present.map(n=>({name:n,division:dv[n],tag:cur[n],score:Math.round(skill[n]+(rng()*8-3))}));
     const res=reshuffleByDivision(arr,'pool');res.forEach(r=>{cur[r.name]=r.newTag;});
     rs.push({id:'r'+w,date:isoWeeksAgo(WEEKS-1-w),course:COURSES[0].course,layout:COURSES[0].layout,par:COURSES[0].par,results:res});}
@@ -437,6 +415,7 @@ async function loadState(){let s=null;
   if(!s)s=buildSeed();
   players=s.players;rounds=s.rounds;trades=s.trades||[];config=s.config||{newPlayerRule:'pool'};schedule=(s.schedule&&s.schedule.length)?s.schedule:seedSchedule();persist();}
 function persist(){const state={players,rounds,trades,config,schedule};localStorage.setItem(KEY,JSON.stringify(state));if(remoteOn())remoteSave(state).catch(e=>console.warn('remote save failed',e));}
+function freshStart(){if(!confirm('Clear ALL players, rounds and trades and start an empty season? (Schedule is kept.)'))return;players=[];rounds=[];trades=[];persist();resetTonight();renderAll();show('players');toast('Fresh season — import a scorecard to build the roster');}
 function resetDemo(){localStorage.removeItem(KEY);const s=buildSeed();players=s.players;rounds=s.rounds;trades=s.trades;config=s.config;schedule=s.schedule;persist();resetTonight();renderAll();show('players');toast('Demo data reset');}
 
 /* ===== TONIGHT ===== */
@@ -444,7 +423,7 @@ let tonight={},lastResult=null;
 function resetTonight(){tonight={};players.forEach(p=>tonight[p.name]={present:false,score:null});pendingImport=null;const mp=document.getElementById('mapPanel');if(mp)mp.innerHTML='';msg('');}
 function nextSundays(n,from){const out=[];let d=from?new Date(from+'T12:00:00'):new Date();d.setHours(12,0,0,0);while(d.getDay()!==0)d.setDate(d.getDate()+1);for(let i=0;i<n;i++){out.push(new Date(d).toISOString().slice(0,10));d.setDate(d.getDate()+7);}return out;}
 function seedSchedule(){return nextSundays(8).map((dt,i)=>({date:dt,course:i===0?'South Mountain':'TBD',layout:i===0?'White Tee':'',eventUrl:i===0?EVENT_APPLINK:''}));}
-function courseOptions(){const seen=new Set(),list=[];schedule.forEach(s=>{if(s.course&&s.course!=='TBD'){const k=s.course+'|'+(s.layout||'');if(!seen.has(k)){seen.add(k);list.push({course:s.course,layout:s.layout||'',par:54});}}});return list.length?list:COURSES;}
+function courseOptions(){const seen=new Set(),list=[];schedule.forEach(s=>{if(s.course&&s.course!=='TBD'){const k=s.course+'|'+(s.layout||'');if(!seen.has(k)){seen.add(k);const known=DIC.get(s.course,s.layout||'');list.push({course:s.course,layout:s.layout||'',par:known?known.par:54,holes:known?known.holes:18});}}});return list.length?list:COURSES;}
 function todayCourseIdx(list){const t=today();const a=[...schedule].sort((x,y)=>x.date<y.date?-1:1);const e=a.find(x=>x.date===t)||a.find(x=>x.date>=t)||a[a.length-1];if(e){const i=list.findIndex(c=>c.course===e.course&&(c.layout||'')===(e.layout||''));if(i>=0)return i;}return 0;}
 function renderCourseSel(){courseList=courseOptions();const sel=document.getElementById('courseSel');if(!sel)return;sel.innerHTML=courseList.map((c,i)=>`<option value="${i}">${c.course}${c.layout?' — '+c.layout:''}</option>`).join('');sel.value=todayCourseIdx(courseList);}
 function renderSchedule(){const el=document.getElementById('schedList');if(!el)return;schedule.sort((a,b)=>a.date<b.date?-1:1);el.innerHTML='';const t=today();let thisIdx=schedule.findIndex(s=>s.date>=t);if(thisIdx<0)thisIdx=schedule.length-1;const org=document.body.classList.contains('org');
@@ -463,10 +442,10 @@ function schedAdd(){const last=schedule.length?schedule[schedule.length-1].date:
 function stagger(el,i){el.style.animationDelay=(i*0.035)+'s';}
 function renderRoster(){
   const el=document.getElementById('roster');el.innerHTML='';let i=0;
-  DIVS.forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
-    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot ${d.id}"></span>${d.label}`;el.appendChild(h);
+  divs().forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
+    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot" style="background:${divColor(d.id)}"></span>${d.label}`;el.appendChild(h);
     grp.forEach(p=>{const t=tonight[p.name]||{present:false,score:null};const row=document.createElement('div');row.className='row'+(t.present?'':' off');stagger(row,i++);
-      row.innerHTML=`<div class="tag sm ${p.isNew?'new':d.id}">${p.tag}</div><div class="name">${p.name}</div>
+      row.innerHTML=`<div class="tag sm ${p.isNew?'new':''}" style="background:${divColor(d.id)}">${p.tag}</div><div class="name">${p.name}</div>
         ${t.present?`<input class="score" type="number" inputmode="numeric" value="${t.score??''}" placeholder="score" oninput="setScore('${p.name}',this.value)">`:''}
         <div class="toggle ${t.present?'on':''}" onclick="toggle('${p.name}')"><div class="knob"></div></div>`;el.appendChild(row);});});
 }
@@ -484,7 +463,7 @@ function renderResult(res){
   const body=document.getElementById('resultBody');body.innerHTML='';let i=0;
   const counts={};res.forEach(r=>counts[r.division+'|'+r.score]=(counts[r.division+'|'+r.score]||0)+1);
   let absentNotes=[],anyUp=false;
-  DIVS.forEach(d=>{const grp=res.filter(r=>r.division===d.id);if(!grp.length)return;
+  divs().forEach(d=>{const grp=res.filter(r=>r.division===d.id);if(!grp.length)return;
     const hd=document.createElement('tr');hd.className='divhead';hd.innerHTML=`<td colspan="3">${d.label}</td>`;body.appendChild(hd);
     [...grp].sort((a,b)=>a.place-b.place).forEach(r=>{const dir=r.newTag<r.oldTag?'up':r.newTag>r.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
       const pill=r.rookie?'<span class="pill new">rookie</span>':r.isNew?'<span class="pill new">new</span>':dir==='up'?'<span class="pill up">up</span>':dir==='down'?'<span class="pill down">down</span>':'';
@@ -509,7 +488,7 @@ function parseCSV(text){const rows=[];let field='',row=[],inQ=false;
     else{if(c==='"')inQ=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c!=='\r')field+=c;}}
   if(field.length||row.length){row.push(field);rows.push(row);}return rows.filter(r=>r.some(x=>(x||'').trim()!==''));}
 function findCol(h,res){for(const re of res){const i=h.findIndex(x=>re.test((x||'').trim()));if(i>=0)return i;}return -1;}
-function divFromText(t){return /pro/i.test(t||'')?'PRO':'AM';}
+function divFromText(t){t=(t||'').trim();if(!t)return 'AM';const u=t.toUpperCase();const m={'MIXED PRO':'MPO','MIXED AMATEUR':'MA1','PRO':'MPO','AM':'MA1'};return m[u]||u;}
 let pendingImport=null;
 function onFile(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{ingest(parseCSV(r.result));}catch(e){msg('Could not read that file: '+e.message,true);}};r.onerror=()=>msg('File read failed.',true);r.readAsText(f);ev.target.value='';}
 function ingest(rows){
@@ -573,10 +552,10 @@ function openRound(id,from){const r=rounds.find(x=>x.id===id);if(!r)return;round
   document.getElementById('rd-title').textContent=r.course;document.getElementById('rd-sub').textContent=`${f.m} ${f.d} · ${r.layout} · par ${r.par}`;
   document.querySelector('#v-round .back').setAttribute('onclick',`show('${roundBackTab}')`);
   const body=document.getElementById('rdBody');body.innerHTML='';let i=0;
-  DIVS.forEach(d=>{const grp=r.results.filter(x=>x.division===d.id);if(!grp.length)return;
+  divs().forEach(d=>{const grp=r.results.filter(x=>x.division===d.id);if(!grp.length)return;
     const hd=document.createElement('tr');hd.className='divhead';hd.innerHTML=`<td colspan="4">${d.label}</td>`;body.appendChild(hd);
     [...grp].sort((a,b)=>a.place-b.place).forEach(x=>{const dir=x.newTag<x.oldTag?'up':x.newTag>x.oldTag?'down':'same';const arrow=dir==='up'?'▲':dir==='down'?'▼':'–';
-      const tr=document.createElement('tr');stagger(tr,i++);tr.innerHTML=`<td>${x.place}</td><td><b>${x.name}</b></td><td>${x.score}</td><td><span class="chg ${dir}">${x.oldTag} ${arrow} ${x.newTag}</span></td>`;body.appendChild(tr);});});
+      const tr=document.createElement('tr');stagger(tr,i++);tr.innerHTML=`<td>${x.place}</td><td><b>${x.name}</b></td><td>${DIC.fmtScore(x.score,r.par)}</td><td><span class="chg ${dir}">${x.oldTag} ${arrow} ${x.newTag}</span></td>`;body.appendChild(tr);});});
   show('round');
 }
 
@@ -585,13 +564,13 @@ function statsFor(name){const tl=timeline(name);const p=players.find(x=>x.name==
   const wins=tl.filter(e=>e.kind==='round'&&e.place===1).length;const bestTag=Math.min(p.tag,...tl.map(e=>e.newTag));
   const scores=tl.filter(e=>e.kind==='round').map(e=>e.score);const bestScore=scores.length?Math.min(...scores):'—';return {p,tl,roundsN,wins,bestTag,bestScore};}
 function renderPlayers(){const el=document.getElementById('playerList');el.innerHTML='';let i=0;
-  DIVS.forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
-    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot ${d.id}"></span>${d.label}`;el.appendChild(h);
+  divs().forEach(d=>{const grp=playersIn(d.id);if(!grp.length)return;
+    const h=document.createElement('div');h.className='divlabel';h.innerHTML=`<span class="divdot" style="background:${divColor(d.id)}"></span>${d.label}`;el.appendChild(h);
     grp.forEach(p=>{const s=statsFor(p.name);const row=document.createElement('div');row.className='row tap';stagger(row,i++);row.onclick=()=>openProfile(p.name);
-      row.innerHTML=`<div class="tag sm ${p.isNew?'new':d.id} ${p.tag===1?'topseed':''}">${p.tag}</div><div class="name">${p.name}${p.tag===1?'<span class="crownbadge">👑</span>':''}${no1Streak(p.name)>=2?'<span class="streak">🔥 '+no1Streak(p.name)+'× #1</span>':''}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
+      row.innerHTML=`<div class="tag sm ${p.isNew?'new':''} ${p.tag===1?'topseed':''}" style="background:${divColor(d.id)}">${p.tag}</div><div class="name">${p.name}${p.tag===1?'<span class="crownbadge">👑</span>':''}${no1Streak(p.name)>=2?'<span class="streak">🔥 '+no1Streak(p.name)+'× #1</span>':''}<div class="meta">${s.roundsN} rounds · ${s.wins} wins</div></div><div class="chev">›</div>`;el.appendChild(row);});});
   document.getElementById('npRule').value=config.newPlayerRule;}
 function openProfile(name){const {p,tl,roundsN,wins,bestTag,bestScore}=statsFor(name);
-  document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${p.division==='PRO'?'#e8f1fa':'#e6e9f0'};color:${p.division==='PRO'?'#0066B3':'#1f2d4d'}">${divLabel(p.division)}</span>`;document.getElementById('pf-pdga').innerHTML=pdgaHtml(p);
+  document.getElementById('pf-name').innerHTML=`${name} <span class="backbadge" style="background:${divColor(p.division)}22;color:${divColor(p.division)}">${divLabel(p.division)}</span>`;document.getElementById('pf-pdga').innerHTML=pdgaHtml(p);
   document.getElementById('pf-stats').innerHTML=`
     <div class="stat"><div class="v">${p.tag}</div><div class="l">Current tag</div></div>
     <div class="stat"><div class="v">${bestTag}</div><div class="l">Best tag</div></div>
@@ -623,9 +602,9 @@ function chartSVG(tl){
 /* ===== TRADING ===== */
 function tradeMode(m){document.getElementById('seg-swap').classList.toggle('on',m==='swap');document.getElementById('seg-re').classList.toggle('on',m==='re');
   document.getElementById('swapCard').style.display=m==='swap'?'block':'none';document.getElementById('reCard').style.display=m==='re'?'block':'none';}
-function optGroups(){return DIVS.map(d=>{const grp=playersIn(d.id);if(!grp.length)return '';return `<optgroup label="${d.label}">`+grp.map(p=>`<option value="${p.name}">${p.name} — tag ${p.tag}</option>`).join('')+`</optgroup>`;}).join('');}
+function optGroups(){return divs().map(d=>{const grp=playersIn(d.id);if(!grp.length)return '';return `<optgroup label="${d.label}">`+grp.map(p=>`<option value="${p.name}">${p.name} — tag ${p.tag}</option>`).join('')+`</optgroup>`;}).join('');}
 function fillTradeSelects(){const og=optGroups();['swapA','swapB','reP'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=og;});
-  const all=DIVS.flatMap(d=>playersIn(d.id));if(all[1])document.getElementById('swapB').value=all[1].name;swapPreview();rePreview();}
+  const all=divs().flatMap(d=>playersIn(d.id));if(all[1])document.getElementById('swapB').value=all[1].name;swapPreview();rePreview();}
 function doSwap(){const a=document.getElementById('swapA').value,b=document.getElementById('swapB').value;const A=players.find(p=>p.name===a),B=players.find(p=>p.name===b);
   if(!A||!B||A===B){alert('Pick two different players.');return;}if(A.division!==B.division){alert('Can only swap within the same division.');return;}
   const ta=A.tag,tb=B.tag;A.tag=tb;B.tag=ta;
@@ -644,7 +623,7 @@ function doReassign(){const n=document.getElementById('reP').value;const nt=pars
   persist();renderAll();fillTradeSelects();document.getElementById('reTag').value='';toast('Reassigned');show('players');}
 
 /* ===== EXPORT ===== */
-function standingsByDiv(){return DIVS.map(d=>({div:d,rows:playersIn(d.id).map((p,i)=>{const s=statsFor(p.name);return {rank:i+1,tag:p.tag,name:p.name,rounds:s.roundsN,wins:s.wins,bestTag:s.bestTag};})})).filter(g=>g.rows.length);}
+function standingsByDiv(){return divs().map(d=>({div:d,rows:playersIn(d.id).map((p,i)=>{const s=statsFor(p.name);return {rank:i+1,tag:p.tag,name:p.name,rounds:s.roundsN,wins:s.wins,bestTag:s.bestTag};})})).filter(g=>g.rows.length);}
 function renderExportPreview(){const groups=standingsByDiv();
   document.getElementById('exportPreview').innerHTML=groups.map(g=>`<div class="meta" style="margin:6px 0 4px">${g.div.label}</div><table><tbody>`+
     g.rows.map(r=>`<tr><td style="width:30px"><b>${r.tag}</b></td><td>${r.name}</td><td style="text-align:right">${r.wins}W</td></tr>`).join('')+'</tbody></table>').join('');}
@@ -692,12 +671,64 @@ function no1Streak(name){const tl=timeline(name).filter(e=>e.kind==='round');let
 function confetti(){const host=document.querySelector('.phone');if(!host)return;const colors=['#0066B3','#F4CE1A','#1f9d57','#1f2d4d'];for(let k=0;k<20;k++){const c=document.createElement('div');c.className='confetti';c.style.left=(8+Math.random()*84)+'%';c.style.background=colors[k%colors.length];c.style.animationDelay=(Math.random()*0.25)+'s';c.style.width=(7+Math.random()*5)+'px';host.appendChild(c);setTimeout(()=>c.remove(),1800);}}
 let toastT=null;function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1800);}
 
+/* ===== STARTING HOLES (shotgun groups for tonight) ===== */
+let holeGroups=null;
+function shuffleArr(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function presentNames(){return players.filter(p=>tonight[p.name]&&tonight[p.name].present).map(p=>p.name);}
+function assignHoles(){
+  const names=shuffleArr(presentNames());
+  if(names.length<2){toast('Check in at least 2 players first');return;}
+  const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);
+  const nG=Math.ceil(names.length/4);                       // groups of 3-4
+  const groups=Array.from({length:nG},()=>[]);
+  names.forEach((n,i)=>groups[i%nG].push(n));
+  const hs=DIC.spreadHoles(nG,c.holes||18);                 // spread across the course
+  holeGroups={course:c.course+(c.layout?' — '+c.layout:''),groups:groups.map((g,i)=>({hole:hs[i],names:g}))};
+  renderHoleGroups();toast('Starting holes assigned');
+}
+function renderHoleGroups(){
+  const el=document.getElementById('holeGroups');if(!el)return;el.innerHTML='';
+  if(!holeGroups)return;
+  holeGroups.groups.forEach((g,i)=>{const d=document.createElement('div');d.className='hgrp';
+    d.innerHTML=`<div class="hole" title="Tap to change" onclick="editGroupHole(${i})"><span class="hh">Hole</span><span class="hn">${g.hole}</span></div><div class="hnames">${g.names.join(', ')}</div><button class="hpad" title="Score hole-by-hole" onclick="groupScorecard(${i})">📝</button>`;el.appendChild(d);});
+  const c=document.createElement('button');c.className='btn ghost sm';c.style.marginBottom='10px';
+  c.textContent='📋 Copy starting holes (for group chat)';c.onclick=copyHoles;el.appendChild(c);
+}
+function editGroupHole(i){
+  const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);const max=c.holes||18;
+  const g=holeGroups.groups[i];const v=parseInt(prompt(`Starting hole for ${g.names.join(', ')} (1–${max}):`,g.hole),10);
+  if(isNaN(v)||v<1||v>max)return;g.hole=v;renderHoleGroups();
+}
+function copyHoles(){
+  if(!holeGroups)return;
+  const txt='⛳ Starting holes — '+holeGroups.course+' ('+today()+')\n'
+    +holeGroups.groups.map(g=>`Hole ${g.hole}: ${g.names.join(', ')}`).join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Starting holes copied!'),()=>fallbackCopy(txt));}else fallbackCopy(txt);
+}
+function groupScorecard(i){
+  const c=(courseList[+document.getElementById('courseSel').value]||COURSES[0]);
+  const g=holeGroups.groups[i];
+  localStorage.setItem('discinsanity_scorecard_setup_v1',JSON.stringify({course:{course:c.course,layout:c.layout,holes:c.holes||18,par:c.par},
+    startHole:g.hole,rows:g.names.map(n=>({label:n,names:[n]})),from:'tags'}));
+  location.href='scorecard.html';
+}
+function importScorecard(){
+  let res=null;try{res=JSON.parse(localStorage.getItem('discinsanity_scorecard_result_v1'));}catch(e){}
+  if(!res){toast('No finished scorecard on this device');return;}
+  let hit=0;
+  res.rows.forEach(r=>{if(!r.names||r.names.length!==1)return;
+    const p=players.find(x=>x.name.toLowerCase()===r.names[0].toLowerCase());
+    if(p){tonight[p.name]=tonight[p.name]||{present:false,score:null};tonight[p.name].present=true;tonight[p.name].score=r.score;hit++;}});
+  renderRoster();toast(hit?hit+' score'+(hit>1?'s':'')+' imported from Scorecard':'No matching players on the roster');
+}
+
 /* ===== BOOT ===== */
 (async()=>{
   await loadState();resetTonight();
-  if(localStorage.getItem(ACCESS_KEY)===accessToken()){ grantAccess(); }
-  else { document.getElementById('lockInput').focus(); }
+  if(DIS.isOrg())document.body.classList.add('org');  // signed-in admin or suite organizer token
+  renderAll();show(document.body.classList.contains('org')?'tonight':'players');
 })();
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>
 </html>
