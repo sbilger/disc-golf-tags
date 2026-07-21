@@ -156,6 +156,7 @@ function profileHTML(me){
       <span class="rolebadge ${isA?'admin':''}">${isA?'⭐ '+me.role:'Member'}</span></div>
     <div class="card"><h3>Profile</h3>
       <div class="kv"><span class="k">PDGA #</span><span class="v">${me.pdga?`<a href="https://www.pdga.com/player/${me.pdga}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none">${me.pdga} ↗</a>`:'—'}</span></div>
+      <div class="kv"><span class="k">PDGA Rating</span><span class="v">${me.rating?me.rating:'—'}</span></div>
       <div class="kv"><span class="k">Division</span><span class="v">${me.division||'—'}</span></div>
       <div class="kv"><span class="k">Member since</span><span class="v">${me.created||'—'}</span></div>
       <button class="btn ghost" onclick="editProfile()">Edit profile</button></div>
@@ -168,20 +169,23 @@ function profileHTML(me){
       <a class="lk" href="hub.html"><span class="ic">🏠</span><span class="t">Hub</span><span class="s">Everything</span></a>
     </div>
     <button class="btn red" style="margin-top:16px" onclick="DI.signOut();DIS.dropOrg();mode='in';render()">Sign out</button>
-    <p class="note">${isA?'Admin: you can post news & manage events from the Hub.':''}</p>`;
+    <p class="note">${isA?'Admin: you can post news & manage events from the Hub.<br>':''}PDGA # and rating are self-reported — Discinsanity has no live PDGA sync (PDGA blocks automated lookups). Tap PDGA # above to check your real profile.</p>`;
 }
 function editProfile(){const me=DI.current();const el=document.getElementById('body');
   el.innerHTML=`<div class="hero"><div class="av">${DI.initials(me.name)}</div><h1>Edit profile</h1></div>
     <div class="card">
       <label>Name</label><input id="e-name" value="${esc(me.name)}">
-      <label>PDGA #</label><input id="e-pdga" inputmode="numeric" value="${esc(me.pdga||'')}">
+      <div style="display:flex;gap:8px"><div style="flex:1"><label>PDGA #</label><input id="e-pdga" inputmode="numeric" value="${esc(me.pdga||'')}"></div>
+      <div style="flex:1"><label>PDGA Rating</label><input id="e-rating" inputmode="numeric" placeholder="e.g. 950" value="${esc(me.rating||'')}"></div></div>
       <label>Division</label><select id="e-div">${DIVS.map(d=>`<option value="${d}" ${d===me.division?'selected':''}>${d||'—'}</option>`).join('')}</select>
       <label>Name in league lists (if different)</label><input id="e-league" value="${esc(me.leagueName||'')}" placeholder="e.g. Mike R">
       ${me.role==='admin'?'':'<label>Organizer code (optional)</label><input id="e-code" placeholder="becomes admin if correct">'}
       <button class="btn" onclick="saveProfile()">Save</button>
-      <button class="btn ghost" onclick="render()">Cancel</button></div>`;
+      <button class="btn ghost" onclick="render()">Cancel</button>
+      <p class="note">Enter your rating from your official PDGA profile — we can't pull it automatically
+      (PDGA's site blocks that), so update it here whenever it changes.</p></div>`;
 }
-function saveProfile(){const patch={name:val('e-name'),pdga:val('e-pdga'),division:val('e-div'),leagueName:val('e-league')};const c=document.getElementById('e-code');if(c)patch.code=c.value;DI.update(patch);render();}
+function saveProfile(){const patch={name:val('e-name'),pdga:val('e-pdga'),rating:val('e-rating').replace(/\D/g,''),division:val('e-div'),leagueName:val('e-league')};const c=document.getElementById('e-code');if(c)patch.code=c.value;DI.update(patch);render();}
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 render();
 </script>
