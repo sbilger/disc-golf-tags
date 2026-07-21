@@ -1,0 +1,15 @@
+# Supabase project config. Functions default to requiring a Supabase Auth JWT on every
+# request — we don't have real Supabase Auth yet (account.js is still demo/local auth), and
+# the new publishable key (sb_publishable_...) isn't a JWT the way the old anon key was, so
+# disable JWT verification for these three functions. Security for the prototype phase relies
+# on server-side logic (email lookups) rather than auth — same "prototype" posture as the
+# open RLS policies on hubs/leagues. Revisit once real Supabase Auth lands (docs/TODO-SEAN.md).
+
+[functions.save-card]
+verify_jwt = false
+
+[functions.charge-players]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
