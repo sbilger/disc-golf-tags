@@ -153,7 +153,7 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
 
 <script>
 /* ===== BACKEND CONFIG — paste Supabase URL + anon key to go live/multi-device ===== */
-const SUPA_URL=''; const SUPA_KEY=''; const HUB_ID='discinsanity';
+const SUPA_URL='https://ohvhhcpmohztmlossbjv.supabase.co'; const SUPA_KEY='sb_publishable_Id_1aKGpo0ivVPKGN9bHPA_IFrPbCXX'; const HUB_ID='discinsanity';
 const ADMIN_CODE='discinsanity';          // Jeff's admin code — CHANGE THIS
 const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
 async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/hubs?id=eq.${HUB_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}

@@ -363,7 +363,7 @@ function toggleOrg(){
 }
 
 /* ===== BACKEND CONFIG (see BACKEND.md) ===== */
-const SUPA_URL=''; const SUPA_KEY=''; const LEAGUE_ID='discinsanity';
+const SUPA_URL='https://ohvhhcpmohztmlossbjv.supabase.co'; const SUPA_KEY='sb_publishable_Id_1aKGpo0ivVPKGN9bHPA_IFrPbCXX'; const LEAGUE_ID='discinsanity';
 const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
 async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw new Error('load '+r.status);const rows=await r.json();return rows[0]?rows[0].state:null;}
 async function remoteSave(state){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state,updated_at:new Date().toISOString()})});}
