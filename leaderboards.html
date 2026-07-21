@@ -58,6 +58,7 @@
   .rank{width:30px;font-weight:800;color:var(--gold-d)}
   .pts{font-weight:800;color:var(--gold-d)}
   .dim{color:var(--muted);font-size:13px}
+  .rtg{color:var(--blue);font-size:11px;font-weight:800;background:var(--blue-l,#e8f1fa);border-radius:6px;padding:1px 5px;margin-left:4px}
   .divhead td{background:#eef2f6;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:7px 6px;border-radius:8px}
   .divdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:baseline}
   .note{margin:16px 2px 0;color:#55626e;font-size:12.5px;background:#fff;border:1px solid var(--line);padding:11px 13px;border-radius:12px;line-height:1.45}
@@ -66,10 +67,10 @@
   /* player detail */
   .dhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
   .back{border:0;background:#e3e9f0;color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;box-shadow:var(--shadow)}
-  .stat .v{font-size:19px;font-weight:800;color:var(--gold-d)}
-  .stat .k{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 4px;text-align:center;box-shadow:var(--shadow)}
+  .stat .v{font-size:17px;font-weight:800;color:var(--gold-d)}
+  .stat .k{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
   .log{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;animation:in .35s ease both}
   .lic{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
   .lic.tags{background:#e8f1fa}.lic.dbl{background:#f1eafa}
@@ -104,6 +105,9 @@ Reads whatever both modules have saved (local now, cloud once Supabase keys go i
       <div id="overall"></div>
       <div class="note">🧮 <b>Points each night:</b> field size − place + 1 (per division in tags, per team in doubles).
       Ties share the better place. Show up more, earn more.</div>
+      <div class="note">🥏 <b>Ratings</b> shown (where set) are self-reported from each player's profile —
+      Discinsanity has no live PDGA sync (PDGA's site blocks automated lookups). Not official, update
+      yours anytime in Account → Edit profile.</div>
     </section>
 
     <!-- TAGS -->
@@ -156,6 +160,17 @@ async function load(){
   if(remoteOn()){try{const both=await remoteLoadBoth();if(both[TAGS_ID])tags=both[TAGS_ID];if(both[DBL_ID])dbl=both[DBL_ID];}catch(e){}}
 }
 
+/* ===== self-reported PDGA ratings, matched by name (account.js members — same device only) ===== */
+function ratingLookup(){
+  const out={};
+  const members=(typeof DI!=='undefined'?DI.members():[])||[];
+  members.forEach(m=>{
+    if(!m.rating)return;
+    [m.leagueName,m.name].filter(Boolean).forEach(n=>{out[norm(n)]=m.rating;});
+  });
+  return out;
+}
+
 /* ===== division cosmetics (mirrors the tags app) ===== */
 const DIV_LABELS={MPO:'MPO — Pro',FPO:'FPO — Women Pro',MA1:'MA1 — Advanced',MA2:'MA2 — Intermediate',MA3:'MA3 — Recreational',MA4:'MA4 — Novice',FA1:'FA1 — Women Am',PRO:'Mixed Pro',AM:'Mixed Amateur'};
 const DIV_ORDER=['MPO','FPO','MA1','MA2','MA3','MA4','FA1','FA2','PRO','AM'];
@@ -200,8 +215,9 @@ function compute(){
       p.log.push({date:r.date,mod:'dbl',course:r.course||'Doubles',detail:`with ${(t.players||[]).filter(x=>norm(x)!==norm(nm)).join(' + ')||'—'} · score ${t.score} · ${ord(t.place)} of ${(r.teams||[]).length}`,pts:t.points||0});
     });});
   });
+  const ratings=ratingLookup();
   const list=Object.values(players);
-  list.forEach(p=>{p.total=p.tagsPts+p.dblPts;p.nights=p.tagsNights+p.dblNights;p.wins=p.tagsWins+p.dblWins;p.log.sort((a,b)=>a.date<b.date?1:-1);});
+  list.forEach(p=>{p.total=p.tagsPts+p.dblPts;p.nights=p.tagsNights+p.dblNights;p.wins=p.tagsWins+p.dblWins;p.log.sort((a,b)=>a.date<b.date?1:-1);p.rating=ratings[norm(p.name)]||null;});
   return list;
 }
 function ord(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
@@ -224,7 +240,7 @@ function renderPodium(rows){
     <div class="pcol ${cls[i]}">
       <div class="pav">${initials(p.name)}</div>
       <div class="pname">${esc(p.name)}</div>
-      <div class="ppts">${p.total} pts</div>
+      <div class="ppts">${p.total} pts${p.rating?' · '+p.rating+' rtg':''}</div>
       <div class="pbar">${medal[i]}</div>
     </div>`).join('')+'</div>';
 }
@@ -234,7 +250,7 @@ function renderOverall(){
   const el=document.getElementById('overall');
   if(!rows.length){el.innerHTML=emptyState('all');return;}
   el.innerHTML=`<table><thead><tr><th>#</th><th>Player</th><th class="r">🥏</th><th class="r">👥</th><th class="r">Total</th></tr></thead><tbody>`+
-    rows.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b><span class="dim"> · ${p.nights} night${p.nights===1?'':'s'}${p.wins?' · '+p.wins+'🏆':''}</span></td><td class="r dim">${p.tagsPts||'–'}</td><td class="r dim">${p.dblPts||'–'}</td><td class="r pts">${p.total}</td></tr>`).join('')+'</tbody></table>';
+    rows.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b>${p.rating?`<span class="rtg">${p.rating}</span>`:''}<span class="dim"> · ${p.nights} night${p.nights===1?'':'s'}${p.wins?' · '+p.wins+'🏆':''}</span></td><td class="r dim">${p.tagsPts||'–'}</td><td class="r dim">${p.dblPts||'–'}</td><td class="r pts">${p.total}</td></tr>`).join('')+'</tbody></table>';
   document.getElementById('cloud').innerHTML=remoteOn()
     ?'<span style="font-size:10px;font-weight:800;background:#d8eede;color:#1f9d57;padding:2px 7px;border-radius:10px">☁</span>'
     :'<span style="font-size:10px;font-weight:800;background:#eef3f8;color:#67737f;padding:2px 7px;border-radius:10px">● local</span>';
@@ -249,7 +265,7 @@ function renderTags(){
   ids.forEach(d=>{
     const grp=rows.filter(p=>(p.division||'AM')===d).sort((a,b)=>b.tagsPts-a.tagsPts||b.tagsWins-a.tagsWins||a.name.localeCompare(b.name));
     html+=`<tr class="divhead"><td colspan="5"><span class="divdot" style="background:${divColor(d)}"></span>${divLabel(d)}</td></tr>`;
-    html+=grp.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b></td><td class="r dim">${p.tagsNights}</td><td class="r dim">${p.tagsWins||'–'}</td><td class="r pts">${p.tagsPts}</td></tr>`).join('');
+    html+=grp.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b>${p.rating?`<span class="rtg">${p.rating}</span>`:''}</td><td class="r dim">${p.tagsNights}</td><td class="r dim">${p.tagsWins||'–'}</td><td class="r pts">${p.tagsPts}</td></tr>`).join('');
   });
   el.innerHTML=html+'</tbody></table>';
 }
@@ -258,7 +274,7 @@ function renderDoubles(){
   const rows=board.filter(p=>p.dblNights>0).sort((a,b)=>b.dblPts-a.dblPts||b.dblWins-a.dblWins||a.name.localeCompare(b.name));
   if(!rows.length){el.innerHTML=emptyState('dbl');return;}
   el.innerHTML=`<table><thead><tr><th>#</th><th>Player</th><th class="r">Nights</th><th class="r">Wins</th><th class="r">Pts</th></tr></thead><tbody>`+
-    rows.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b></td><td class="r dim">${p.dblNights}</td><td class="r dim">${p.dblWins||'–'}</td><td class="r pts">${p.dblPts}</td></tr>`).join('')+'</tbody></table>';
+    rows.map((p,i)=>`<tr onclick="openPlayer('${norm(p.name).replace(/'/g,"\\'")}')"><td class="rank">${i+1}</td><td><b>${esc(p.name)}</b>${p.rating?`<span class="rtg">${p.rating}</span>`:''}</td><td class="r dim">${p.dblNights}</td><td class="r dim">${p.dblWins||'–'}</td><td class="r pts">${p.dblPts}</td></tr>`).join('')+'</tbody></table>';
 }
 function openPlayer(key){
   const p=board.find(x=>norm(x.name)===key);if(!p)return;
@@ -267,7 +283,8 @@ function openPlayer(key){
     <div class="stat"><div class="v">${p.total}</div><div class="k">Points</div></div>
     <div class="stat"><div class="v">${p.nights}</div><div class="k">Nights</div></div>
     <div class="stat"><div class="v">${p.wins}</div><div class="k">Wins</div></div>
-    <div class="stat"><div class="v">${p.division?esc(p.division):'—'}</div><div class="k">Division</div></div>`;
+    <div class="stat"><div class="v">${p.division?esc(p.division):'—'}</div><div class="k">Division</div></div>
+    <div class="stat"><div class="v">${p.rating?p.rating:'—'}</div><div class="k">Rating</div></div>`;
   document.getElementById('pd-log').innerHTML=p.log.map((l,i)=>`
     <div class="log" style="animation-delay:${i*0.03}s">
       <div class="lic ${l.mod==='tags'?'tags':'dbl'}">${l.mod==='tags'?'🥏':'👥'}</div>
@@ -291,8 +308,8 @@ function renderAll(){board=compute();renderOverall();renderTags();renderDoubles(
 async function refresh(announce){await load();renderAll();if(announce)toast('Refreshed');}
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
 
-/* live-update when tags/doubles save in another tab */
-window.addEventListener('storage',e=>{if(e.key===TAGS_KEY||e.key===DBL_KEY)refresh(false);});
+/* live-update when tags/doubles/account save in another tab */
+window.addEventListener('storage',e=>{if(e.key===TAGS_KEY||e.key===DBL_KEY||e.key==='discinsanity_members')refresh(false);});
 
 /* ===== boot ===== */
 (async()=>{await load();renderAll();})();
