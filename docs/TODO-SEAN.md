@@ -1,19 +1,25 @@
-# Sean's to-do — Discinsanity app (set up when you wake up)
+# Sean's to-do — Discinsanity app
 
-Built overnight on branch `feat/discinsanity-hub` (PR #2). Everything below is the stuff **only you
-can do** (cloud account, real codes, business calls). Each one unblocks the next phase. Reconvene after.
+Each one unblocks the next phase. Reconvene after.
 
-## 🔴 1. Stand up the backend (the big unblock)
+## 🔴 1. Stand up the backend (the big unblock — blocks Section 3 payments too)
 Right now every module runs on **localStorage** (per-device). To make it shared + multi-device and let
-Jeff's posts/events/accounts be real:
+Jeff's posts/events/accounts be real — and before Stripe payments (Section 3) can be built as anything
+more than UI scaffolding, since Stripe secret-key operations must run server-side:
 1. Create a free **Supabase** project → supabase.com.
-2. SQL Editor → run [`supabase-hub-schema.sql`](../supabase-hub-schema.sql).
+2. SQL Editor → run [`supabase-hub-schema.sql`](../supabase-hub-schema.sql). (The old
+   `supabase-schema.sql` was removed 2026-07-21 — superseded, was a landmine waiting to happen.)
 3. **Settings → API**, copy the **Project URL** + **anon public** key, paste into the
    `SUPA_URL` / `SUPA_KEY` constants at the top of the `<script>` in **all five**:
    `index.html` (tags), `hub.html`, `doubles.html`, `events.html`, `leaderboards.html`.
    → each flips from `● local` to `☁ cloud` automatically; data syncs across phones.
+   (Confirmed 2026-07-21: still exactly these 5 files, even after the scheduling/PDGA-export
+   additions — new state lives in the same JSON blob columns, no schema change needed.)
 4. Ping me — I'll then swap the **demo accounts** (account.js) over to **real Supabase Auth**
-   (email sign-in, Jeff = admin role) and unify login across every module.
+   (email sign-in, Jeff = admin role) and unify login across every module. `account.html` /
+   `account.js` still has NO cloud wiring at all (member accounts + ratings are local-only,
+   per-device) — that's the Phase-1+ normalized-tables work, commented out at the bottom of
+   `supabase-hub-schema.sql`.
 
 ## 🟠 2. Change the codes (before anyone else uses it)
 All currently `discinsanity` — change them:
@@ -33,6 +39,18 @@ All currently `discinsanity` — change them:
 - **Social links** — confirm IG `@discinsanitydgproshop`, FB `/Discinsanity` (already wired).
 - **Domain?** Eventually point e.g. `app.discinsanity.com` at it instead of github.io.
 
+## 🟡 3b. PDGA sanctioning — real-world steps, not code (added 2026-07-21)
+If you want Discinsanity's Tags league to actually count toward official PDGA ratings:
+- Jeff needs to become a **PDGA Certified Official** (real exam) to be League Director.
+- Submit PDGA's **Event Sanctioning Agreement** (pdga.com) + pay the **$25** one-time fee per
+  league session (6-10 weeks).
+- Collect the mandatory **$1/player/round fee** ($0.50 PDGA / $0.50 TD) — this is what Section 3
+  payments needs to support, not just a generic entry fee.
+- **Singles play only** — Tags qualifies, Doubles cannot be PDGA-sanctioned, ever (PDGA rule).
+- Reporting stays 100% manual either way (email to `tdreport@pdga.com` or PDGA's own Tournament
+  Manager) — the app's PDGA League Report export (Tags → Export/Share) gets the data
+  copy/paste-ready, but nothing submits automatically; no API exists on PDGA's end (verified).
+
 ## 🟢 4. Business / direction calls (yours)
 - Is this a **HogTron-built product** for the shop (scope, pricing, ownership)?
 - **Mobile app:** it's already an installable **PWA** (Add to Home Screen). When you want true
@@ -40,27 +58,35 @@ All currently `discinsanity` — change them:
 
 ---
 
-## What I built overnight (so you can see it)
-Live (Pages now serves the hub branch): **https://sbilger.github.io/disc-golf-tags/hub.html**
-- **Hub** — home: This Week, module grid, **News & Drops** (Jeff-admin: post/edit/delete), socials.
-- **Tags** — the v1 app (bookmarked at tag `v1-tags-app`).
+## Current state (2026-07-21)
+Live: **https://sbilger.github.io/disc-golf-tags/hub.html** (now served correctly from `main` —
+see landmine note below, this used to be branch-only).
+- **Hub** — home: This Week, module grid, News & Drops (Jeff-admin), socials.
+- **Tags** — the bag-tag ladder league + PDGA League Report export (new).
 - **Doubles** — random-draw teams → team scores → season points standings + history.
-- **Events** — Jeff-editable calendar (add/edit, detail, add-to-calendar .ics).
-- **Leaderboards** — season points rolled up across Tags + Doubles (podium, per-division boards,
-  tap-a-player night-by-night log). Points = field size − place + 1, ties share the better place.
-- **Accounts + Profiles** — login / sign-up / member profile (PDGA, division), admin role.
-- **PWA** — manifest + app icon + service worker → installable on phones. Service worker now
-  caches the app shell (network-first) → the suite keeps working offline on the course.
-- **Plan:** [`HUB-PLAN.md`](HUB-PLAN.md). All branded Discinsanity blue/gold, animated, social links.
+- **Events** — calendar + recurring league defs, RSVP roster, organizer group/tee-time
+  assignment (new).
+- **Leaderboards** — season points rolled up across Tags + Doubles + self-reported PDGA rating
+  badges (new).
+- **Accounts + Profiles** — login / sign-up / member profile (PDGA #, rating, division), admin role.
+- **Scorecard** — UDisc-style hole-by-hole scoring, feeds Tags + Doubles.
+- **PWA** — installable, offline service worker.
 
 ### Demo logins (try on the live link)
 - Member: create any account.
 - Admin (Jeff): `jeff@discinsanity.com` / `discinsanity` → then Hub shows "Admin ✓" + edit controls.
-- Modules are **open** (read-only by default) — date lock removed 2026-07-03. `suite.js` shares
-  ONE organizer state across the whole suite: enter the 🔑 code once = organizer everywhere;
-  Jeff's admin account = organizer **everywhere**. Sign-out drops organizer too.
+- Modules are **open** (read-only by default). `suite.js` shares ONE organizer state across the
+  whole suite: enter the 🔑 code once = organizer everywhere; Jeff's admin account = organizer
+  **everywhere**. Sign-out drops organizer too.
 
-## Next session (me) — once you've done #1
-Supabase wiring + real auth (login is already unified locally via `suite.js` + `account.js` —
-Supabase Auth drops in behind the same `DI` shape) → polish + (optional) Capacitor mobile
-wrap. (Leaderboards: ✅ built. Unified suite session: ✅ built.)
+### LANDMINE fixed 2026-07-21
+The whole module suite (Hub/Doubles/Events/Accounts/Leaderboards/Scorecard) was stranded on a
+branch for ~2.5 weeks — PR #2 targeted the wrong base branch instead of `main`, so `main` only
+ever had the standalone Tags app even though Pages (which serves branches directly) made it look
+live and done. Fixed via PR #3. Rule going forward: every new PR bases off current `main`.
+
+## Next session (me)
+- Once you've done #1 (Supabase live): wire Supabase Auth into account.js, unify login.
+- Once #1 is confirmed live: start Section 3 (Stripe + Stripe Connect... actually just plain
+  Stripe, single-account, per your 2026-07-21 call — Discinsanity-only, no multi-tenant Connect
+  needed unless this becomes a multi-league platform).
