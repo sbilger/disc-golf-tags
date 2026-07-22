@@ -133,7 +133,7 @@ random every week. Tap 📝 on your team to score hole-by-hole; organizer 🔑 s
 
 <script>
 const SUPA_URL='https://ohvhhcpmohztmlossbjv.supabase.co'; const SUPA_KEY='sb_publishable_Id_1aKGpo0ivVPKGN9bHPA_IFrPbCXX'; const LEAGUE_ID='discinsanity-doubles';
-const ORGANIZER_CODE='discinsanity';  // CHANGE pre-launch - suite-wide organizer session = suite.js (DIS)
+const ORGANIZER_CODE='JPdYD3oNCsQB';  // CHANGE pre-launch - suite-wide organizer session = suite.js (DIS)
 const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
 async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/leagues?id=eq.${LEAGUE_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
 async function remoteSave(s){await fetch(`${SUPA_URL}/rest/v1/leagues?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:LEAGUE_ID,state:s,updated_at:new Date().toISOString()})});}

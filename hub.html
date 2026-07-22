@@ -154,7 +154,7 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
 <script>
 /* ===== BACKEND CONFIG — paste Supabase URL + anon key to go live/multi-device ===== */
 const SUPA_URL='https://ohvhhcpmohztmlossbjv.supabase.co'; const SUPA_KEY='sb_publishable_Id_1aKGpo0ivVPKGN9bHPA_IFrPbCXX'; const HUB_ID='discinsanity';
-const ADMIN_CODE='discinsanity';          // Jeff's admin code — CHANGE THIS
+const ADMIN_CODE='JPdYD3oNCsQB';          // Jeff's admin code — CHANGE THIS
 const remoteOn=()=>!!(SUPA_URL&&SUPA_KEY);
 async function remoteLoad(){const r=await fetch(`${SUPA_URL}/rest/v1/hubs?id=eq.${HUB_ID}&select=state`,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}});if(!r.ok)throw 0;const j=await r.json();return j[0]?j[0].state:null;}
 async function remoteSave(state){await fetch(`${SUPA_URL}/rest/v1/hubs?on_conflict=id`,{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:HUB_ID,state,updated_at:new Date().toISOString()})});}
