@@ -24,32 +24,43 @@
   header img{height:40px;width:auto;background:#fff;border-radius:9px;padding:4px}
   .htitle b{font-size:19px;font-weight:800;letter-spacing:.3px;display:block;line-height:1}
   .htitle small{font-size:11px;opacity:.85;font-weight:600}
+  .htitle small .hog{color:#F1ECDF}
+  .htitle small .tron{color:#22D3EE}
   .badge{margin-left:auto;background:rgba(255,255,255,.16);border:0;color:#fff;font-weight:800;font-size:12px;border-radius:20px;padding:6px 12px;cursor:pointer}
   body.admin .badge{background:var(--gold);color:#3a2e00}
+  .badge.avatar{width:34px;height:34px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto}
   .body{flex:1;overflow-y:auto;padding:16px 16px 26px}
   .sech{display:flex;align-items:center;margin:20px 2px 10px}
   .sech:first-child{margin-top:4px}
   h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0}
   .addbtn{margin-left:auto;border:0;background:var(--blue-l);color:var(--blue);font-weight:800;font-size:12px;border-radius:20px;padding:4px 11px;cursor:pointer;display:none}
   body.admin .addbtn{display:inline-block}
+  .custbtn{margin-left:auto;border:0;background:var(--blue-l);color:var(--blue);font-weight:800;font-size:12px;border-radius:20px;padding:4px 11px;cursor:pointer}
 
-  .week{display:flex;gap:10px}
-  .wk{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow);position:relative;overflow:hidden;cursor:default}
-  body.admin .wk{cursor:pointer}
-  .wk .k{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
-  .wk .d{font-size:17px;font-weight:800;margin:3px 0 1px}
-  .wk .m{font-size:12px;color:var(--muted);font-weight:600}
-  .wk .tagk{position:absolute;top:-10px;right:-10px;font-size:46px;opacity:.08}
-  .wkev{font-size:10px;margin-left:5px;opacity:.75}
+  #todayBanner{display:none;flex-direction:column;gap:8px;margin:4px 2px 4px}
+  .today{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--gold),#d9b400);border-radius:16px;padding:13px 14px;text-decoration:none;color:#3a2e00;box-shadow:var(--shadow)}
+  .today .ic{font-size:24px}
+  .today .tx{flex:1;display:flex;flex-direction:column;gap:2px}
+  .today .tx b{font-size:14px;font-weight:800}
+  .today .tx small{font-size:11px;font-weight:700;opacity:.85}
+  .today .arr{font-size:18px;font-weight:800;opacity:.8}
 
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .primary-tiles{display:flex;flex-direction:column;gap:11px}
   .mod{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:5px;position:relative;transition:transform .12s}
   .mod:active{transform:scale(.98)}
   .mod .ic{font-size:26px}.mod .t{font-weight:800;font-size:15px}
   .mod .s{font-size:11px;color:var(--muted);font-weight:600;line-height:1.3}
+  .mod .s .wkev{margin-left:4px;opacity:.75}
   .mod.live{border-color:#bfe0c9}
   .pill{position:absolute;top:11px;right:11px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:20px}
   .pill.on{background:#e2f3ea;color:#1f9d57}.pill.soon{background:#eef0f3;color:#9aa6b2}.pill.shop{background:#fdf3cf;color:#a3850a}
+
+  .chiprow{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+  .chiprow::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;min-width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-decoration:none;color:var(--ink);box-shadow:var(--shadow)}
+  .chip:active{transform:scale(.97)}
+  .chip .ic{font-size:19px}
+  .chip .t{font-size:10px;font-weight:800;text-align:center;white-space:nowrap}
 
   .news{display:flex;flex-direction:column;gap:11px}
   .post{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);position:relative}
@@ -65,6 +76,7 @@
   .pedit button{border:0;border-radius:8px;width:30px;height:30px;font-size:13px;font-weight:800;cursor:pointer}
   .pedit .e{background:rgba(255,255,255,.92);color:var(--blue)}
   .pedit .x{background:rgba(255,255,255,.92);color:#d2453a}
+  .morebtn{width:100%;border:0;border-radius:14px;background:var(--blue-l);color:var(--blue);font-weight:800;font-size:13px;padding:11px;cursor:pointer;margin-top:2px;font-family:inherit}
 
   .drops{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
   .drops::-webkit-scrollbar{display:none}
@@ -83,7 +95,7 @@
   /* modal */
   .modal{position:absolute;inset:0;background:rgba(8,30,58,.55);z-index:40;display:none;align-items:center;justify-content:center;padding:20px}
   .modal.on{display:flex}
-  .sheet{background:#fff;border-radius:18px;width:100%;max-width:330px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.4);animation:pop .35s cubic-bezier(.2,.9,.3,1)}
+  .sheet{background:#fff;border-radius:18px;width:100%;max-width:330px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.4);animation:pop .35s cubic-bezier(.2,.9,.3,1);max-height:86%;overflow-y:auto}
   @keyframes pop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
   .sheet h3{margin:0 0 12px;font-size:17px}
   .sheet label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:9px 0 4px}
@@ -92,6 +104,21 @@
   .srow{display:flex;gap:8px;margin-top:14px}
   .srow button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
   .srow .save{background:var(--blue);color:#fff}.srow .cancel{background:#eef0f3;color:var(--ink)}
+
+  /* customize sheet */
+  .clrow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .clrow:last-child{border-bottom:0}
+  .clic{font-size:18px;width:20px;text-align:center;flex:0 0 auto}
+  .clname{flex:1;font-weight:700;font-size:13px;min-width:0}
+  .cltoggle{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
+  .clarrows{display:flex;gap:4px;flex:0 0 auto}
+  .clarrows button{border:1px solid var(--line);background:#fff;border-radius:8px;width:26px;height:26px;font-size:11px;cursor:pointer;color:var(--blue);font-family:inherit}
+  .clarrows button:disabled{opacity:.3;cursor:default}
+  .reset2{margin-top:12px;text-align:center}
+  .reset2 button{background:none;border:0;color:#9aa6b2;font-size:12px;text-decoration:underline;cursor:pointer;font-family:inherit}
+
+  .toast{position:absolute;left:50%;bottom:20px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   @media (max-width:480px){body{padding:0;background:var(--bg)}.lead{display:none}.phone{width:100%;min-height:100vh;border:0;border-radius:0;box-shadow:none}}
 </style>
@@ -103,36 +130,30 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
 <div class="phone">
   <header>
     <img src="assets/discinsanity-logo.png" alt="Discinsanity">
-    <div class="htitle"><b>Discinsanity</b><small>Lehigh Valley Disc Golf</small></div>
+    <div class="htitle"><b>Discinsanity</b><small>Powered by <span class="hog">Hog</span><span class="tron">Tron</span> Solutions</small></div>
     <button class="badge" id="signbtn" onclick="goAccount()">Sign in</button>
   </header>
 
   <div class="body">
-    <div class="sech"><h2>This Week</h2></div>
-    <div class="week" id="week"></div>
+    <div id="todayBanner"></div>
 
-    <div class="sech"><h2>Open the App</h2></div>
-    <div class="grid">
-      <a class="mod live" href="index.html"><span class="pill on">Live</span><span class="ic">🥏</span><span class="t">Tags League</span><span class="s">Weekly bag-tag standings, history, profiles</span></a>
-      <a class="mod live" href="doubles.html"><span class="pill on">Live</span><span class="ic">👥</span><span class="t">Doubles</span><span class="s">Check in, random teams & starting holes</span></a>
-      <a class="mod live" href="events.html"><span class="pill on">Live</span><span class="ic">📅</span><span class="t">Events</span><span class="s">Leagues, one-offs & tournaments calendar</span></a>
-      <a class="mod live" href="leaderboards.html"><span class="pill on">Live</span><span class="ic">🏆</span><span class="t">Leaderboards</span><span class="s">Season points across tags & doubles</span></a>
-      <a class="mod live" href="scorecard.html"><span class="pill on">Live</span><span class="ic">📝</span><span class="t">Scorecard</span><span class="s">Hole-by-hole scoring, swipe to advance</span></a>
-      <a class="mod" href="https://discinsanity.com" target="_blank" rel="noopener"><span class="pill shop">Shop</span><span class="ic">🛒</span><span class="t">Pro Shop</span><span class="s">Discs, apparel & the latest drops</span></a>
-      <a class="mod live" href="account.html"><span class="pill on">Live</span><span class="ic">👤</span><span class="t">My Profile</span><span class="s">Your tags, PDGA & history in one place</span></a>
-    </div>
+    <div class="sech"><h2>Open the App</h2><button class="custbtn" onclick="openCustomize()">✎ Customize</button></div>
+    <div class="primary-tiles" id="primaryTiles"></div>
 
     <div class="sech" id="dropsh" style="display:none"><h2>Fresh Drops</h2><span class="cloud"><span style="background:#fdf3cf;color:#a3850a;padding:2px 7px;border-radius:10px">☁ live from the shop</span></span></div>
     <div class="drops" id="drops"></div>
 
+    <div class="sech"><h2>More</h2></div>
+    <div class="chiprow" id="chipRow"></div>
+
     <div class="sech"><h2>News &amp; Drops</h2><span class="cloud" id="cloud"></span><button class="addbtn" onclick="editPost()">+ Add post</button></div>
     <div class="news" id="news"></div>
+    <button class="morebtn" id="moreNewsBtn" style="display:none" onclick="showMoreNews()">Show more</button>
 
     <p class="note" id="note"></p>
   </div>
 
   <footer>
-    <a href="https://discinsanity.com" target="_blank" rel="noopener">🛒 Shop</a>
     <a href="https://instagram.com/discinsanitydgproshop" target="_blank" rel="noopener">📷 Instagram</a>
     <a href="https://facebook.com/Discinsanity" target="_blank" rel="noopener">👍 Facebook</a>
     <a href="https://app.udisc.com/applink/event/v2/event_listing_olsn95bvjjgmfnrkpuvxyfym" target="_blank" rel="noopener">↗ UDisc</a>
@@ -150,6 +171,19 @@ like Jeff would. Content saves locally now; flips to the cloud once Supabase key
       <div class="srow"><button class="cancel" onclick="closeModal()">Cancel</button><button class="save" onclick="savePost()">Save</button></div>
     </div>
   </div>
+
+  <!-- customize dashboard -->
+  <div class="modal" id="customModal">
+    <div class="sheet">
+      <h3>Customize your dashboard</h3>
+      <p class="dsub" style="margin:-6px 0 10px;font-size:12px;color:var(--muted)">Pick which modules show as big tiles vs. small icons, and drag their order with the arrows.</p>
+      <div id="customList"></div>
+      <div class="srow"><button class="cancel" onclick="closeCustomize()">Cancel</button><button class="save" onclick="saveCustomize()">Save</button></div>
+      <div class="reset2"><button onclick="resetCustomize()">↺ Reset to default</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
 </div>
 
 <script>
@@ -163,6 +197,7 @@ async function remoteSave(state){await fetch(`${SUPA_URL}/rest/v1/hubs?on_confli
 const KEY='discinsanity_hub_v1';
 const TYPE_STYLE={'Disc Drop':{ic:'🛒',bg:'linear-gradient(135deg,#0066B3,#003a66)',c:'#fff'},'Tags Recap':{ic:'🏆',bg:'linear-gradient(135deg,#F4CE1A,#d9b400)',c:'#5a4500'},'Doubles':{ic:'👥',bg:'linear-gradient(135deg,#7a3fb0,#4d2a73)',c:'#fff'},'Announcement':{ic:'📣',bg:'linear-gradient(135deg,#1f9d57,#15633a)',c:'#fff'},'Event':{ic:'📅',bg:'linear-gradient(135deg,#e8742c,#b9591c)',c:'#fff'}};
 let hub={};
+let newsShown=4;
 
 function seed(){return {
   thisWeek:[
@@ -178,38 +213,134 @@ async function load(){let s=null;if(remoteOn()){try{s=await remoteLoad();}catch(
 function persist(remote=true){localStorage.setItem(KEY,JSON.stringify(hub));if(remote&&remoteOn())remoteSave(hub).catch(()=>{});}
 
 const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+function eventsOn(kind,date){
+  try{const s=JSON.parse(localStorage.getItem('discinsanity_events_v1'))||{};
+    return (s.events||[]).filter(e=>e.kind===kind&&e.date===date);}catch(e){return [];}
+}
 function nextEventOf(kind){ // next upcoming event from the Events module (shared store)
-  try{const s=JSON.parse(localStorage.getItem('discinsanity_events_v1'))||{};const t=new Date().toISOString().slice(0,10);
+  try{const s=JSON.parse(localStorage.getItem('discinsanity_events_v1'))||{};const t=todayStr();
     return (s.events||[]).filter(e=>e.kind===kind&&e.date>=t).sort((a,b)=>a.date<b.date?-1:1)[0]||null;}catch(e){return null;}
 }
-function renderWeek(){
-  document.getElementById('week').innerHTML=hub.thisWeek.map((w,i)=>{
-    const ev=nextEventOf(w.kind==='Tags'?'tags':'doubles');
-    const day=ev?`${DOW[new Date(ev.date+'T12:00:00').getDay()]} · ${esc(ev.time||'')}`:w.day;
-    const where=ev?esc(ev.course||w.where):w.where;
-    return `<div class="wk" onclick="editWeek(${i})"><div class="tagk">${w.kind==='Tags'?'🥏':'👥'}</div>
-      <div class="k" style="color:${w.color}">${w.kind}${ev?'<span class="wkev" title="From the Events calendar">📅</span>':''}</div><div class="d">${day}</div><div class="m">${where}</div></div>`;}).join('');
+
+/* ===== module registry + customizable layout ===== */
+const MODULES=[
+  {id:'tags',ic:'🥏',t:'Tags League',s:'Weekly bag-tag standings, history, profiles',href:'index.html'},
+  {id:'events',ic:'📅',t:'Events',s:'Leagues, one-offs & tournaments calendar',href:'events.html'},
+  {id:'doubles',ic:'👥',t:'Doubles',s:'Check in, random teams & starting holes',href:'doubles.html'},
+  {id:'leaderboards',ic:'🏆',t:'Leaderboards',s:'Season points across tags & doubles',href:'leaderboards.html'},
+  {id:'scorecard',ic:'📝',t:'Scorecard',s:'Hole-by-hole scoring, swipe to advance',href:'scorecard.html'},
+  {id:'shop',ic:'🛒',t:'Pro Shop',s:'Discs, apparel & the latest drops',href:'https://discinsanity.com',external:true}
+];
+const DEFAULT_BIG=['tags','events'];
+const LAYOUT_KEY='discinsanity_layout_v1';
+let layout=[], draftLayout=[];
+function modOf(id){return MODULES.find(m=>m.id===id);}
+function defaultLayout(){return MODULES.map(m=>({id:m.id,big:DEFAULT_BIG.includes(m.id)}));}
+function loadLayout(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(LAYOUT_KEY));}catch(e){}
+  if(!Array.isArray(saved)||!saved.length){layout=defaultLayout();return;}
+  const known=new Set(MODULES.map(m=>m.id));
+  layout=saved.filter(x=>x&&known.has(x.id));
+  const have=new Set(layout.map(x=>x.id));
+  MODULES.forEach(m=>{if(!have.has(m.id))layout.push({id:m.id,big:DEFAULT_BIG.includes(m.id)});});
+  if(!layout.some(x=>x.big))layout=defaultLayout(); // corrupted / all-demoted safety net
 }
+function saveLayout(){localStorage.setItem(LAYOUT_KEY,JSON.stringify(layout));}
+
+function tileHtml(m,big){
+  const target=m.external?' target="_blank" rel="noopener"':'';
+  if(big){
+    const subId=m.id==='tags'?' id="tagsSub"':m.id==='events'?' id="eventsSub"':'';
+    return `<a class="mod live" href="${m.href}"${target}><span class="pill on">Live</span><span class="ic">${m.ic}</span><span class="t">${esc(m.t)}</span><span class="s"${subId}>${esc(m.s)}</span></a>`;
+  }
+  return `<a class="chip" href="${m.href}"${target}><span class="ic">${m.ic}</span><span class="t">${esc(m.t)}</span></a>`;
+}
+function renderTiles(){
+  const big=layout.filter(x=>x.big).map(x=>modOf(x.id)).filter(Boolean);
+  const small=layout.filter(x=>!x.big).map(x=>modOf(x.id)).filter(Boolean);
+  document.getElementById('primaryTiles').innerHTML=big.map(m=>tileHtml(m,true)).join('');
+  document.getElementById('chipRow').innerHTML=small.map(m=>tileHtml(m,false)).join('');
+}
+
+/* Tags/Events big-tile subtitles double as live "what's next" badges when those
+   two modules are shown big. No-op (null-safe) if a user demoted them to chips. */
+function updateTileSubs(){
+  const tagsEv=nextEventOf('tags'), dblEv=nextEventOf('doubles');
+  const tagsSub=document.getElementById('tagsSub'), eventsSub=document.getElementById('eventsSub');
+  if(tagsSub&&tagsEv)tagsSub.innerHTML=`${DOW[new Date(tagsEv.date+'T12:00:00').getDay()]} · ${esc(tagsEv.time||'')} · ${esc(tagsEv.course||'')}<span class="wkev" title="From the Events calendar">📅</span>`;
+  if(eventsSub&&dblEv)eventsSub.innerHTML=`Next: ${DOW[new Date(dblEv.date+'T12:00:00').getDay()]} · ${esc(dblEv.time||'')} · ${esc(dblEv.course||'')}<span class="wkev" title="From the Events calendar">📅</span>`;
+}
+
+/* ===== "what's on today" banner ===== */
+function renderTodayBanner(){
+  const el=document.getElementById('todayBanner');
+  const t=todayStr();
+  const items=[];
+  eventsOn('tags',t).forEach(e=>items.push({ic:'🥏',href:'index.html',label:'Tags is on tonight',time:e.time,where:e.course}));
+  eventsOn('doubles',t).forEach(e=>items.push({ic:'👥',href:'doubles.html',label:'Doubles is on tonight',time:e.time,where:e.course}));
+  if(!items.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='flex';
+  el.innerHTML=items.map(i=>`<a class="today" href="${i.href}"><span class="ic">${i.ic}</span><span class="tx"><b>${esc(i.label)}</b><small>${esc([i.time,i.where].filter(Boolean).join(' · '))}</small></span><span class="arr">→</span></a>`).join('');
+}
+
+/* ===== customize dashboard modal ===== */
+function openCustomize(){draftLayout=layout.map(x=>({...x}));renderCustomList();document.getElementById('customModal').classList.add('on');}
+function closeCustomize(){document.getElementById('customModal').classList.remove('on');}
+function renderCustomList(){
+  const el=document.getElementById('customList');
+  el.innerHTML=draftLayout.map((x,i)=>{
+    const m=modOf(x.id);if(!m)return '';
+    return `<div class="clrow">
+      <span class="clic">${m.ic}</span><span class="clname">${esc(m.t)}</span>
+      <label class="cltoggle"><input type="checkbox" ${x.big?'checked':''} onchange="toggleDraftBig('${m.id}')"> Big tile</label>
+      <div class="clarrows">
+        <button onclick="moveDraft(${i},-1)" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveDraft(${i},1)" ${i===draftLayout.length-1?'disabled':''}>▼</button>
+      </div></div>`;
+  }).join('');
+}
+function toggleDraftBig(id){
+  const item=draftLayout.find(x=>x.id===id);if(!item)return;
+  if(item.big&&draftLayout.filter(x=>x.big).length<=1){toast('Keep at least one big tile');return;}
+  item.big=!item.big;renderCustomList();
+}
+function moveDraft(i,dir){
+  const j=i+dir;if(j<0||j>=draftLayout.length)return;
+  [draftLayout[i],draftLayout[j]]=[draftLayout[j],draftLayout[i]];renderCustomList();
+}
+function saveCustomize(){layout=draftLayout.map(x=>({...x}));saveLayout();closeCustomize();renderTiles();updateTileSubs();toast('Dashboard updated');}
+function resetCustomize(){draftLayout=defaultLayout();renderCustomList();}
+
+/* ===== toast ===== */
+let toastTimer=null;
+function toast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800);}
+
 function renderNews(){
-  document.getElementById('news').innerHTML=hub.news.map(p=>{const st=TYPE_STYLE[p.type]||TYPE_STYLE['Announcement'];
+  const list=hub.news.slice(0,newsShown);
+  document.getElementById('news').innerHTML=list.map(p=>{const st=TYPE_STYLE[p.type]||TYPE_STYLE['Announcement'];
     const href=p.link||'#';
     return `<div class="post">
       <div class="pedit"><button class="e" onclick="editPost('${p.id}')">✎</button><button class="x" onclick="delPost('${p.id}')">✕</button></div>
       <a class="go" href="${href}" ${p.link&&p.link.startsWith('http')?'target="_blank" rel="noopener"':''}>
         <div class="top" style="background:${st.bg};color:${st.c}">${st.ic}</div>
         <div class="b"><div class="tg">${p.type}</div><h3>${esc(p.title)}</h3><p>${esc(p.body)}</p><div class="when">${esc(p.when||'')}</div></div></a></div>`;}).join('');
+  const btn=document.getElementById('moreNewsBtn');
+  btn.style.display=hub.news.length>newsShown?'block':'none';
 }
+function showMoreNews(){newsShown+=4;renderNews();}
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function render(){renderWeek();renderNews();
+function render(){renderTiles();renderTodayBanner();updateTileSubs();renderNews();
   document.getElementById('cloud').innerHTML=remoteOn()?'<span style="background:#d8eede;color:#1f9d57;padding:2px 7px;border-radius:10px">☁ cloud</span>':'<span style="background:#eef3f8;color:#67737f;padding:2px 7px;border-radius:10px">● local</span>';
-  document.getElementById('note').textContent=document.body.classList.contains('admin')?'Admin mode — add / edit / delete posts and tap a This-Week card to edit it.':'Concept shell · sign in as admin to manage content.';
+  document.getElementById('note').textContent=document.body.classList.contains('admin')?'Admin mode — add / edit / delete posts.':'Concept shell · sign in as admin to manage content.';
 }
 
 /* ===== admin ===== */
 function toggleAdmin(){
-  if(document.body.classList.contains('admin')){document.body.classList.remove('admin');document.getElementById('signbtn').textContent='Sign in';render();return;}
+  if(document.body.classList.contains('admin')){document.body.classList.remove('admin');syncAuth();render();return;}
   const v=prompt('Admin code (Jeff):');if(v==null)return;
-  if(v.trim()===ADMIN_CODE){document.body.classList.add('admin');document.getElementById('signbtn').textContent='Admin ✓';render();}else alert('Wrong code');
+  if(v.trim()===ADMIN_CODE){document.body.classList.add('admin');syncAuth();render();}else alert('Wrong code');
 }
 let editId=null;
 function editPost(id){
@@ -231,10 +362,6 @@ function savePost(){
   persist();closeModal();render();
 }
 function delPost(id){if(!confirm('Delete this post?'))return;hub.news=hub.news.filter(x=>x.id!==id);persist();render();}
-function editWeek(i){if(!document.body.classList.contains('admin'))return;const w=hub.thisWeek[i];
-  if(nextEventOf(w.kind==='Tags'?'tags':'doubles')){alert('This card mirrors the next '+w.kind+' event on the Events calendar — edit it there.');location.href='events.html';return;}
-  const day=prompt(w.kind+' — day & time:',w.day);if(day==null)return;const where=prompt(w.kind+' — course / details:',w.where);if(where==null)return;
-  w.day=day;w.where=where;persist();render();}
 
 /* live disc drops — Shopify's public products.json (CORS: *). Fails silently offline. */
 async function loadDrops(){
@@ -254,8 +381,20 @@ async function loadDrops(){
   }catch(e){}
 }
 function goAccount(){location.href='account.html';}
-function syncAuth(){if(!window.DI)return;const me=DI.current();document.body.classList.toggle('admin',DI.isAdmin());const b=document.getElementById('signbtn');if(b)b.textContent=me?(DI.isAdmin()?'Admin ✓':me.name.split(' ')[0]):'Sign in';}
-(async()=>{await DI.init();await load();render();syncAuth();loadDrops();})();
+function syncAuth(){
+  if(!window.DI)return;
+  const me=DI.current();
+  document.body.classList.toggle('admin',DI.isAdmin());
+  const b=document.getElementById('signbtn');if(!b)return;
+  if(me){
+    const initial=(me.name||me.email||'?').trim().charAt(0).toUpperCase();
+    b.textContent=initial;b.classList.add('avatar');
+    b.title=DI.isAdmin()?'Admin ✓ — '+(me.name||me.email):(me.name||me.email);
+  }else{
+    b.textContent='Sign in';b.classList.remove('avatar');b.title='';
+  }
+}
+(async()=>{await DI.init();await load();loadLayout();render();syncAuth();loadDrops();})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

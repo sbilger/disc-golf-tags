@@ -195,7 +195,7 @@ const DBL_KEY='discinsanity_doubles_v1';
 
 let card=null;   // {course:{course,layout,holes,par},startHole,rows:[{label,names,scores:{}}],pos,from}
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const today=()=>new Date().toISOString().slice(0,10);
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
 
 /* ===== setup ===== */
