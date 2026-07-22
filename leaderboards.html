@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="account.js"></script>
 <script src="suite.js"></script>
 <style>
@@ -312,7 +313,7 @@ let toastT=null;function toast(t){const e=document.getElementById('toast');e.tex
 window.addEventListener('storage',e=>{if(e.key===TAGS_KEY||e.key===DBL_KEY||e.key==='discinsanity_members')refresh(false);});
 
 /* ===== boot ===== */
-(async()=>{await load();renderAll();})();
+(async()=>{await DI.init();await load();renderAll();})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

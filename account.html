@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
   :root{--blue:#0066B3;--blue-d:#00518f;--blue-l:#e8f1fa;--gold:#F4CE1A;--purple:#7a3fb0;--org:#e8742c;--ink:#16202b;--bg:#eaeef3;--card:#fff;--line:#dce3ea;--muted:#67737f;--bad:#d2453a;--good:#1f9d57;--shadow:0 6px 18px rgba(20,40,70,.08)}
@@ -42,7 +43,12 @@
   .btn:active{transform:translateY(1px)}
   .btn.ghost{background:#fff;color:var(--blue);border:2px solid var(--blue);box-shadow:none;margin-top:10px}
   .btn.red{background:#fff;color:var(--bad);border:2px solid #f1c6c2;box-shadow:none}
+  .btn.social{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px}
+  .btn.social:disabled{opacity:.45;cursor:not-allowed}
+  .orsep{display:flex;align-items:center;gap:10px;margin:16px 0 4px;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+  .orsep::before,.orsep::after{content:'';flex:1;height:1px;background:var(--line)}
   .err{color:var(--bad);font-size:13px;font-weight:700;margin-top:10px;min-height:18px;text-align:center}
+  .msg{color:var(--blue-d);font-size:13px;font-weight:700;margin-top:10px;text-align:center;background:var(--blue-l);border-radius:10px;padding:10px}
   .kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
   .kv:last-child{border-bottom:0}.kv .k{color:var(--muted);font-weight:700}.kv .v{font-weight:800}
   .links{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -66,8 +72,8 @@
 </style>
 </head>
 <body>
-<p class="lead"><b>Discinsanity Account</b> — demo login + member profile. Create an account or sign in
-(try <b>jeff@discinsanity.com</b> / <b>discinsanity</b>). Real accounts arrive with the Supabase backend.</p>
+<p class="lead"><b>Discinsanity Account</b> — real accounts (Supabase Auth). Sign in with
+email, or Google/Apple/Facebook once those are set up. Create an account to get started.</p>
 <div class="phone">
   <header>
     <a class="hback" href="hub.html">‹ Hub</a>
@@ -109,32 +115,54 @@ function render(){
     <div class="card">
       <div class="seg"><button id="seg-in" class="${mode==='in'?'on':''}" onclick="setMode('in')">Sign in</button><button id="seg-up" class="${mode==='up'?'on':''}" onclick="setMode('up')">Create account</button></div>
       <div id="form"></div>
+      <div class="orsep">or</div>
+      <button class="btn social" onclick="doOAuth('google')">🔵 Continue with Google</button>
+      <button class="btn social" onclick="doOAuth('apple')">🍎 Continue with Apple</button>
+      <button class="btn social" onclick="doOAuth('facebook')">📘 Continue with Facebook</button>
+      <p class="note">Social sign-in needs one-time setup per provider (Sean/TODO-SEAN.md) — until then these show Supabase's own error page.</p>
       <div class="err" id="err"></div>
-    </div>
-    <p class="note">Demo auth — accounts are stored on this device only until the cloud backend is live.</p>`;
+      <div class="msg" id="msg" style="display:none"></div>
+    </div>`;
   renderForm();
 }
-function setMode(m){mode=m;document.getElementById('seg-in').classList.toggle('on',m==='in');document.getElementById('seg-up').classList.toggle('on',m==='up');renderForm();document.getElementById('err').textContent='';}
+function setMode(m){mode=m;document.getElementById('seg-in').classList.toggle('on',m==='in');document.getElementById('seg-up').classList.toggle('on',m==='up');renderForm();document.getElementById('err').textContent='';hideMsg();}
 function renderForm(){
   const f=document.getElementById('form');
   if(mode==='in'){
     f.innerHTML=`<label>Email</label><input id="email" type="email" autocomplete="email" placeholder="you@email.com">
       <label>Password</label><input id="pw" type="password" autocomplete="current-password" placeholder="••••">
-      <button class="btn" onclick="doSignIn()">Sign in</button>
-      <p class="hint">Demo: jeff@discinsanity.com / discinsanity</p>`;
+      <button class="btn" onclick="doSignIn()">Sign in</button>`;
   }else{
     f.innerHTML=`<label>Name</label><input id="name" placeholder="First Last">
       <label>Email</label><input id="email" type="email" autocomplete="email" placeholder="you@email.com">
-      <label>Password</label><input id="pw" type="password" autocomplete="new-password" placeholder="4+ characters">
+      <label>Password</label><input id="pw" type="password" autocomplete="new-password" placeholder="6+ characters">
       <div style="display:flex;gap:8px"><div style="flex:1"><label>PDGA # (optional)</label><input id="pdga" inputmode="numeric" placeholder="12345"></div>
       <div style="flex:1"><label>Division</label><select id="division">${DIVS.map(d=>`<option value="${d}">${d||'—'}</option>`).join('')}</select></div></div>
-      <label>Organizer code (optional)</label><input id="code" placeholder="leave blank unless Jeff gave you one">
-      <button class="btn" onclick="doSignUp()">Create account</button>`;
+      <button class="btn" onclick="doSignUp()">Create account</button>
+      <p class="hint">Admin/organizer status is set after signup in Edit profile, not at signup.</p>`;
   }
 }
-function err(m){document.getElementById('err').textContent=m;}
-function doSignIn(){try{DI.signIn(val('email'),val('pw'));render();}catch(e){err(e.message);}}
-function doSignUp(){try{DI.signUp({name:val('name'),email:val('email'),password:val('pw'),pdga:val('pdga'),division:val('division'),code:val('code')});render();}catch(e){err(e.message);}}
+function err(m){document.getElementById('err').textContent=m||'';}
+function showMsg(m){const e=document.getElementById('msg');if(!e)return;e.textContent=m;e.style.display='block';}
+function hideMsg(){const e=document.getElementById('msg');if(e)e.style.display='none';}
+async function doSignIn(){
+  err('');
+  try{await DI.signIn(val('email'),val('pw'));render();}
+  catch(e){err(e.message);}
+}
+async function doSignUp(){
+  err('');hideMsg();
+  try{
+    await DI.signUp({name:val('name'),email:val('email'),password:val('pw')});
+    if(val('pdga')||val('division')){await DI.update({pdga:val('pdga'),division:val('division')});}
+    render();
+  }catch(e){
+    if(e.message==='CONFIRM_EMAIL'){setMode('in');showMsg('Account created — check your email to confirm, then sign in.');}
+    else err(e.message);
+  }
+}
+async function doOAuth(provider){err('');try{await DI.signInWithProvider(provider);}catch(e){err(e.message);}}
+async function doSignOut(){await DI.signOut();DIS.dropOrg();mode='in';render();}
 function val(id){const e=document.getElementById(id);return e?e.value:'';}
 
 
@@ -176,11 +204,9 @@ function statsCardHTML(me){
     <a href="leaderboards.html" style="display:block;text-align:center;margin-top:10px;color:var(--blue);font-weight:800;font-size:13px;text-decoration:none">🏆 Full leaderboards ›</a></div>`;
 }
 /* ===== Payment method card (Section 3) =====
-   `hasCard` is a LOCAL HINT ONLY (localStorage member record) — set after a successful
-   client-side confirmCardSetup, purely so the UI can say "card saved ✓" without another
-   round trip. The AUTHORITATIVE record lives in Supabase's stripe_customers table (written
-   by the stripe-webhook Edge Function on setup_intent.succeeded) and is what charge-players
-   actually checks at charge time — a stale/missing local hint never blocks or fakes a charge. */
+   `hasCard` is a display hint (members.has_card column) — the AUTHORITATIVE record lives
+   in Supabase's stripe_customers table (written by the stripe-webhook Edge Function on
+   setup_intent.succeeded) and is what charge-players actually checks at charge time. */
 function paymentCardHTML(me){
   const disabled=!STRIPE_PK;
   return `<div class="card"><h3>Payment method</h3>
@@ -210,7 +236,7 @@ function profileHTML(me){
       <a class="lk" href="events.html"><span class="ic">📅</span><span class="t">Events</span><span class="s">Upcoming</span></a>
       <a class="lk" href="hub.html"><span class="ic">🏠</span><span class="t">Hub</span><span class="s">Everything</span></a>
     </div>
-    <button class="btn red" style="margin-top:16px" onclick="DI.signOut();DIS.dropOrg();mode='in';render()">Sign out</button>
+    <button class="btn red" style="margin-top:16px" onclick="doSignOut()">Sign out</button>
     <p class="note">${isA?'Admin: you can post news & manage events from the Hub.<br>':''}PDGA # and rating are self-reported — Discinsanity has no live PDGA sync (PDGA blocks automated lookups). Tap PDGA # above to check your real profile.</p>`;
 }
 function editProfile(){const me=DI.current();const el=document.getElementById('body');
@@ -221,13 +247,17 @@ function editProfile(){const me=DI.current();const el=document.getElementById('b
       <div style="flex:1"><label>PDGA Rating</label><input id="e-rating" inputmode="numeric" placeholder="e.g. 950" value="${esc(me.rating||'')}"></div></div>
       <label>Division</label><select id="e-div">${DIVS.map(d=>`<option value="${d}" ${d===me.division?'selected':''}>${d||'—'}</option>`).join('')}</select>
       <label>Name in league lists (if different)</label><input id="e-league" value="${esc(me.leagueName||'')}" placeholder="e.g. Mike R">
-      ${me.role==='admin'?'':'<label>Organizer code (optional)</label><input id="e-code" placeholder="becomes admin if correct">'}
+      ${me.role==='admin'?'':'<label>Admin code (optional)</label><input id="e-code" placeholder="becomes admin if correct">'}
       <button class="btn" onclick="saveProfile()">Save</button>
       <button class="btn ghost" onclick="render()">Cancel</button>
       <p class="note">Enter your rating from your official PDGA profile — we can't pull it automatically
       (PDGA's site blocks that), so update it here whenever it changes.</p></div>`;
 }
-function saveProfile(){const patch={name:val('e-name'),pdga:val('e-pdga'),rating:val('e-rating').replace(/\D/g,''),division:val('e-div'),leagueName:val('e-league')};const c=document.getElementById('e-code');if(c)patch.code=c.value;DI.update(patch);render();}
+async function saveProfile(){
+  const patch={name:val('e-name'),pdga:val('e-pdga'),rating:val('e-rating').replace(/\D/g,''),division:val('e-div'),leagueName:val('e-league')};
+  const c=document.getElementById('e-code');if(c&&c.value.trim())patch.code=c.value;
+  await DI.update(patch);render();
+}
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
 /* ===== Card modal flow ===== */
@@ -252,7 +282,7 @@ async function submitCard(){
     if(!r.ok)throw new Error(j.error||'Could not start card setup');
     const result=await stripeClient.confirmCardSetup(j.client_secret,{payment_method:{card:cardElement,billing_details:{email:me.email,name:me.name}}});
     if(result.error)throw new Error(result.error.message);
-    DI.update({hasCard:true});
+    await DI.update({hasCard:true});
     closeCardModal();toast('Card saved!');render();
   }catch(e){
     document.getElementById('card-err').textContent=e.message;
@@ -262,7 +292,7 @@ async function submitCard(){
 }
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2200);}
 
-render();
+(async()=>{await DI.init();render();})();
 </script>
 </body>
 </html>

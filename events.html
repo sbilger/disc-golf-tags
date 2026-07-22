@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="account.js"></script>
 <script src="suite.js"></script>
 <script src="courses.js"></script>
@@ -341,7 +342,7 @@ function delLeague(id){if(!confirm('Delete this recurring league? (Past occurren
 function show(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById('v-'+name).classList.add('on');
   const parent=name==='detail'?'upcoming':name;document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===parent));}
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
-(async()=>{await load();if(DIS.isOrg())document.body.classList.add('org');fillCourseSelects();render();})();
+(async()=>{await DI.init();await load();if(DIS.isOrg())document.body.classList.add('org');fillCourseSelects();render();})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script>
 </body>

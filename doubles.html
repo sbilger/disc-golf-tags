@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="account.js"></script>
 <script src="suite.js"></script>
 <script src="courses.js"></script>
@@ -301,7 +302,7 @@ function renderAll(){renderCourseSel();renderRoster();renderTeams();renderHistor
 let toastT=null;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
 
 /* ===== boot ===== */
-(async()=>{await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');
+(async()=>{await DI.init();await load();state.players.forEach(p=>present[p.name]=false);if(DIS.isOrg())document.body.classList.add('org');
   renderAll();show('checkin');})();
 /* refresh when returning from the Scorecard (it writes team scores into our store) */
 window.addEventListener('pageshow',e=>{if(e.persisted)load().then(renderAll);});
