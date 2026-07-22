@@ -164,7 +164,7 @@ const KIND={tags:{ic:'🥏',label:'Tags'},doubles:{ic:'👥',label:'Doubles'},to
 const OCC_WEEKS=8; // how many weeks of recurring occurrences to generate forward
 let state={events:[],leagues:[],rsvps:{},groups:{}};
 let ITEMS_BY_ID={};
-const today=()=>new Date().toISOString().slice(0,10);
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
 
 function toggleOrg(){if(document.body.classList.contains('org')){document.body.classList.remove('org');DIS.dropOrg();render();return;}const v=prompt('Admin code (Jeff):');if(v==null)return;if(v.trim()===ORGANIZER_CODE){document.body.classList.add('org');DIS.grantOrg();toast('Admin mode ON');render();}else toast('Wrong code');}

@@ -386,7 +386,7 @@ const COURSES=[{course:'South Mountain',layout:'White Tee',par:54,holes:18}];
 /* ===== STATE ===== */
 const KEY='tagshuffle_v4_div';
 let players=[],rounds=[],trades=[],config={newPlayerRule:'pool',feeCents:100},schedule=[],courseList=[],schedEdit=false;
-const today=()=>new Date().toISOString().slice(0,10);
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
 const playersIn=d=>players.filter(p=>p.division===d).sort((a,b)=>a.tag-b.tag);
 const nextTag=d=>Math.max(0,...players.filter(p=>p.division===d).map(p=>p.tag))+1;
 
