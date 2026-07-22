@@ -4,7 +4,7 @@
    keep the same shape, so callers don't change). See HUB-PLAN.md / TODO.md. */
 (function (g) {
   const MK = 'discinsanity_members', SK = 'discinsanity_session';
-  const ADMIN_CODE = 'discinsanity';           // entering this on sign-up/in grants admin (Jeff). CHANGE.
+  const ADMIN_CODE = 'nhNuGvSoCzbU';           // entering this on sign-up/in grants admin (Jeff). CHANGE.
   const read = () => { try { return JSON.parse(localStorage.getItem(MK) || '[]'); } catch (e) { return []; } };
   const write = (m) => localStorage.setItem(MK, JSON.stringify(m));
   const hash = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return 'h' + (h >>> 0); };
